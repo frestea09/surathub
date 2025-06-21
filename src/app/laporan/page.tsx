@@ -3,13 +3,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   AlertTriangle,
   Archive,
   Bell,
   CheckCircle,
-  ChevronDown,
   Clock,
   Download,
   FilePenLine,
@@ -70,63 +69,29 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const statCards = [
-  {
-    title: "Waktu Proses Rata-Rata",
-    value: "1.2 Hari",
-    description: "Turun 0.2 hari dari bulan lalu",
-    icon: Clock,
-  },
-  {
-    title: "Surat Lewat Tenggat",
-    value: "3",
-    description: "Perlu perhatian segera",
-    icon: AlertTriangle,
-  },
-  {
-    title: "Selesai Bulan Ini",
-    value: "129",
-    description: "+20.1% dari bulan lalu",
-    icon: CheckCircle,
-  },
-  {
-    title: "Total Surat Dibuat",
-    value: "350",
-    description: "Total semua surat masuk & keluar",
-    icon: FileText,
-  },
+
+const mockUsers = [
+    { id: 'admin', name: 'Admin', role: 'Admin', unit: 'All' },
+    { id: 'direktur', name: 'Dr. H. Yani Sumpena', role: 'Direktur', unit: 'All' },
+    { id: 'kabag-keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
+    { id: 'ppk', name: 'Saep Trian Prasetia', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
+    { id: 'kabag-umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
 ];
-
-const suratVolumeData = [
-  { name: "Jan", total: 110 },
-  { name: "Feb", total: 150 },
-  { name: "Mar", total: 90 },
-  { name: "Apr", total: 180 },
-  { name: "Mei", total: 120 },
-  { name: "Jun", total: 210 },
-  { name: "Jul", total: 140 },
-];
-
-const statusDistributionData = [
-  { name: "Baru / Draft", value: 40 },
-  { name: "Diproses / Terkirim", value: 78 },
-  { name: "Selesai", value: 129 },
-  { name: "Diarsipkan", value: 2350 },
-];
-
-const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db"];
 
 const allSuratData = [
-  { noSurat: "123/A/UM/2024", perihal: "Undangan Rapat Koordinasi", jenis: "Masuk", tanggal: "2024-07-25", dariKe: "Kemenkes", status: "Didisposisikan", penanggungJawab: "Direktur Utama" },
-  { noSurat: "001/SP/RSUD-O/VII/2024", perihal: "Surat Perintah Pengadaan ATK", jenis: "Keluar", tanggal: "2024-07-28", dariKe: "Pejabat Pengadaan", status: "Terkirim", penanggungJawab: "Admin" },
-  { noSurat: "003/BA/RSUD-O/VII/2024", perihal: "Berita Acara Pemeriksaan", jenis: "Keluar", tanggal: "2024-07-30", dariKe: "Internal", status: "Draft", penanggungJawab: "Admin" },
-  { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-07-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan" },
-  { noSurat: "004/BASTB/RSUD-O/VII/2024", perihal: "Berita Acara Serah Terima", jenis: "Keluar", tanggal: "2024-07-31", dariKe: "Internal", status: "Diarsipkan", penanggungJawab: "Sistem" },
-  { noSurat: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", dariKe: "CV. ATK Bersama", status: "Baru", penanggungJawab: "Admin" },
+  { noSurat: "123/A/UM/2024", perihal: "Undangan Rapat Koordinasi", jenis: "Masuk", tanggal: "2024-07-25", dariKe: "Kemenkes", status: "Didisposisikan", penanggungJawab: "Direktur Utama", unit: "Pimpinan" },
+  { noSurat: "001/SP/RSUD-O/VII/2024", perihal: "Surat Perintah Pengadaan ATK", jenis: "Keluar", tanggal: "2024-07-28", dariKe: "Pejabat Pengadaan", status: "Terkirim", penanggungJawab: "Admin", unit: "Pengadaan" },
+  { noSurat: "003/BA/RSUD-O/VII/2024", perihal: "Berita Acara Pemeriksaan", jenis: "Keluar", tanggal: "2024-07-30", dariKe: "Internal", status: "Draft", penanggungJawab: "Admin", unit: "Pengadaan" },
+  { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-07-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan", unit: "Pengadaan" },
+  { noSurat: "004/BASTB/RSUD-O/VII/2024", perihal: "Berita Acara Serah Terima", jenis: "Keluar", tanggal: "2024-07-31", dariKe: "Internal", status: "Diarsipkan", penanggungJawab: "Sistem", unit: "Umum" },
+  { noSurat: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", dariKe: "CV. ATK Bersama", status: "Baru", penanggungJawab: "Admin", unit: "Keuangan" },
 ];
 
 type SuratLaporan = typeof allSuratData[0];
+
+const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db"];
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
@@ -158,6 +123,67 @@ export default function LaporanPage() {
   const [selectedSurat, setSelectedSurat] = useState<SuratLaporan | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(mockUsers[0]);
+
+  const handleRoleChange = (userId: string) => {
+      const user = mockUsers.find(u => u.id === userId);
+      if(user) {
+          setCurrentUser(user);
+      }
+  };
+
+  const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
+    const data = (currentUser.unit === 'All')
+      ? allSuratData
+      : allSuratData.filter(s => s.unit === currentUser.unit);
+
+    const cards = [
+      {
+        title: "Waktu Proses Rata-Rata",
+        value: "1.2 Hari",
+        description: "Turun 0.2 hari dari bulan lalu",
+        icon: Clock,
+      },
+      {
+        title: "Surat Lewat Tenggat",
+        value: data.filter(s => s.status === 'Baru').length.toString(),
+        description: "Perlu perhatian segera",
+        icon: AlertTriangle,
+      },
+      {
+        title: "Selesai Bulan Ini",
+        value: data.filter(s => s.status === 'Selesai').length.toString(),
+        description: "+20.1% dari bulan lalu",
+        icon: CheckCircle,
+      },
+      {
+        title: "Total Surat Dibuat",
+        value: data.length.toString(),
+        description: "Total semua surat masuk & keluar",
+        icon: FileText,
+      },
+    ];
+    
+    const volumeData = [
+      { name: "Jan", total: data.filter(s => new Date(s.tanggal).getMonth() === 0).length },
+      { name: "Feb", total: data.filter(s => new Date(s.tanggal).getMonth() === 1).length },
+      { name: "Mar", total: data.filter(s => new Date(s.tanggal).getMonth() === 2).length },
+      { name: "Apr", total: data.filter(s => new Date(s.tanggal).getMonth() === 3).length },
+      { name: "Mei", total: data.filter(s => new Date(s.tanggal).getMonth() === 4).length },
+      { name: "Jun", total: data.filter(s => new Date(s.tanggal).getMonth() === 5).length },
+      { name: "Jul", total: data.filter(s => new Date(s.tanggal).getMonth() === 6).length },
+    ];
+    
+    const statusData = [
+      { name: "Baru / Draft", value: data.filter(s => s.status === 'Baru' || s.status === 'Draft').length },
+      { name: "Diproses / Terkirim", value: data.filter(s => s.status === 'Didisposisikan' || s.status === 'Terkirim').length },
+      { name: "Selesai", value: data.filter(s => s.status === 'Selesai').length },
+      { name: "Diarsipkan", value: data.filter(s => s.status === 'Diarsipkan').length },
+    ];
+
+    return { filteredData: data, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
+  }, [currentUser]);
+
 
   const handleExport = () => {
     toast({
@@ -314,11 +340,26 @@ export default function LaporanPage() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Laporan</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold md:text-2xl">Laporan ({currentUser.role})</h1>
+             <div className="w-64">
+                <Label htmlFor="role-switcher-laporan">Tampilan Sebagai:</Label>
+                <Select value={currentUser.id} onValueChange={handleRoleChange}>
+                    <SelectTrigger id="role-switcher-laporan">
+                        <SelectValue placeholder="Pilih Peran" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {mockUsers.map(user => (
+                            <SelectItem key={user.id} value={user.id}>
+                                {user.name} ({user.role})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-            {statCards.map((card, index) => (
+            {dynamicStatCards.map((card, index) => (
               <Card key={index}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
@@ -375,7 +416,7 @@ export default function LaporanPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Laporan Rinci Semua Surat</CardTitle>
-                <CardDescription>Lacak alur dan status semua surat dalam sistem.</CardDescription>
+                <CardDescription>Lacak alur dan status semua surat dalam sistem untuk {currentUser.unit === 'All' ? 'semua unit' : `unit ${currentUser.unit}`}.</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                  <DateRangePicker />
@@ -400,7 +441,7 @@ export default function LaporanPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allSuratData.map((surat) => (
+                  {filteredData.map((surat) => (
                     <TableRow key={surat.noSurat}>
                       <TableCell className="font-medium">{surat.noSurat}</TableCell>
                       <TableCell>{surat.perihal}</TableCell>
