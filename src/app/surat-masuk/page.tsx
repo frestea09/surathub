@@ -10,10 +10,11 @@ import {
   MoreHorizontal,
   Search,
   Share2,
+  XCircle,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -128,6 +129,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Didisposisikan: "outline",
   Selesai: "default",
   Diarsipkan: "default",
+  Ditolak: "destructive",
 };
 
 const allRoles = [
@@ -164,10 +166,11 @@ export default function SuratMasukPage() {
   const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [isSelesaiConfirmOpen, setIsSelesaiConfirmOpen] = useState(false);
+  const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
 
-  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi' | 'selesai') => {
+  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi' | 'selesai' | 'tolak') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'disposisi') {
@@ -178,6 +181,7 @@ export default function SuratMasukPage() {
     if (action === 'arsip') setIsArsipConfirmOpen(true);
     if (action === 'lacak-disposisi') setIsLacakDisposisiOpen(true);
     if (action === 'selesai') setIsSelesaiConfirmOpen(true);
+    if (action === 'tolak') setIsTolakConfirmOpen(true);
   };
   
   const handleArsipConfirm = () => {
@@ -193,6 +197,20 @@ export default function SuratMasukPage() {
     setSelectedSurat(null);
   };
 
+  const handleTolakConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev =>
+      prev.map(s => (s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s))
+    );
+    toast({
+      title: "Berhasil",
+      description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
+      variant: "destructive"
+    });
+    setIsTolakConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+  
   const handleSelesaiConfirm = () => {
     if (!selectedSurat) return;
     setSuratList(prev =>
@@ -235,6 +253,7 @@ export default function SuratMasukPage() {
     if (activeTab === "baru") return surat.status === "Baru";
     if (activeTab === "didisposisikan") return surat.status === "Didisposisikan";
     if (activeTab === "selesai") return surat.status === "Selesai" || surat.status === "Diarsipkan";
+    if (activeTab === "ditolak") return surat.status === "Ditolak";
     return true;
   });
 
@@ -254,6 +273,7 @@ export default function SuratMasukPage() {
             <TabsTrigger value="baru">Baru</TabsTrigger>
             <TabsTrigger value="didisposisikan">Didisposisikan</TabsTrigger>
             <TabsTrigger value="selesai">Selesai & Diarsipkan</TabsTrigger>
+             <TabsTrigger value="ditolak" className="text-destructive">Ditolak</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value={activeTab}>
@@ -318,6 +338,10 @@ export default function SuratMasukPage() {
                                   <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                                     <Archive className="mr-2 h-4 w-4" />
                                     Arsipkan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Tolak
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -525,6 +549,22 @@ export default function SuratMasukPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleSelesaiConfirm}>Ya, Selesaikan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Tolak Confirm Dialog */}
+      <AlertDialog open={isTolakConfirmOpen} onOpenChange={setIsTolakConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penolakan Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi &quot;Ditolak&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTolakConfirm} className={buttonVariants({ variant: "destructive" })}>Ya, Tolak</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
