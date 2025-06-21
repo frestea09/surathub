@@ -419,7 +419,7 @@ export default function BuatSuratPesananFinalPage() {
           description:
             "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
         });
-        router.push("/surat-keluar");
+        router.push("/surat-keluar?tab=draft");
       }
     } catch (error) {
       toast({

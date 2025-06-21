@@ -109,7 +109,7 @@ export default function BuatBastbPage() {
         
         localStorage.setItem('bastbList', JSON.stringify(list));
         toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
-        router.push('/surat-keluar');
+        router.push("/surat-keluar?tab=draft");
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -368,5 +368,4 @@ export default function BuatBastbPage() {
     </div>
   );
 }
-
     

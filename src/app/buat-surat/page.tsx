@@ -82,7 +82,7 @@ export default function BuatSuratPage() {
           title: "Berhasil",
           description: "Data surat berhasil disimpan sebagai draft.",
         });
-        router.push("/surat-keluar");
+        router.push("/surat-keluar?tab=draft");
       }
     } catch (error) {
       toast({

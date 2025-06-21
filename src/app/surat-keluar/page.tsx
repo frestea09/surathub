@@ -13,6 +13,7 @@ import {
   XCircle,
   Search,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -163,6 +164,9 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export default function SuratKeluarPage() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const tabQuery = searchParams.get('tab');
+
   const [suratList, setSuratList] = useState<SuratKeluar[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<SuratKeluar | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -171,7 +175,7 @@ export default function SuratKeluarPage() {
   const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
   const [isKirimDialogOpen, setIsKirimDialogOpen] = useState(false);
   const [penerima, setPenerima] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState("semua");
+  const [activeTab, setActiveTab] = useState(tabQuery || "semua");
   const [kirimSearchTerm, setKirimSearchTerm] = useState("");
 
   useEffect(() => {
@@ -324,7 +328,7 @@ export default function SuratKeluarPage() {
       <div className="flex items-center">
         <h1 className="text-lg font-semibold md:text-2xl">Surat Keluar</h1>
       </div>
-      <Tabs defaultValue="semua" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center">
           <TabsList>
             <TabsTrigger value="semua">Semua</TabsTrigger>

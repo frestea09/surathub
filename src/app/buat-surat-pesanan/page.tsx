@@ -415,7 +415,7 @@ export default function BuatSuratPesananPage() {
           title: "Berhasil",
           description: "Data surat pesanan berhasil disimpan sebagai draft.",
         });
-        router.push("/surat-keluar");
+        router.push("/surat-keluar?tab=draft");
       }
     } catch (error) {
       toast({
