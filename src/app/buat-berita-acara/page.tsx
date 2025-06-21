@@ -43,7 +43,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import LogoRSUDSoreang from "../../assets/logo-rs.png";
+
 type Item = {
   id: number;
   nama: string;
@@ -639,7 +639,7 @@ export default function BuatBeritaAcaraPage() {
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
                   <Image
-                    src={LogoRSUDSoreang}
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg/1200px-Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg.png"
                     alt="Logo"
                     width={80}
                     height={80}

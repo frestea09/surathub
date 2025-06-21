@@ -18,7 +18,6 @@ import { ArrowLeft, Printer, Sparkles, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import LogoRSUDSoreang from "../../assets/logo-rs.png";
 
 export default function BuatSuratPage() {
   const { toast } = useToast();

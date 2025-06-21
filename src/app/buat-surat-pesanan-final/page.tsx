@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import LogoRSUDSoreang from "../../assets/logo-rs.png";
 
 type Item = {
   id: number;
