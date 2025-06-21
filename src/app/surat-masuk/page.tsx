@@ -196,6 +196,7 @@ export default function SuratMasukPage() {
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
+  const [showNotificationBadge, setShowNotificationBadge] = useState(true);
 
 
   const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi') => {
@@ -415,10 +416,12 @@ export default function SuratMasukPage() {
               </div>
             </form>
           </div>
-           <DropdownMenu>
+           <DropdownMenu onOpenChange={(open) => { if (open) setShowNotificationBadge(false); }}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
-                 <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                {showNotificationBadge && notifications.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                )}
                 <Bell className="h-4 w-4" />
                 <span className="sr-only">Toggle notifications</span>
               </Button>

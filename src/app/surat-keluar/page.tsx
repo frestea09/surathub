@@ -195,6 +195,7 @@ export default function SuratKeluarPage() {
   const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("semua");
   const [kirimSearchTerm, setKirimSearchTerm] = useState("");
+  const [showNotificationBadge, setShowNotificationBadge] = useState(true);
 
   useEffect(() => {
     const loadSuratData = () => {
@@ -481,10 +482,12 @@ export default function SuratKeluarPage() {
               </div>
             </form>
           </div>
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={(open) => { if (open) setShowNotificationBadge(false); }}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
-                 <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                {showNotificationBadge && notifications.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                )}
                 <Bell className="h-4 w-4" />
                 <span className="sr-only">Toggle notifications</span>
               </Button>

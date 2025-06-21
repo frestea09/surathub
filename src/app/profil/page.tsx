@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Bell,
   Home,
@@ -57,6 +58,7 @@ const notifications = [
 
 export default function ProfilPage() {
   const router = useRouter();
+  const [showNotificationBadge, setShowNotificationBadge] = useState(true);
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -202,10 +204,12 @@ export default function ProfilPage() {
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1" />
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={(open) => { if (open) setShowNotificationBadge(false); }}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
-                 <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                {showNotificationBadge && notifications.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                )}
                 <Bell className="h-4 w-4" />
                 <span className="sr-only">Toggle notifications</span>
               </Button>
