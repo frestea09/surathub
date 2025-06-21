@@ -194,12 +194,13 @@ export default function SuratMasukPage() {
   const [disposisiTo, setDisposisiTo] = useState<string[]>([]);
   const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
+  const [isSelesaiConfirmOpen, setIsSelesaiConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
   const [showNotificationBadge, setShowNotificationBadge] = useState(true);
 
 
-  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi') => {
+  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi' | 'selesai') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'disposisi') {
@@ -209,6 +210,7 @@ export default function SuratMasukPage() {
     };
     if (action === 'arsip') setIsArsipConfirmOpen(true);
     if (action === 'lacak-disposisi') setIsLacakDisposisiOpen(true);
+    if (action === 'selesai') setIsSelesaiConfirmOpen(true);
   };
   
   const handleArsipConfirm = () => {
@@ -221,6 +223,19 @@ export default function SuratMasukPage() {
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
     });
     setIsArsipConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+
+  const handleSelesaiConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev =>
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Selesai' } : s)
+    );
+    toast({
+      title: "Berhasil",
+      description: `Proses untuk surat nomor ${selectedSurat.nomor} telah diselesaikan.`,
+    });
+    setIsSelesaiConfirmOpen(false);
     setSelectedSurat(null);
   };
 
@@ -531,6 +546,10 @@ export default function SuratMasukPage() {
                                         Lacak Disposisi
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
+                                       <DropdownMenuItem onClick={() => handleActionClick(surat, 'selesai')} disabled={surat.status !== 'Didisposisikan'}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Selesaikan Proses
+                                      </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                                         <Archive className="mr-2 h-4 w-4" />
                                         Arsipkan
@@ -727,6 +746,22 @@ export default function SuratMasukPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Selesai Confirm Dialog */}
+      <AlertDialog open={isSelesaiConfirmOpen} onOpenChange={setIsSelesaiConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penyelesaian Proses</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menyelesaikan proses untuk surat ini? Status akan diubah menjadi &quot;Selesai&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSelesaiConfirm}>Ya, Selesaikan</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
