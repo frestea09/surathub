@@ -1,11 +1,8 @@
 import Link from "next/link";
 import {
   Bell,
-  CheckCircle,
-  FileClock,
-  FileStack,
   FileText,
-  Home as HomeIcon,
+  Home,
   LineChart,
   MoreHorizontal,
   Package,
@@ -33,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -41,91 +39,72 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DashboardChart } from "@/components/dashboard-chart";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { BuatSuratButton } from "@/components/buat-surat-button";
 
-const statCards = [
-  {
-    title: "Surat Diproses",
-    value: "78",
-    description: "+15% dari bulan lalu",
-    icon: FileClock,
-  },
-  {
-    title: "Jatuh Tempo",
-    value: "12",
-    description: "Surat perlu perhatian segera",
-    icon: Bell,
-  },
-  {
-    title: "Selesai Bulan Ini",
-    value: "129",
-    description: "+20.1% dari bulan lalu",
-    icon: CheckCircle,
-  },
-  {
-    title: "Total Arsip",
-    value: "2,350",
-    description: "Total semua surat terarsip",
-    icon: FileStack,
-  },
-];
-
-const suratData = [
-  {
-    nomor: "SP-2024-05-001",
-    judul: "Surat Perintah Pengadaan ATK",
-    jenis: "SPP",
-    status: "Diproses",
-    tanggal: "2024-05-20",
-  },
-  {
-    nomor: "BA-2024-05-015",
-    judul: "Berita Acara Pemeriksaan Barang",
-    jenis: "BA",
-    status: "Disetujui",
-    tanggal: "2024-05-18",
-  },
-  {
-    nomor: "ND-2024-05-032",
-    judul: "Nota Dinas Rapat Koordinasi",
-    jenis: "Nota Dinas",
-    status: "Terkirim",
-    tanggal: "2024-05-17",
-  },
-  {
-    nomor: "BAST-2024-04-098",
-    judul: "BAST Pengadaan Komputer",
-    jenis: "BAST",
-    status: "Selesai",
-    tanggal: "2024-04-30",
-  },
-  {
-    nomor: "SP-2024-05-002",
-    judul: "Surat Perintah Perbaikan AC",
-    jenis: "SPP",
-    status: "Ditolak",
-    tanggal: "2024-05-21",
-  },
-  {
-    nomor: "ND-2024-05-033",
-    judul: "Nota Dinas Cuti Tahunan",
-    jenis: "Nota Dinas",
-    status: "Terkirim",
-    tanggal: "2024-05-22",
-  },
+const suratMasukData = [
+    {
+        nomor: "123/A/UM/2024",
+        perihal: "Undangan Rapat Koordinasi",
+        pengirim: "Kementerian Kesehatan",
+        tanggal: "2024-07-25",
+        status: "Baru",
+        disposisi: "Belum"
+    },
+    {
+        nomor: "005/B/FIN/2024",
+        perihal: "Laporan Keuangan Bulanan",
+        pengirim: "Bagian Keuangan Internal",
+        tanggal: "2024-07-24",
+        status: "Didisposisikan",
+        disposisi: "Direktur Utama"
+    },
+    {
+        nomor: "PNW/2024/VI/045",
+        perihal: "Penawaran Kerjasama Alat Medis",
+        pengirim: "PT. Medika Jaya",
+        tanggal: "2024-07-22",
+        status: "Selesai",
+        disposisi: "Bagian Pengadaan"
+    },
+    {
+        nomor: "EXT/VII/2024/001",
+        perihal: "Permohonan Data Pasien",
+        pengirim: "Dinas Kesehatan Kota",
+        tanggal: "2024-07-21",
+        status: "Didisposisikan",
+        disposisi: "Bagian Rekam Medis"
+    },
+    {
+        nomor: "INT/HRD/2024/012",
+        perihal: "Pengajuan Cuti Karyawan",
+        pengirim: "John Doe (Staff)",
+        tanggal: "2024-07-20",
+        status: "Selesai",
+        disposisi: "HRD"
+    },
+     {
+        nomor: "INV/2024/07/998",
+        perihal: "Invoice Pembelian ATK",
+        pengirim: "CV. ATK Bersama",
+        tanggal: "2024-07-26",
+        status: "Baru",
+        disposisi: "Belum"
+    },
 ];
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
-  Disetujui: "default",
+  Baru: "secondary",
+  Didisposisikan: "outline",
   Selesai: "default",
-  Diproses: "secondary",
-  Terkirim: "outline",
-  Ditolak: "destructive",
 };
 
-export default function Home() {
+export default function SuratMasukPage() {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-muted/40 md:block">
@@ -139,20 +118,20 @@ export default function Home() {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                href="/"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <HomeIcon className="h-4 w-4" />
+                <Home className="h-4 w-4" />
                 Dashboard
               </Link>
               <Link
                 href="/surat-masuk"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <FileText className="h-4 w-4" />
                 Surat Masuk
                 <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                  12
+                  2
                 </Badge>
               </Link>
               <Link
@@ -208,19 +187,19 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
-                  <HomeIcon className="h-5 w-5" />
+                  <Home className="h-5 w-5" />
                   Dashboard
                 </Link>
                 <Link
                   href="/surat-masuk"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
                 >
                   <FileText className="h-5 w-5" />
                   Surat Masuk
                    <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                    12
+                    2
                   </Badge>
                 </Link>
                 <Link
@@ -247,6 +226,7 @@ export default function Home() {
               </nav>
             </SheetContent>
           </Sheet>
+
           <div className="w-full flex-1">
             <form>
               <div className="relative">
@@ -286,92 +266,73 @@ export default function Home() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Dashboard</h1>
+            <h1 className="text-lg font-semibold md:text-2xl">Surat Masuk</h1>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-            {statCards.map((card, index) => (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {card.title}
-                  </CardTitle>
-                  <card.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {card.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            <DashboardChart />
-            <Card className="xl:col-span-2">
-              <CardHeader className="flex flex-row items-center">
-                <div className="grid gap-2">
-                  <CardTitle>Surat Terbaru</CardTitle>
-                  <CardDescription>
-                    Daftar surat yang baru-baru ini diproses.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>No. Surat</TableHead>
-                      <TableHead>Judul</TableHead>
-                      <TableHead className="text-center">Jenis</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-right">Tanggal</TableHead>
-                      <TableHead>
-                        <span className="sr-only">Actions</span>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {suratData.map((surat) => (
-                      <TableRow key={surat.nomor}>
-                        <TableCell className="font-medium">
-                          {surat.nomor}
-                        </TableCell>
-                        <TableCell>{surat.judul}</TableCell>
-                        <TableCell className="text-center">{surat.jenis}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={statusVariant[surat.status]}>
-                            {surat.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">{surat.tanggal}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                aria-haspopup="true"
-                                size="icon"
-                                variant="ghost"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                              <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
-                              <DropdownMenuItem>Lacak</DropdownMenuItem>
-                              <DropdownMenuItem>Unduh PDF</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
+          <Tabs defaultValue="semua">
+            <div className="flex items-center">
+              <TabsList>
+                <TabsTrigger value="semua">Semua</TabsTrigger>
+                <TabsTrigger value="baru">Baru</TabsTrigger>
+                <TabsTrigger value="didisposisikan">Didisposisikan</TabsTrigger>
+                <TabsTrigger value="selesai">Selesai</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="semua">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Daftar Surat Masuk</CardTitle>
+                        <CardDescription>Kelola semua surat yang diterima.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Nomor Surat</TableHead>
+                            <TableHead>Perihal</TableHead>
+                            <TableHead>Pengirim</TableHead>
+                            <TableHead className="text-center">Tanggal</TableHead>
+                            <TableHead className="text-center">Status</TableHead>
+                            <TableHead className="text-center">Disposisi</TableHead>
+                            <TableHead>
+                                <span className="sr-only">Actions</span>
+                            </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {suratMasukData.map((surat) => (
+                            <TableRow key={surat.nomor}>
+                                <TableCell className="font-medium">{surat.nomor}</TableCell>
+                                <TableCell>{surat.perihal}</TableCell>
+                                <TableCell>{surat.pengirim}</TableCell>
+                                <TableCell className="text-center">{surat.tanggal}</TableCell>
+                                <TableCell className="text-center">
+                                <Badge variant={statusVariant[surat.status]}>{surat.status}</Badge>
+                                </TableCell>
+                                <TableCell className="text-center">{surat.disposisi}</TableCell>
+                                <TableCell>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                    <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
+                                    <DropdownMenuItem>Buat Disposisi</DropdownMenuItem>
+                                    <DropdownMenuItem>Arsipkan</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </CardContent>
+                    </Card>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>
