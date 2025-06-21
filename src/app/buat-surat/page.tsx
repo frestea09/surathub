@@ -1,40 +1,50 @@
-
 "use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles, Save } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { ArrowLeft, Printer, Sparkles, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import LogoRSUDSoreang from "../../assets/logo-rs.png";
 
 export default function BuatSuratPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [formData, setFormData] = useState({
-    nomor: '000.3/PPK-RSUD OTISTA/IV/2025',
-    lampiran: '-',
-    perihal: 'Perintah Pengadaan Barang Farmasi',
-    tempatTanggal: 'Soreang, 08 April 2025',
-    penerima: 'Pejabat Pengadaan Barang Jasa',
-    penerimaTempat: 'Tempat',
-    isiSurat: 'Berdasarkan Surat Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 002/FAR-RSUD/IV/2025 , perihal pengadaan obat dan BMHP pada Farmasi, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segara persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku dan memperhatikan ketersedian stok Obat dan BMHP.',
-    penutup: 'Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih',
-    jabatanPenandaTangan: 'Pejabat Pembuat Komitmen',
-    namaPenandaTangan: 'Saep Trian Prasetia.S.Si..Apt',
-    nipPenandaTangan: 'NIP. 198408272008011005',
+    nomor: "000.3/PPK-RSUD OTISTA/IV/2025",
+    lampiran: "-",
+    perihal: "Perintah Pengadaan Barang Farmasi",
+    tempatTanggal: "Soreang, 08 April 2025",
+    penerima: "Pejabat Pengadaan Barang Jasa",
+    penerimaTempat: "Tempat",
+    isiSurat:
+      "Berdasarkan Surat Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 002/FAR-RSUD/IV/2025 , perihal pengadaan obat dan BMHP pada Farmasi, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segara persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku dan memperhatikan ketersedian stok Obat dan BMHP.",
+    penutup:
+      "Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih",
+    jabatanPenandaTangan: "Pejabat Pembuat Komitmen",
+    namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt",
+    nipPenandaTangan: "NIP. 198408272008011005",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
-  
+
   const handlePrint = () => {
     window.print();
   };
@@ -48,26 +58,30 @@ export default function BuatSuratPage() {
       });
       return;
     }
-    
+
     try {
-      if (typeof window !== 'undefined') {
-        const list = JSON.parse(localStorage.getItem('suratPerintahList') || '[]');
-        const dataToSave = { ...formData, status: 'Draft' };
-        const existingIndex = list.findIndex((item: any) => item.nomor === formData.nomor);
-        
+      if (typeof window !== "undefined") {
+        const list = JSON.parse(
+          localStorage.getItem("suratPerintahList") || "[]"
+        );
+        const dataToSave = { ...formData, status: "Draft" };
+        const existingIndex = list.findIndex(
+          (item: any) => item.nomor === formData.nomor
+        );
+
         if (existingIndex > -1) {
           list[existingIndex] = dataToSave;
         } else {
           list.push(dataToSave);
         }
-        
-        localStorage.setItem('suratPerintahList', JSON.stringify(list));
-        
+
+        localStorage.setItem("suratPerintahList", JSON.stringify(list));
+
         toast({
           title: "Berhasil",
           description: "Data surat berhasil disimpan sebagai draft.",
         });
-        router.push('/surat-keluar');
+        router.push("/surat-keluar");
       }
     } catch (error) {
       toast({
@@ -81,28 +95,28 @@ export default function BuatSuratPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-         <Link href="/dashboard">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
+        <Link href="/dashboard">
           <Button size="icon" variant="outline" className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
-         </Link>
-         <h1 className="text-xl font-semibold">Buat Surat Perintah</h1>
-         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Simpan
-            </Button>
-            <Button variant="outline">
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate with AI
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Cetak
-            </Button>
-          </div>
+        </Link>
+        <h1 className="text-xl font-semibold">Buat Surat Perintah</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Simpan
+          </Button>
+          <Button variant="outline">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate with AI
+          </Button>
+          <Button onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Cetak
+          </Button>
+        </div>
       </header>
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:grid-cols-2 lg:grid-cols-3">
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
@@ -116,79 +130,148 @@ export default function BuatSuratPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="nomor">Nomor Surat</Label>
-                <Input id="nomor" value={formData.nomor} onChange={handleInputChange} />
+                <Input
+                  id="nomor"
+                  value={formData.nomor}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lampiran">Lampiran</Label>
-                <Input id="lampiran" value={formData.lampiran} onChange={handleInputChange} />
+                <Input
+                  id="lampiran"
+                  value={formData.lampiran}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="perihal">Perihal</Label>
-                <Input id="perihal" value={formData.perihal} onChange={handleInputChange} />
+                <Input
+                  id="perihal"
+                  value={formData.perihal}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tempatTanggal">Tempat & Tanggal</Label>
-                <Input id="tempatTanggal" value={formData.tempatTanggal} onChange={handleInputChange} />
+                <Input
+                  id="tempatTanggal"
+                  value={formData.tempatTanggal}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="penerima">Penerima (Yth)</Label>
-                <Input id="penerima" value={formData.penerima} onChange={handleInputChange} />
+                <Input
+                  id="penerima"
+                  value={formData.penerima}
+                  onChange={handleInputChange}
+                />
               </div>
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="penerimaTempat">Di</Label>
-                <Input id="penerimaTempat" value={formData.penerimaTempat} onChange={handleInputChange} />
+                <Input
+                  id="penerimaTempat"
+                  value={formData.penerimaTempat}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="isiSurat">Isi Surat</Label>
-                <Textarea id="isiSurat" value={formData.isiSurat} onChange={handleInputChange} rows={6} />
+                <Textarea
+                  id="isiSurat"
+                  value={formData.isiSurat}
+                  onChange={handleInputChange}
+                  rows={6}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="penutup">Kalimat Penutup</Label>
-                <Textarea id="penutup" value={formData.penutup} onChange={handleInputChange} rows={2} />
+                <Textarea
+                  id="penutup"
+                  value={formData.penutup}
+                  onChange={handleInputChange}
+                  rows={2}
+                />
               </div>
-               <div className="space-y-2">
-                <Label htmlFor="jabatanPenandaTangan">Jabatan Penanda Tangan</Label>
-                <Input id="jabatanPenandaTangan" value={formData.jabatanPenandaTangan} onChange={handleInputChange} />
+              <div className="space-y-2">
+                <Label htmlFor="jabatanPenandaTangan">
+                  Jabatan Penanda Tangan
+                </Label>
+                <Input
+                  id="jabatanPenandaTangan"
+                  value={formData.jabatanPenandaTangan}
+                  onChange={handleInputChange}
+                />
               </div>
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="namaPenandaTangan">Nama Penanda Tangan</Label>
-                <Input id="namaPenandaTangan" value={formData.namaPenandaTangan} onChange={handleInputChange} />
+                <Input
+                  id="namaPenandaTangan"
+                  value={formData.namaPenandaTangan}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nipPenandaTangan">NIP Penanda Tangan</Label>
-                <Input id="nipPenandaTangan" value={formData.nipPenandaTangan} onChange={handleInputChange} />
+                <Input
+                  id="nipPenandaTangan"
+                  value={formData.nipPenandaTangan}
+                  onChange={handleInputChange}
+                />
               </div>
             </CardContent>
           </Card>
         </div>
         <div className="lg:col-span-2">
-           <Card className="overflow-hidden">
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Preview Surat</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-white text-black p-8 sm:p-12 font-serif text-sm print:shadow-none print:p-0" id="surat-preview">
+              <div
+                className="bg-white text-black p-8 sm:p-12 font-serif text-sm print:shadow-none print:p-0"
+                id="surat-preview"
+              >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg/1200px-Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg.png" alt="Logo" width={80} height={80} className="mr-4" data-ai-hint="government seal" />
+                  <Image
+                    src={LogoRSUDSoreang}
+                    alt="Logo"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                    data-ai-hint="government seal"
+                  />
                   <div>
-                    <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
-                    <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
-                    <p className="text-xs">Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592</p>
-                    <p className="text-xs">E-mail: rsudotista@bandungkab.go.id</p>
+                    <h1 className="font-bold text-lg tracking-wide">
+                      RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
+                    </h1>
+                    <p className="text-xs">
+                      Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912
+                    </p>
+                    <p className="text-xs">
+                      Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592
+                    </p>
+                    <p className="text-xs">
+                      E-mail: rsudotista@bandungkab.go.id
+                    </p>
                   </div>
                 </div>
-                 {/* BADAN SURAT */}
+                {/* BADAN SURAT */}
                 <div className="flex justify-end mb-4">
                   <p>{formData.tempatTanggal}</p>
                 </div>
 
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 mb-4">
-                  <span className="font-semibold">Nomor</span><span>: {formData.nomor}</span>
-                  <span className="font-semibold">Lampiran</span><span>: {formData.lampiran}</span>
-                  <span className="font-semibold">Perihal</span><span className="font-semibold">: {formData.perihal}</span>
+                  <span className="font-semibold">Nomor</span>
+                  <span>: {formData.nomor}</span>
+                  <span className="font-semibold">Lampiran</span>
+                  <span>: {formData.lampiran}</span>
+                  <span className="font-semibold">Perihal</span>
+                  <span className="font-semibold">: {formData.perihal}</span>
                 </div>
-                
+
                 <div className="mb-4">
                   <p>Yth</p>
                   <p>{formData.penerima}</p>
@@ -206,16 +289,18 @@ export default function BuatSuratPage() {
 
                 {/* TANDA TANGAN */}
                 <div className="flex justify-end">
-                    <div className="text-center">
-                        <p>{formData.jabatanPenandaTangan}</p>
-                        <div className="h-20"></div> {/* Space for signature */}
-                        <p className="font-bold underline">{formData.namaPenandaTangan}</p>
-                        <p>{formData.nipPenandaTangan}</p>
-                    </div>
+                  <div className="text-center">
+                    <p>{formData.jabatanPenandaTangan}</p>
+                    <div className="h-20"></div> {/* Space for signature */}
+                    <p className="font-bold underline">
+                      {formData.namaPenandaTangan}
+                    </p>
+                    <p>{formData.nipPenandaTangan}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
-           </Card>
+          </Card>
         </div>
       </main>
       {/* Print styles */}
@@ -224,7 +309,8 @@ export default function BuatSuratPage() {
           body * {
             visibility: hidden;
           }
-          #surat-preview, #surat-preview * {
+          #surat-preview,
+          #surat-preview * {
             visibility: visible;
           }
           #surat-preview {
