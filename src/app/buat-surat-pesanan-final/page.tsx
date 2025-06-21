@@ -148,7 +148,7 @@ export default function BuatSuratPesananFinalPage() {
     try {
       if (typeof window !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]');
-        const dataToSave = { formData, items };
+        const dataToSave = { formData: { ...formData, status: 'Draft' }, items };
         const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
         
         if (existingIndex > -1) {
@@ -158,7 +158,7 @@ export default function BuatSuratPesananFinalPage() {
         }
         
         localStorage.setItem('suratPesananFinalList', JSON.stringify(list));
-        toast({ title: "Berhasil", description: "Data surat pesanan (vendor) berhasil disimpan." });
+        toast({ title: "Berhasil", description: "Data surat pesanan (vendor) berhasil disimpan sebagai draft." });
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });

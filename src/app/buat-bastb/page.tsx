@@ -96,7 +96,7 @@ export default function BuatBastbPage() {
     try {
       if (typeof window !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('bastbList') || '[]');
-        const dataToSave = { formData };
+        const dataToSave = { formData: { ...formData, status: 'Draft' } };
         const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
         
         if (existingIndex > -1) {
@@ -106,7 +106,7 @@ export default function BuatBastbPage() {
         }
         
         localStorage.setItem('bastbList', JSON.stringify(list));
-        toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan." });
+        toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });

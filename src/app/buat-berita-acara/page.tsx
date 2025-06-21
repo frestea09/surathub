@@ -143,7 +143,7 @@ export default function BuatBeritaAcaraPage() {
     try {
       if (typeof window !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]');
-        const dataToSave = { formData, items };
+        const dataToSave = { formData: { ...formData, status: 'Draft' }, items };
         const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
         
         if (existingIndex > -1) {
@@ -153,7 +153,7 @@ export default function BuatBeritaAcaraPage() {
         }
         
         localStorage.setItem('beritaAcaraList', JSON.stringify(list));
-        toast({ title: "Berhasil", description: "Data berita acara berhasil disimpan." });
+        toast({ title: "Berhasil", description: "Data berita acara berhasil disimpan sebagai draft." });
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });

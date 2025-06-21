@@ -49,19 +49,20 @@ export default function BuatSuratPage() {
     try {
       if (typeof window !== 'undefined') {
         const list = JSON.parse(localStorage.getItem('suratPerintahList') || '[]');
+        const dataToSave = { ...formData, status: 'Draft' };
         const existingIndex = list.findIndex((item: any) => item.nomor === formData.nomor);
         
         if (existingIndex > -1) {
-          list[existingIndex] = formData;
+          list[existingIndex] = dataToSave;
         } else {
-          list.push(formData);
+          list.push(dataToSave);
         }
         
         localStorage.setItem('suratPerintahList', JSON.stringify(list));
         
         toast({
           title: "Berhasil",
-          description: "Data surat berhasil disimpan.",
+          description: "Data surat berhasil disimpan sebagai draft.",
         });
       }
     } catch (error) {

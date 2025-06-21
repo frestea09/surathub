@@ -2,12 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Archive,
   Bell,
-  CheckCircle,
   Download,
   FilePenLine,
   FileSearch,
@@ -138,18 +137,83 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 export default function SuratKeluarPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [suratList, setSuratList] = useState<SuratKeluar[]>(initialSuratKeluarData);
+  const [suratList, setSuratList] = useState<SuratKeluar[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<SuratKeluar | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
+  const [isKirimConfirmOpen, setIsKirimConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
 
-  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip') => {
+  useEffect(() => {
+    const loadSuratData = () => {
+        try {
+            if (typeof window === 'undefined') return;
+
+            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s: any) => ({
+                nomor: s.nomor,
+                perihal: s.perihal,
+                tujuan: s.penerima,
+                tanggal: s.tempatTanggal ? s.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                status: s.status || 'Draft'
+            }));
+            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s: any) => ({
+                nomor: s.formData.nomor,
+                perihal: s.formData.perihal,
+                tujuan: s.formData.penerima,
+                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                status: s.formData.status || 'Draft'
+            }));
+            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s: any) => ({
+                nomor: s.formData.nomor,
+                perihal: s.formData.perihal,
+                tujuan: s.formData.penerima,
+                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                status: s.formData.status || 'Draft'
+            }));
+             const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s: any) => ({
+                nomor: s.formData.nomor,
+                perihal: "Berita Acara Pemeriksaan",
+                tujuan: s.formData.vendorNama,
+                tanggal: s.formData.tanggalSuratReferensi || new Date().toISOString().split('T')[0],
+                status: s.formData.status || 'Draft'
+            }));
+            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s: any) => ({
+                nomor: s.formData.nomor,
+                perihal: "Berita Acara Serah Terima",
+                tujuan: "Internal",
+                tanggal: s.formData.tanggalSuratPesanan || new Date().toISOString().split('T')[0],
+                status: s.formData.status || 'Draft'
+            }));
+
+            const allSurat = [
+                ...initialSuratKeluarData,
+                ...suratPerintahList, 
+                ...suratPesananList, 
+                ...suratPesananFinalList, 
+                ...beritaAcaraList, 
+                ...bastbList
+            ];
+            
+            const uniqueSurat = allSurat.filter((surat, index, self) =>
+                index === self.findIndex((s) => s.nomor === surat.nomor)
+            );
+
+            setSuratList(uniqueSurat);
+        } catch (e) {
+            console.error("Failed to load surat from localStorage", e);
+            setSuratList(initialSuratKeluarData);
+        }
+    };
+    loadSuratData();
+  }, []);
+
+  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'lacak') setIsLacakOpen(true);
     if (action === 'arsip') setIsArsipConfirmOpen(true);
+    if (action === 'kirim') setIsKirimConfirmOpen(true);
   };
 
   const handleDownloadPdf = () => {
@@ -169,6 +233,19 @@ export default function SuratKeluarPage() {
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
     });
     setIsArsipConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+
+  const handleKirimConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim' } : s)
+    );
+    toast({
+        title: "Berhasil Terkirim",
+        description: `Surat nomor ${selectedSurat.nomor} telah dikirim.`,
+    });
+    setIsKirimConfirmOpen(false);
     setSelectedSurat(null);
   };
   
@@ -405,6 +482,10 @@ export default function SuratKeluarPage() {
                                         <FileSearch className="mr-2 h-4 w-4" />
                                         Lihat Detail
                                       </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'kirim')} disabled={surat.status !== 'Draft'}>
+                                        <Send className="mr-2 h-4 w-4" />
+                                        Kirim
+                                      </DropdownMenuItem>
                                        <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
                                         <FileSearch className="mr-2 h-4 w-4" />
                                         Lacak Alur Pengiriman
@@ -555,6 +636,22 @@ export default function SuratKeluarPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+       {/* Kirim Confirm Dialog */}
+      <AlertDialog open={isKirimConfirmOpen} onOpenChange={setIsKirimConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pengiriman Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengirim surat ini? Status akan diubah menjadi &quot;Terkirim&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleKirimConfirm}>Ya, Kirim</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
