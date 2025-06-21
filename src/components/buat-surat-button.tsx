@@ -1,40 +1,80 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PlusCircle } from "lucide-react"
+import { FileSignature, FileText, PlusCircle } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+
+const suratTypes = [
+  {
+    label: "Surat Perintah",
+    href: "/buat-surat",
+    icon: FileText,
+  },
+  {
+    label: "Surat Pesanan (Internal)",
+    href: "/buat-surat-pesanan",
+    icon: FileText,
+  },
+  {
+    label: "Surat Pesanan (Vendor)",
+    href: "/buat-surat-pesanan-final",
+    icon: FileText,
+  },
+  {
+    label: "Berita Acara Pemeriksaan",
+    href: "/buat-berita-acara",
+    icon: FileSignature,
+  },
+  {
+    label: "Berita Acara Serah Terima",
+    href: "/buat-bastb",
+    icon: FileSignature,
+  },
+]
 
 export function BuatSuratButton() {
-    const router = useRouter();
+  const router = useRouter()
+  const [open, setOpen] = React.useState(false)
 
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Buat Surat
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Pilih Jenis Surat</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/buat-surat')}>
-                    Surat Perintah
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan')}>
-                    Surat Pesanan (Internal)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan-final')}>
-                    Surat Pesanan (Vendor)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/buat-berita-acara')}>
-                    Berita Acara Pemeriksaan
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/buat-bastb')}>
-                    Berita Acara Serah Terima
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    )
+  const handleSelect = (href: string) => {
+    router.push(href)
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Buat Surat
+      </Button>
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder="Cari jenis surat..." />
+        <CommandList>
+          <CommandEmpty>Jenis surat tidak ditemukan.</CommandEmpty>
+          <CommandGroup heading="Pilih Jenis Surat">
+            {suratTypes.map((surat) => (
+              <CommandItem
+                key={surat.href}
+                onSelect={() => handleSelect(surat.href)}
+                className="cursor-pointer"
+              >
+                <surat.icon className="mr-2 h-4 w-4" />
+                <span>{surat.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </>
+  )
 }
