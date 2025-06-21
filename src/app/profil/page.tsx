@@ -35,6 +35,25 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BuatSuratButton } from "@/components/buat-surat-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+
+const notifications = [
+  {
+    title: "Surat Baru Diterima",
+    description: "Surat dari Kemenkes perihal Undangan Rapat.",
+    time: "5 menit lalu",
+  },
+  {
+    title: "Disposisi Berhasil",
+    description: "Surat 005/B/FIN/2024 telah didisposisikan.",
+    time: "1 jam lalu",
+  },
+  {
+    title: "Surat Telah Diarsipkan",
+    description: "Surat BAST-2024-04-098 telah diarsipkan.",
+    time: "Kemarin",
+  },
+];
 
 export default function ProfilPage() {
   const router = useRouter();
@@ -169,10 +188,30 @@ export default function ProfilPage() {
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1" />
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="relative h-8 w-8">
+                 <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+                <Bell className="h-4 w-4" />
+                <span className="sr-only">Toggle notifications</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {notifications.map((notif, index) => (
+                <DropdownMenuItem key={index} className="flex flex-col items-start gap-1 whitespace-normal">
+                  <p className="font-semibold">{notif.title}</p>
+                  <p className="text-xs text-muted-foreground">{notif.description}</p>
+                  <p className="text-xs text-muted-foreground">{notif.time}</p>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="justify-center text-sm text-primary">
+                Lihat semua notifikasi
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <BuatSuratButton />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -226,3 +265,5 @@ export default function ProfilPage() {
     </div>
   );
 }
+
+    
