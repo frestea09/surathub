@@ -2,10 +2,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal } from "lucide-react";
+import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, Download, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -32,6 +33,11 @@ import { DashboardChart } from "@/components/dashboard-chart";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppLayout } from "@/components/templates/AppLayout";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+
 
 const mockUsers = [
     { id: 'admin', name: 'Admin', role: 'Admin', unit: 'All' },
@@ -41,16 +47,19 @@ const mockUsers = [
     { id: 'kabag-umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
 ];
 
-const allSuratData = [
-  { nomor: "SP-2024-05-001", judul: "Surat Perintah Pengadaan ATK", jenis: "SPP", status: "Diproses", tanggal: "2024-05-20", unit: "Umum", penanggungJawab: "Admin" },
-  { nomor: "BA-2024-05-015", judul: "Berita Acara Pemeriksaan Barang", jenis: "BA", status: "Disetujui", tanggal: "2024-05-18", unit: "Pengadaan", penanggungJawab: "Saep Trian Prasetia" },
-  { nomor: "ND-2024-05-032", judul: "Nota Dinas Rapat Koordinasi", jenis: "Nota Dinas", status: "Terkirim", tanggal: "2024-05-17", unit: "Pimpinan", penanggungJawab: "Dr. H. Yani Sumpena" },
-  { nomor: "BAST-2024-04-098", judul: "BAST Pengadaan Komputer", jenis: "BAST", status: "Selesai", tanggal: "2024-04-30", unit: "Keuangan", penanggungJawab: "Jane Doe" },
-  { nomor: "SP-2024-05-002", judul: "Surat Perintah Perbaikan AC", jenis: "SPP", status: "Ditolak", tanggal: "2024-05-21", unit: "Umum", penanggungJawab: "Admin" },
-  { nomor: "ND-2024-05-033", judul: "Nota Dinas Cuti Tahunan", jenis: "Nota Dinas", status: "Terkirim", tanggal: "2024-05-22", unit: "Kepegawaian", penanggungJawab: "Kepala Bagian Umum" },
-  { nomor: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", unit: "Keuangan", penanggungJawab: "Admin" },
-  { noSurat: "123/A/UM/2024", perihal: "Undangan Rapat Koordinasi", jenis: "Masuk", tanggal: "2024-07-25", unit: "Pimpinan", penanggungJawab: "Direktur Utama" },
+const initialSuratData = [
+  { nomor: "SP-2024-05-001", judul: "Surat Perintah Pengadaan ATK", jenis: "SPP", tipe: "Keluar", status: "Diproses", tanggal: "2024-05-20", unit: "Umum", penanggungJawab: "Admin" },
+  { nomor: "BA-2024-05-015", judul: "Berita Acara Pemeriksaan Barang", jenis: "BA", tipe: "Keluar", status: "Disetujui", tanggal: "2024-05-18", unit: "Pengadaan", penanggungJawab: "Saep Trian Prasetia" },
+  { nomor: "ND-2024-05-032", judul: "Nota Dinas Rapat Koordinasi", jenis: "Nota Dinas", tipe: "Keluar", status: "Terkirim", tanggal: "2024-05-17", unit: "Pimpinan", penanggungJawab: "Dr. H. Yani Sumpena" },
+  { nomor: "BAST-2024-04-098", judul: "BAST Pengadaan Komputer", jenis: "BAST", tipe: "Keluar", status: "Selesai", tanggal: "2024-04-30", unit: "Keuangan", penanggungJawab: "Jane Doe" },
+  { nomor: "SP-2024-05-002", judul: "Surat Perintah Perbaikan AC", jenis: "SPP", tipe: "Keluar", status: "Diproses", tanggal: "2024-05-21", unit: "Umum", penanggungJawab: "Admin" },
+  { nomor: "ND-2024-05-033", judul: "Nota Dinas Cuti Tahunan", jenis: "Nota Dinas", tipe: "Keluar", status: "Terkirim", tanggal: "2024-05-22", unit: "Kepegawaian", penanggungJawab: "Kepala Bagian Umum" },
+  { nomor: "INV/2024/07/998", judul: "Invoice Pembelian ATK", jenis: "Masuk", tipe: "Masuk", tanggal: "2024-07-26", unit: "Keuangan", penanggungJawab: "Admin" },
+  { nomor: "123/A/UM/2024", judul: "Undangan Rapat Koordinasi", jenis: "Masuk", tipe: "Masuk", tanggal: "2024-07-25", unit: "Pimpinan", penanggungJawab: "Direktur Utama" },
 ];
+
+type Surat = typeof initialSuratData[0];
+
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Disetujui: "default",
@@ -58,10 +67,17 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Diproses: "secondary",
   Terkirim: "outline",
   Ditolak: "destructive",
+  Masuk: "secondary",
 };
 
 export default function DashboardPage() {
+  const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
+  const [suratData, setSuratData] = useState<Surat[]>(initialSuratData);
+  const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isLacakOpen, setIsLacakOpen] = useState(false);
+  const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
 
   const handleRoleChange = (userId: string) => {
     const user = mockUsers.find(u => u.id === userId);
@@ -70,10 +86,38 @@ export default function DashboardPage() {
     }
   };
 
+  const handleActionClick = (surat: Surat, action: 'detail' | 'lacak' | 'tolak') => {
+    setSelectedSurat(surat);
+    if (action === 'detail') setIsDetailOpen(true);
+    if (action === 'lacak') setIsLacakOpen(true);
+    if (action === 'tolak') setIsTolakConfirmOpen(true);
+  };
+  
+  const handleDownloadPdf = () => {
+    toast({
+      title: "Fitur Dalam Pengembangan",
+      description: "Fungsi unduh PDF akan segera tersedia.",
+    });
+  };
+
+  const handleTolakConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratData(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s)
+    );
+    toast({
+        title: "Berhasil",
+        description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
+        variant: "destructive",
+    });
+    setIsTolakConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+
   const { filteredSurat, dynamicStatCards } = useMemo(() => {
       const surat = (currentUser.unit === 'All') 
-          ? allSuratData 
-          : allSuratData.filter(s => s.unit === currentUser.unit);
+          ? suratData
+          : suratData.filter(s => s.unit === currentUser.unit);
 
       const cards = [
         {
@@ -83,10 +127,10 @@ export default function DashboardPage() {
           icon: FileClock,
         },
         {
-          title: "Jatuh Tempo",
-          value: surat.filter(s => s.status === 'Ditolak').length.toString(), // Example logic
-          description: "Surat perlu perhatian segera",
-          icon: Bell,
+          title: "Surat Ditolak",
+          value: surat.filter(s => s.status === 'Ditolak').length.toString(),
+          description: "Surat yang telah ditolak",
+          icon: XCircle,
         },
         {
           title: "Selesai Bulan Ini",
@@ -103,7 +147,7 @@ export default function DashboardPage() {
       ];
 
       return { filteredSurat: surat, dynamicStatCards: cards };
-  }, [currentUser]);
+  }, [currentUser, suratData]);
 
 
   return (
@@ -197,9 +241,23 @@ export default function DashboardPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                          <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
-                          <DropdownMenuItem>Lacak</DropdownMenuItem>
-                          <DropdownMenuItem>Unduh PDF</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
+                            <FileSearch className="mr-2 h-4 w-4" />
+                            Lihat Detail
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
+                            <FileSearch className="mr-2 h-4 w-4" />
+                             Lacak
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleDownloadPdf}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Unduh PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Tolak
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -210,6 +268,154 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Detail Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detail Surat</DialogTitle>
+            <DialogDescription>
+              Detail lengkap dari surat yang dipilih.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSurat && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="nomor" className="text-right">Nomor</Label>
+                <Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" />
+              </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="judul" className="text-right">Judul</Label>
+                <Input id="judul" value={selectedSurat.judul} readOnly className="col-span-3" />
+              </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="jenis" className="text-right">Jenis</Label>
+                <Input id="jenis" value={selectedSurat.jenis} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tanggal" className="text-right">Tanggal</Label>
+                <Input id="tanggal" value={selectedSurat.tanggal} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">Status</Label>
+                <Input id="status" value={selectedSurat.status} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="penanggungJawab" className="text-right">P. Jawab</Label>
+                <Input id="penanggungJawab" value={selectedSurat.penanggungJawab} readOnly className="col-span-3" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Alur Dialog */}
+      <Dialog open={isLacakOpen} onOpenChange={setIsLacakOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alur Lengkap Surat</DialogTitle>
+            <DialogDescription>
+              Linimasa perjalanan surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedSurat?.tipe === 'Masuk' ? (
+              <ul className="space-y-4">
+                  <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Mailbox className="h-4 w-4" /></div>
+                          <div className="w-px h-16 bg-border"></div>
+                      </div>
+                      <div>
+                          <p className="font-semibold">Surat Diterima</p>
+                          <p className="text-sm text-muted-foreground">Oleh: Admin, Pada: {selectedSurat.tanggal}</p>
+                          <p className="text-sm">Surat diterima dari Kemenkes.</p>
+                      </div>
+                  </li>
+                  <li className="flex items-start">
+                        <div className="flex flex-col items-center mr-4">
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Share2 className="h-4 w-4" /></div>
+                            <div className="w-px h-16 bg-border"></div>
+                        </div>
+                        <div>
+                          <p className="font-semibold">Disposisi</p>
+                          <p className="text-sm text-muted-foreground">Oleh: Admin, Kepada: {selectedSurat.penanggungJawab}</p>
+                          <p className="text-sm">Surat diteruskan untuk ditindaklanjuti.</p>
+                        </div>
+                  </li>
+                    <li className="flex items-start">
+                        <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white"><CheckCircle className="h-4 w-4" /></div>
+                        <div className="ml-4">
+                          <p className="font-semibold">Proses Selesai</p>
+                          <p className="text-sm text-muted-foreground">Oleh: {selectedSurat.penanggungJawab}</p>
+                          <p className="text-sm">{selectedSurat.status === 'Selesai' || selectedSurat.status === 'Disetujui' ? 'Tindakan yang diperlukan telah selesai.' : 'Surat masih dalam proses.'}</p>
+                        </div>
+                    </li>
+              </ul>
+            ) : (
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><FilePenLine className="h-4 w-4" /></div>
+                          <div className="w-px h-16 bg-border"></div>
+                      </div>
+                      <div>
+                          <p className="font-semibold">Draft Dibuat</p>
+                          <p className="text-sm text-muted-foreground">Oleh: {selectedSurat?.penanggungJawab}, Pada: {selectedSurat?.tanggal}</p>
+                          <p className="text-sm">Surat sedang dalam proses pembuatan.</p>
+                      </div>
+                  </li>
+                    <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><UserCheck className="h-4 w-4" /></div>
+                          <div className="w-px h-16 bg-border"></div>
+                      </div>
+                      <div>
+                        <p className="font-semibold">Disetujui</p>
+                        <p className="text-sm text-muted-foreground">{selectedSurat?.status !== 'Diproses' ? 'Oleh: Atasan Terkait' : 'Menunggu persetujuan'}</p>
+                        <p className="text-sm">Persetujuan internal untuk pengiriman.</p>
+                      </div>
+                  </li>
+                  <li className="flex items-start">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-white"><Send className="h-4 w-4" /></div>
+                        <div className="ml-4">
+                        <p className="font-semibold">Surat Terkirim</p>
+                        <p className="text-sm text-muted-foreground">{selectedSurat?.status === 'Terkirim' ? `Kepada: Tujuan Terkait` : 'Surat belum dikirim'}</p>
+                        <p className="text-sm">Surat telah dikirimkan ke tujuan.</p>
+                      </div>
+                  </li>
+              </ul>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Tolak Confirm Dialog */}
+      <AlertDialog open={isTolakConfirmOpen} onOpenChange={setIsTolakConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penolakan Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi &quot;Ditolak&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTolakConfirm} className={buttonVariants({ variant: "destructive" })}>Ya, Tolak</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
+
