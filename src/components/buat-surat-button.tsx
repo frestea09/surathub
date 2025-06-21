@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -58,6 +57,11 @@ export function BuatSuratButton() {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
+  const runCommand = React.useCallback((command: () => unknown) => {
+    setOpen(false)
+    command()
+  }, [])
+
   return (
     <>
       <Button onClick={() => setOpen(true)}>
@@ -76,9 +80,8 @@ export function BuatSuratButton() {
               <CommandItem
                 key={surat.href}
                 onSelect={() => {
-                  router.push(surat.href)
+                  runCommand(() => router.push(surat.href))
                 }}
-                className="cursor-pointer"
               >
                 <surat.icon className="mr-2 h-4 w-4" />
                 <span>{surat.label}</span>
