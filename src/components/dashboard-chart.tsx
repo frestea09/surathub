@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 import {
@@ -23,8 +23,38 @@ type ChartData = {
   total: number;
 };
 
-export function DashboardChart() {
-  const [data, setData] = useState<ChartData[]>([]);
+type ChartProps = {
+  data: any[];
+}
+
+export function DashboardChart({ data: allData }: ChartProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const chartData = useMemo(() => {
+    if (!allData || allData.length === 0) return [];
+    
+    const monthlyTotals: { [key: string]: number } = {
+      "Jan": 0, "Feb": 0, "Mar": 0, "Apr": 0, "Mei": 0, "Jun": 0, "Jul": 0,
+      "Agu": 0, "Sep": 0, "Okt": 0, "Nov": 0, "Des": 0,
+    };
+    
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+    allData.forEach(item => {
+      const date = new Date(item.tanggal);
+      const monthIndex = date.getMonth();
+      const monthName = monthNames[monthIndex];
+      if (monthlyTotals.hasOwnProperty(monthName)) {
+        monthlyTotals[monthName]++;
+      }
+    });
+
+    return monthNames.map(month => ({
+      month,
+      total: monthlyTotals[month] || 0,
+    })).slice(0, 7); // Show first 7 months for consistency
+    
+  }, [allData]);
 
   const chartConfig = {
     total: {
@@ -34,17 +64,9 @@ export function DashboardChart() {
   };
 
   useEffect(() => {
-    // Simulate data fetching
+    // Simulate loading
     const timer = setTimeout(() => {
-      setData([
-        { month: "Jan", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Feb", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Mar", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Apr", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Mei", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Jun", total: Math.floor(Math.random() * 200) + 50 },
-        { month: "Jul", total: Math.floor(Math.random() * 200) + 50 },
-      ]);
+      setIsLoading(false);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -57,15 +79,15 @@ export function DashboardChart() {
         <CardDescription>Total surat yang diarsipkan per bulan.</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
-        {data.length === 0 ? (
-          <div className="h-[350px] w-full px-2 space-y-4">
+        {isLoading || chartData.length === 0 ? (
+          <div className="h-[350px] w-full px-2 space-y-4 flex flex-col justify-center">
             <Skeleton className="h-1/2 w-full" />
             <Skeleton className="h-1/2 w-full" />
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-[350px] w-full">
             <ResponsiveContainer>
-              <BarChart data={data} margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
                 <XAxis
                   dataKey="month"
                   stroke="hsl(var(--muted-foreground))"
@@ -97,3 +119,5 @@ export function DashboardChart() {
     </Card>
   );
 }
+
+    
