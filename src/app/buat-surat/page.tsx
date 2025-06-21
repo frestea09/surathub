@@ -18,6 +18,9 @@ import { ArrowLeft, Printer, Sparkles, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 export default function BuatSuratPage() {
   const { toast } = useToast();
@@ -26,7 +29,8 @@ export default function BuatSuratPage() {
     nomor: "000.3/PPK-RSUD OTISTA/IV/2025",
     lampiran: "-",
     perihal: "Perintah Pengadaan Barang Farmasi",
-    tempatTanggal: "Soreang, 08 April 2025",
+    tempat: "Soreang",
+    tanggalSurat: new Date("2025-04-08T00:00:00"),
     penerima: "Pejabat Pengadaan Barang Jasa",
     penerimaTempat: "Tempat",
     isiSurat:
@@ -43,6 +47,12 @@ export default function BuatSuratPage() {
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setFormData(prev => ({ ...prev, tanggalSurat: date }));
+    }
   };
 
   const handlePrint = () => {
@@ -148,13 +158,22 @@ export default function BuatSuratPage() {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tempatTanggal">Tempat & Tanggal</Label>
-                <Input
-                  id="tempatTanggal"
-                  value={formData.tempatTanggal}
-                  onChange={handleInputChange}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tempat">Tempat Surat</Label>
+                  <Input
+                    id="tempat"
+                    value={formData.tempat}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tanggalSurat">Tanggal Surat</Label>
+                  <DatePickerWithWarning
+                    date={formData.tanggalSurat}
+                    onDateChange={handleDateChange}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="penerima">Penerima (Yth)</Label>
@@ -256,7 +275,7 @@ export default function BuatSuratPage() {
                 </div>
                 {/* BADAN SURAT */}
                 <div className="flex justify-end mb-4">
-                  <p>{formData.tempatTanggal}</p>
+                  <p>{formData.tempat}, {formData.tanggalSurat ? format(formData.tanggalSurat, "dd MMMM yyyy", { locale: id }) : ""}</p>
                 </div>
 
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 mb-4">

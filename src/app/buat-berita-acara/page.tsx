@@ -43,6 +43,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 type Item = {
   id: number;
@@ -256,7 +259,7 @@ export default function BuatBeritaAcaraPage() {
     vendorAlamat:
       "Jl. Raya Sapan Kawasan DE PRIMA TERRA Blok B-3 No 5 Bojongsoang Bandung",
     nomorSuratReferensi: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
-    tanggalSuratReferensi: "08/April/2025",
+    tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
     narasiPenutup:
       "Demikian Berita Acara Pemeriksaan Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.",
     penyediaNama: "PT Intisumber Hasil Sempurna Global",
@@ -273,6 +276,12 @@ export default function BuatBeritaAcaraPage() {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setFormData(prev => ({...prev, tanggalSuratReferensi: date}));
+    }
+  }
 
   const handleItemChange = (
     id: number,
@@ -324,9 +333,9 @@ export default function BuatBeritaAcaraPage() {
       penyediaNama: importData.formData?.penerima || prev.penyediaNama,
       nomorSuratReferensi:
         importData.formData?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi:
-        importData.formData?.tanggalSuratReferensi ||
-        prev.tanggalSuratReferensi,
+      tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi
+        ? new Date(importData.formData.tanggalSuratReferensi)
+        : prev.tanggalSuratReferensi,
     }));
 
     const mappedItems: Item[] = (importData.items || []).map((item) => ({
@@ -474,13 +483,12 @@ export default function BuatBeritaAcaraPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tanggalSuratReferensi">
+                <Label>
                   Tanggal Surat Referensi
                 </Label>
-                <Input
-                  id="tanggalSuratReferensi"
-                  value={formData.tanggalSuratReferensi}
-                  onChange={handleFormChange}
+                <DatePickerWithWarning 
+                  date={formData.tanggalSuratReferensi}
+                  onDateChange={handleDateChange}
                 />
               </div>
               <Separator />
@@ -687,7 +695,7 @@ export default function BuatBeritaAcaraPage() {
                 <p className="mb-4 text-justify indent-8">
                   Sebagai Realisasi dari Surat Pesanan dari Pejabat Pembuat
                   Komitmen Nomor: {formData.nomorSuratReferensi} Tanggal{" "}
-                  {formData.tanggalSuratReferensi}, dengan jumlah dan jenis
+                  {formData.tanggalSuratReferensi ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", { locale: id }) : ""}, dengan jumlah dan jenis
                   barang sebagai berikut:
                 </p>
 

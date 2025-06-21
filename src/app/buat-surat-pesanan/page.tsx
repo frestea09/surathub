@@ -43,6 +43,9 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 type Item = {
   id: number;
@@ -57,7 +60,7 @@ type Item = {
 type SuratPerintah = {
   nomor: string;
   perihal: string;
-  tempatTanggal: string;
+  tanggalSurat: string;
 };
 
 const initialItems: Item[] = [
@@ -276,11 +279,12 @@ export default function BuatSuratPesananPage() {
   const [formData, setFormData] = useState({
     nomor: "000.3/PPBJ-RSUD OTISTA/IV/2025",
     perihal: "Penerbitan Surat Pesanan",
-    tempatTanggal: "Soreang, 08 April 2025",
+    tempat: "Soreang",
+    tanggalSurat: new Date("2025-04-08T00:00:00"),
     penerima: "PEJABAT PEMBUAT KOMITMEN",
     penerimaTempat: "Tempat",
     nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025",
-    tanggalSuratReferensi: "08/April/2025",
+    tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
     terbilang:
       "Empat Puluh Sembilan Juta Empat Ratus Tiga Puluh Ribu Empat Ratus Dua Puluh Enam Rupiah",
     jabatanPenandaTangan: "Pejabat Pengadaan Barang Jasa",
@@ -312,6 +316,12 @@ export default function BuatSuratPesananPage() {
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleDateChange = (field: 'tanggalSurat' | 'tanggalSuratReferensi', date: Date | undefined) => {
+    if (date) {
+      setFormData(prev => ({...prev, [field]: date}))
+    }
   };
 
   const handleItemChange = (
@@ -369,8 +379,8 @@ export default function BuatSuratPesananPage() {
     setFormData((prev) => ({
       ...prev,
       nomorSuratReferensi: importData.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: importData.tempatTanggal
-        ? importData.tempatTanggal.split(", ")[1]
+      tanggalSuratReferensi: importData.tanggalSurat
+        ? new Date(importData.tanggalSurat)
         : prev.tanggalSuratReferensi,
     }));
     setIsImportDialogOpen(false);
@@ -480,13 +490,19 @@ export default function BuatSuratPesananPage() {
                   onChange={handleFormChange}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tempatTanggal">Tempat & Tanggal</Label>
-                <Input
-                  id="tempatTanggal"
-                  value={formData.tempatTanggal}
-                  onChange={handleFormChange}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tempat">Tempat Surat</Label>
+                  <Input
+                    id="tempat"
+                    value={formData.tempat}
+                    onChange={handleFormChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tanggal Surat</Label>
+                  <DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(date) => handleDateChange('tanggalSurat', date)} />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="penerima">Penerima (Yth)</Label>
@@ -519,14 +535,10 @@ export default function BuatSuratPesananPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tanggalSuratReferensi">
+                <Label>
                   Tanggal Surat Referensi
                 </Label>
-                <Input
-                  id="tanggalSuratReferensi"
-                  value={formData.tanggalSuratReferensi}
-                  onChange={handleFormChange}
-                />
+                <DatePickerWithWarning date={formData.tanggalSuratReferensi} onDateChange={(date) => handleDateChange('tanggalSuratReferensi', date)} />
               </div>
               <Separator />
               <h3 className="text-sm font-medium">Penanda Tangan</h3>
@@ -749,7 +761,7 @@ export default function BuatSuratPesananPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <p>{formData.tempatTanggal}</p>
+                    <p>{formData.tempat}, {formData.tanggalSurat ? format(formData.tanggalSurat, "dd MMMM yyyy", { locale: id }) : ""}</p>
                     <p>Kepada Yth</p>
                     <p>{formData.penerima}</p>
                     <p>Di</p>
@@ -761,7 +773,7 @@ export default function BuatSuratPesananPage() {
                   Berdasarkan Surat perintah pengadaan Pejabat Pembuat Komitmen
                   Nomor RSUD Oto Iskandar Di Nata Nomor :{" "}
                   {formData.nomorSuratReferensi} tanggal{" "}
-                  {formData.tanggalSuratReferensi}, Maka dengan ini kami memohon
+                  {formData.tanggalSuratReferensi ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", { locale: id }) : ""}, Maka dengan ini kami memohon
                   untuk menerbitkan surat pesanan sesuai dengan perincian
                   sebagai berikut.
                 </p>

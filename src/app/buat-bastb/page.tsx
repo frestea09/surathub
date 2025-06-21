@@ -15,6 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
+import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 type BeritaAcara = {
   formData: any;
@@ -36,9 +39,9 @@ export default function BuatBastbPage() {
     pihak2Jabatan: 'Kuasa Pengguna Anggaran RSUD Oto Iskandar Di Nata',
     pihak2Alamat: 'Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung',
     nomorSuratPesanan: '000.3/06-FAR/PPK-RSUD OTISTA/V/2025',
-    tanggalSuratPesanan: '08 April 2025',
+    tanggalSuratPesanan: new Date('2025-04-08T00:00:00'),
     nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025',
-    tanggalBeritaAcara: '30 April 2025',
+    tanggalBeritaAcara: new Date('2025-04-30T00:00:00'),
     narasiPenutup: 'Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.',
   });
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -49,6 +52,12 @@ export default function BuatBastbPage() {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+
+  const handleDateChange = (field: 'tanggalSuratPesanan' | 'tanggalBeritaAcara', date: Date | undefined) => {
+    if(date) {
+      setFormData(prev => ({...prev, [field]: date}))
+    }
+  }
   
   const handlePrint = () => {
     window.print();
@@ -74,10 +83,9 @@ export default function BuatBastbPage() {
     setFormData(prev => ({
       ...prev,
       nomorBeritaAcara: importData.formData?.nomor || prev.nomorBeritaAcara,
-      // Extracting date from narration is complex, using existing or placeholder
-      tanggalBeritaAcara: prev.tanggalBeritaAcara, 
+      tanggalBeritaAcara: new Date(), 
       nomorSuratPesanan: importData.formData?.nomorSuratReferensi || prev.nomorSuratPesanan,
-      tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratPesanan,
+      tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi ? new Date(importData.formData.tanggalSuratReferensi) : prev.tanggalSuratPesanan,
       pihak1Nama: importData.formData?.pejabatNama || prev.pihak1Nama,
       pihak1Nip: importData.formData?.pejabatNip ? importData.formData.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
     }));
@@ -205,16 +213,16 @@ export default function BuatBastbPage() {
                     <Input id="nomorSuratPesanan" value={formData.nomorSuratPesanan} onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="tanggalSuratPesanan">Tanggal Surat Pesanan</Label>
-                    <Input id="tanggalSuratPesanan" value={formData.tanggalSuratPesanan} onChange={handleInputChange} />
+                    <Label>Tanggal Surat Pesanan</Label>
+                    <DatePickerWithWarning date={formData.tanggalSuratPesanan} onDateChange={(date) => handleDateChange('tanggalSuratPesanan', date)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nomorBeritaAcara">Nomor Berita Acara Pemeriksaan</Label>
                     <Input id="nomorBeritaAcara" value={formData.nomorBeritaAcara} onChange={handleInputChange} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="tanggalBeritaAcara">Tanggal Berita Acara Pemeriksaan</Label>
-                    <Input id="tanggalBeritaAcara" value={formData.tanggalBeritaAcara} onChange={handleInputChange} />
+                    <Label>Tanggal Berita Acara Pemeriksaan</Label>
+                    <DatePickerWithWarning date={formData.tanggalBeritaAcara} onDateChange={(date) => handleDateChange('tanggalBeritaAcara', date)} />
                   </div>
                   <Separator />
                    <div className="space-y-2">
@@ -274,7 +282,7 @@ export default function BuatBastbPage() {
                 </div>
 
                 <p className="mb-4 text-justify indent-8">
-                  PIHAK KESATU telah melaksanakan pemeriksaan terhadap Pengadaan Obat yang dipesan melalui surat pesanan Nomor {formData.nomorSuratPesanan} tanggal {formData.tanggalSuratPesanan}, dalam kondisi baik dan sesuai dengan spesifikasi yang terdapat dalam berita acara Pemeriksaan Barang Nomor: {formData.nomorBeritaAcara} tanggal {formData.tanggalBeritaAcara} (jenis barang terlampir). Untuk selanjutnya diserah terimakan kepada PIHAK KEDUA.
+                  PIHAK KESATU telah melaksanakan pemeriksaan terhadap Pengadaan Obat yang dipesan melalui surat pesanan Nomor {formData.nomorSuratPesanan} tanggal {formData.tanggalSuratPesanan ? format(formData.tanggalSuratPesanan, "dd MMMM yyyy", { locale: id }) : ''}, dalam kondisi baik dan sesuai dengan spesifikasi yang terdapat dalam berita acara Pemeriksaan Barang Nomor: {formData.nomorBeritaAcara} tanggal {formData.tanggalBeritaAcara ? format(formData.tanggalBeritaAcara, "dd MMMM yyyy", { locale: id }) : ''} (jenis barang terlampir). Untuk selanjutnya diserah terimakan kepada PIHAK KEDUA.
                 </p>
 
                 <p className="mb-8 text-justify indent-8">
@@ -368,4 +376,3 @@ export default function BuatBastbPage() {
     </div>
   );
 }
-    
