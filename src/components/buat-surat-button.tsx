@@ -65,7 +65,8 @@ export function BuatSuratButton() {
             {suratTypes.map((surat) => (
               <CommandItem
                 key={surat.href}
-                onSelect={() => handleSelect(surat.href)}
+                value={surat.href}
+                onSelect={handleSelect}
                 className="cursor-pointer"
               >
                 <surat.icon className="mr-2 h-4 w-4" />
