@@ -176,6 +176,7 @@ export default function SuratKeluarPage() {
   const [isKirimDialogOpen, setIsKirimDialogOpen] = useState(false);
   const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("semua");
+  const [kirimSearchTerm, setKirimSearchTerm] = useState("");
 
   useEffect(() => {
     const loadSuratData = () => {
@@ -247,6 +248,7 @@ export default function SuratKeluarPage() {
     if (action === 'arsip') setIsArsipConfirmOpen(true);
     if (action === 'kirim') {
         setPenerima([]);
+        setKirimSearchTerm("");
         setIsKirimDialogOpen(true);
     }
   };
@@ -299,6 +301,11 @@ export default function SuratKeluarPage() {
     return true;
   });
 
+  const filteredUsers = usersData.filter(
+    user =>
+      user.nama.toLowerCase().includes(kirimSearchTerm.toLowerCase()) ||
+      user.jabatan.toLowerCase().includes(kirimSearchTerm.toLowerCase())
+  );
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -678,25 +685,39 @@ export default function SuratKeluarPage() {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Pilih Penerima</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari nama atau jabatan..."
+                  value={kirimSearchTerm}
+                  onChange={(e) => setKirimSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
               <ScrollArea className="h-48 w-full rounded-md border p-4">
                 <div className="space-y-2">
-                  {usersData.map((user) => (
-                    <div key={user.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`user-${user.id}`}
-                        onCheckedChange={(checked) => {
-                          setPenerima((prev) =>
-                            checked
-                              ? [...prev, user.nama]
-                              : prev.filter((p) => p !== user.nama)
-                          );
-                        }}
-                      />
-                      <Label htmlFor={`user-${user.id}`} className="font-normal">
-                        {user.nama} <span className="text-muted-foreground">({user.jabatan})</span>
-                      </Label>
-                    </div>
-                  ))}
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <div key={user.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`user-${user.id}`}
+                          checked={penerima.includes(user.nama)}
+                          onCheckedChange={(checked) => {
+                            setPenerima((prev) =>
+                              checked
+                                ? [...prev, user.nama]
+                                : prev.filter((p) => p !== user.nama)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={`user-${user.id}`} className="font-normal cursor-pointer">
+                          {user.nama} <span className="text-muted-foreground">({user.jabatan})</span>
+                        </Label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">Pengguna tidak ditemukan.</p>
+                  )}
                 </div>
               </ScrollArea>
             </div>

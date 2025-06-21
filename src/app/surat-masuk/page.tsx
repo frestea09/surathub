@@ -177,6 +177,7 @@ export default function SuratMasukPage() {
   const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
+  const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
 
 
   const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi') => {
@@ -184,6 +185,7 @@ export default function SuratMasukPage() {
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'disposisi') {
         setDisposisiTo([]);
+        setDisposisiSearchTerm("");
         setIsDisposisiOpen(true);
     };
     if (action === 'arsip') setIsArsipConfirmOpen(true);
@@ -235,6 +237,9 @@ export default function SuratMasukPage() {
     return true;
   });
 
+  const filteredRoles = allRoles.filter(role =>
+    role.toLowerCase().includes(disposisiSearchTerm.toLowerCase())
+  );
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -547,21 +552,35 @@ export default function SuratMasukPage() {
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label>Tujuan Disposisi</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari peran/jabatan..."
+                    value={disposisiSearchTerm}
+                    onChange={(e) => setDisposisiSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
                 <ScrollArea className="h-48 w-full rounded-md border p-4">
                   <div className="space-y-2">
-                    {allRoles.map((role) => (
-                      <div key={role} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`role-${role}`}
-                          onCheckedChange={(checked) => {
-                            setDisposisiTo((prev) =>
-                              checked ? [...prev, role] : prev.filter((r) => r !== role)
-                            );
-                          }}
-                        />
-                        <Label htmlFor={`role-${role}`} className="font-normal">{role}</Label>
-                      </div>
-                    ))}
+                    {filteredRoles.length > 0 ? (
+                      filteredRoles.map((role) => (
+                        <div key={role} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`role-${role}`}
+                            checked={disposisiTo.includes(role)}
+                            onCheckedChange={(checked) => {
+                              setDisposisiTo((prev) =>
+                                checked ? [...prev, role] : prev.filter((r) => r !== role)
+                              );
+                            }}
+                          />
+                          <Label htmlFor={`role-${role}`} className="font-normal cursor-pointer">{role}</Label>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center">Peran tidak ditemukan.</p>
+                    )}
                   </div>
                 </ScrollArea>
               </div>
