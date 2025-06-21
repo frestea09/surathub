@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, Download } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from "@/hooks/use-toast";
 
 export default function BuatBastbPage() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     nomor: 'BASTB/06/FAR/IV/2025',
     narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.',
@@ -39,6 +41,51 @@ export default function BuatBastbPage() {
     window.print();
   };
 
+  const handleImportData = () => {
+    const dataString = localStorage.getItem('beritaAcaraData');
+    if (dataString) {
+      try {
+        const importData = JSON.parse(dataString);
+        setFormData(prev => ({
+          ...prev,
+          nomorBeritaAcara: importData.formData?.nomor || prev.nomorBeritaAcara,
+          // Extracting date from narration is complex, using existing or placeholder
+          tanggalBeritaAcara: prev.tanggalBeritaAcara, 
+          nomorSuratPesanan: importData.formData?.nomorSuratReferensi || prev.nomorSuratPesanan,
+          tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratPesanan,
+          pihak1Nama: importData.formData?.pejabatNama || prev.pihak1Nama,
+          pihak1Nip: importData.formData?.pejabatNip ? importData.formData.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
+        }));
+        toast({
+          title: "Berhasil",
+          description: "Data dari Berita Acara berhasil dimuat.",
+        });
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Gagal Membaca Data",
+          description: "Format data tidak valid.",
+        });
+      }
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Data dari Berita Acara tidak ditemukan.",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('bastbData', JSON.stringify(formData));
+      } catch (error) {
+        console.error("Failed to save to localStorage", error);
+      }
+    }
+  }, [formData]);
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
@@ -50,6 +97,10 @@ export default function BuatBastbPage() {
         </Link>
         <h1 className="text-xl font-semibold">Buat Berita Acara Serah Terima</h1>
         <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" onClick={handleImportData}>
+              <Download className="mr-2 h-4 w-4" />
+              Ambil Data
+            </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
               Generate with AI

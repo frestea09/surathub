@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,16 @@ export default function BuatSuratPage() {
   const handlePrint = () => {
     window.print();
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('suratPerintahData', JSON.stringify(formData));
+      } catch (error) {
+        console.error("Failed to save to localStorage", error);
+      }
+    }
+  }, [formData]);
 
 
   return (

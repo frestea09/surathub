@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2, Download } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from "@/hooks/use-toast";
 
 type Item = {
   id: number;
@@ -49,6 +50,7 @@ const initialItems: Item[] = [
 ];
 
 export default function BuatSuratPesananFinalPage() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     nomor: '000.3/06-FAR/PPK-RSUD OTISTA/IV/2025',
     perihal: 'Pesanan Barang Farmasi',
@@ -96,6 +98,49 @@ export default function BuatSuratPesananFinalPage() {
     window.print();
   };
 
+  const handleImportData = () => {
+    const dataString = localStorage.getItem('suratPesananData');
+    if (dataString) {
+      try {
+        const importData = JSON.parse(dataString);
+        setFormData(prev => ({
+          ...prev,
+          nomorSuratReferensi: importData.formData?.nomor || prev.nomorSuratReferensi,
+          tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratReferensi,
+          terbilang: importData.formData?.terbilang || prev.terbilang,
+          ppn: importData.formData?.ppn || prev.ppn,
+        }));
+        setItems(importData.items || []);
+        toast({
+          title: "Berhasil",
+          description: "Data dari Surat Pesanan Internal berhasil dimuat.",
+        });
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Gagal Membaca Data",
+          description: "Format data tidak valid.",
+        });
+      }
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Data dari Surat Pesanan Internal tidak ditemukan.",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('suratPesananFinalData', JSON.stringify({ formData, items }));
+      } catch (error) {
+        console.error("Failed to save to localStorage", error);
+      }
+    }
+  }, [formData, items]);
+
   const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID').format(value);
 
   return (
@@ -109,6 +154,10 @@ export default function BuatSuratPesananFinalPage() {
         </Link>
         <h1 className="text-xl font-semibold">Buat Surat Pesanan (Vendor)</h1>
         <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" onClick={handleImportData}>
+              <Download className="mr-2 h-4 w-4" />
+              Ambil Data
+            </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
               Generate with AI
