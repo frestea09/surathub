@@ -139,7 +139,7 @@ export default function Home() {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
-                href="#"
+                href="/"
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <HomeIcon className="h-4 w-4" />
@@ -156,7 +156,7 @@ export default function Home() {
                 </Badge>
               </Link>
               <Link
-                href="#"
+                href="/surat-keluar"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Package className="h-4 w-4" />
@@ -224,7 +224,7 @@ export default function Home() {
                   </Badge>
                 </Link>
                 <Link
-                  href="#"
+                  href="/surat-keluar"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
                   <Package className="h-5 w-5" />
