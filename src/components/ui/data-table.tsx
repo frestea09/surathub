@@ -57,12 +57,15 @@ export function DataTable<TData, TValue>({
     table.setPageSize(5);
   }, [table]);
 
-  const filterableColumns = React.useMemo(() => ({
-    nomor: table.getColumn("nomor") || table.getColumn("noSurat"),
-    perihal: table.getColumn("perihal") || table.getColumn("judul"),
-    nama: table.getColumn("nama"),
-    status: table.getColumn("status"),
-  }), [table]);
+  const filterableColumns = React.useMemo(() => {
+    const columnMap = new Map(table.getAllLeafColumns().map(col => [col.id, col]));
+    return {
+      nomor: columnMap.get("nomor") ?? columnMap.get("noSurat"),
+      perihal: columnMap.get("perihal") ?? columnMap.get("judul"),
+      nama: columnMap.get("nama"),
+      status: columnMap.get("status"),
+    }
+  }, [table]);
 
   const statuses = React.useMemo(() => {
     if (!filterableColumns.status) return [];
