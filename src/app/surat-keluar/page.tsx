@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -34,14 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Tabs,
   TabsContent,
@@ -72,6 +65,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { AppLayout } from "@/components/templates/AppLayout";
+import { DataTable } from "@/components/ui/data-table";
 
 const initialSuratKeluarData = [
     {
@@ -322,6 +316,77 @@ export default function SuratKeluarPage() {
       user.nama.toLowerCase().includes(kirimSearchTerm.toLowerCase()) ||
       user.jabatan.toLowerCase().includes(kirimSearchTerm.toLowerCase())
   );
+  
+  const columns: ColumnDef<SuratKeluar>[] = [
+      {
+          accessorKey: "nomor",
+          header: "Nomor Surat",
+      },
+      {
+          accessorKey: "perihal",
+          header: "Perihal",
+      },
+      {
+          accessorKey: "tujuan",
+          header: "Tujuan",
+      },
+      {
+          accessorKey: "tanggal",
+          header: "Tanggal",
+      },
+      {
+          accessorKey: "status",
+          header: "Status",
+          cell: ({ row }) => {
+              const status = row.getValue("status") as string;
+              return <Badge variant={statusVariant[status as keyof typeof statusVariant]}>{status}</Badge>
+          }
+      },
+      {
+          id: "actions",
+          cell: ({ row }) => {
+              const surat = row.original;
+              return (
+                  <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
+                              <FileSearch className="mr-2 h-4 w-4" />
+                              Lihat Detail
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'kirim')} disabled={surat.status !== 'Draft'}>
+                              <Send className="mr-2 h-4 w-4" />
+                              Kirim
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
+                              <FileSearch className="mr-2 h-4 w-4" />
+                              Lacak Alur Pengiriman
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleDownloadPdf}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Unduh PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
+                              <Archive className="mr-2 h-4 w-4" />
+                              Arsipkan
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Tolak
+                          </DropdownMenuItem>
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+              )
+          }
+      }
+  ];
 
   return (
     <AppLayout>
@@ -345,71 +410,12 @@ export default function SuratKeluarPage() {
                     <CardDescription>Kelola semua surat yang dibuat dan dikirim.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Nomor Surat</TableHead>
-                        <TableHead>Perihal</TableHead>
-                        <TableHead>Tujuan</TableHead>
-                        <TableHead className="text-center">Tanggal</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead>
-                            <span className="sr-only">Actions</span>
-                        </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredSurat.map((surat) => (
-                        <TableRow key={surat.nomor}>
-                            <TableCell className="font-medium">{surat.nomor}</TableCell>
-                            <TableCell>{surat.perihal}</TableCell>
-                            <TableCell>{surat.tujuan}</TableCell>
-                            <TableCell className="text-center">{surat.tanggal}</TableCell>
-                            <TableCell className="text-center">
-                              <Badge variant={statusVariant[surat.status as keyof typeof statusVariant]}>{surat.status}</Badge>
-                            </TableCell>
-                            <TableCell>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                                  <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
-                                    <FileSearch className="mr-2 h-4 w-4" />
-                                    Lihat Detail
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleActionClick(surat, 'kirim')} disabled={surat.status !== 'Draft'}>
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Kirim
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
-                                    <FileSearch className="mr-2 h-4 w-4" />
-                                    Lacak Alur Pengiriman
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={handleDownloadPdf}>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Unduh PDF
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                   <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Arsipkan
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Tolak
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                    </Table>
+                    <DataTable
+                      columns={columns}
+                      data={filteredSurat}
+                      searchKey="perihal"
+                      searchPlaceholder="Cari berdasarkan perihal..."
+                    />
                 </CardContent>
                 </Card>
         </TabsContent>

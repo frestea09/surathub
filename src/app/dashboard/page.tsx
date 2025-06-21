@@ -3,6 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, Download, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2 } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -21,14 +22,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { DashboardChart } from "@/components/dashboard-chart";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,7 +30,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-
+import { DataTable } from "@/components/ui/data-table";
 
 const mockUsers = [
     { id: 'admin', name: 'Admin', role: 'Admin', unit: 'All' },
@@ -59,7 +52,6 @@ const initialSuratData = [
 ];
 
 type Surat = typeof initialSuratData[0];
-
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Disetujui: "default",
@@ -149,6 +141,56 @@ export default function DashboardPage() {
       return { filteredSurat: surat, dynamicStatCards: cards };
   }, [currentUser, suratData]);
 
+  const columns: ColumnDef<Surat>[] = [
+    { accessorKey: "nomor", header: "No. Surat" },
+    { accessorKey: "judul", header: "Judul" },
+    { accessorKey: "jenis", header: "Jenis" },
+    { 
+      accessorKey: "status", 
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return <Badge variant={statusVariant[status as keyof typeof statusVariant] || 'default'}>{status}</Badge>
+      }
+    },
+    { accessorKey: "tanggal", header: "Tanggal" },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const surat = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button aria-haspopup="true" size="icon" variant="ghost">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
+                <FileSearch className="mr-2 h-4 w-4" />
+                Lihat Detail
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
+                <FileSearch className="mr-2 h-4 w-4" />
+                 Lacak
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadPdf}>
+                <Download className="mr-2 h-4 w-4" />
+                Unduh PDF
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                <XCircle className="mr-2 h-4 w-4" />
+                Tolak
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      }
+    }
+  ];
 
   return (
     <AppLayout>
@@ -200,71 +242,12 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>No. Surat</TableHead>
-                  <TableHead>Judul</TableHead>
-                  <TableHead className="text-center">Jenis</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Tanggal</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSurat.slice(0, 6).map((surat) => (
-                  <TableRow key={surat.nomor}>
-                    <TableCell className="font-medium">
-                      {surat.nomor}
-                    </TableCell>
-                    <TableCell>{surat.judul || surat.perihal}</TableCell>
-                    <TableCell className="text-center">{surat.jenis}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={statusVariant[surat.status as keyof typeof statusVariant] || 'default'}>
-                        {surat.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{surat.tanggal}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
-                            <FileSearch className="mr-2 h-4 w-4" />
-                            Lihat Detail
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
-                            <FileSearch className="mr-2 h-4 w-4" />
-                             Lacak
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleDownloadPdf}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Unduh PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Tolak
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+             <DataTable 
+                columns={columns} 
+                data={filteredSurat} 
+                searchKey="judul"
+                searchPlaceholder="Cari berdasarkan judul..."
+              />
           </CardContent>
         </Card>
       </div>
@@ -418,4 +401,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-

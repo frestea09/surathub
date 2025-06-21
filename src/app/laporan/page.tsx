@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -14,6 +15,7 @@ import {
   Share2,
   UserCheck,
 } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
 import { DateRange } from "react-day-picker";
 
@@ -33,14 +35,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -229,6 +224,66 @@ export default function LaporanPage() {
     }
   };
 
+  const columns: ColumnDef<SuratLaporan>[] = [
+      {
+          accessorKey: "noSurat",
+          header: "Nomor Surat",
+      },
+      {
+          accessorKey: "perihal",
+          header: "Perihal",
+      },
+      {
+          accessorKey: "jenis",
+          header: "Jenis",
+          cell: ({ row }) => {
+              const jenis = row.original.jenis;
+              return <Badge variant={jenis === 'Masuk' ? 'secondary' : 'outline'}>{jenis}</Badge>
+          }
+      },
+      {
+          accessorKey: "tanggal",
+          header: "Tanggal",
+      },
+      {
+          accessorKey: "dariKe",
+          header: "Dari/Ke",
+      },
+      {
+          accessorKey: "status",
+          header: "Status Saat Ini",
+           cell: ({ row }) => {
+              const status = row.original.status;
+              return <Badge variant={statusVariant[status as keyof typeof statusVariant]}>{status}</Badge>
+          }
+      },
+      {
+          accessorKey: "penanggungJawab",
+          header: "Penanggung Jawab",
+      },
+      {
+          id: "actions",
+          cell: ({ row }) => {
+              const surat = row.original;
+              return (
+                  <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>Lihat Detail Surat</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'alur')}>Lihat Alur Lengkap</DropdownMenuItem>
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+              )
+          }
+      }
+  ];
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
@@ -318,58 +373,12 @@ export default function LaporanPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nomor Surat</TableHead>
-                <TableHead>Perihal</TableHead>
-                <TableHead>Jenis</TableHead>
-                <TableHead>Tgl</TableHead>
-                <TableHead>Dari/Ke</TableHead>
-                <TableHead>Status Saat Ini</TableHead>
-                <TableHead>Penanggung Jawab</TableHead>
-                <TableHead><span className="sr-only">Aksi</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.length > 0 ? filteredData.map((surat) => (
-                <TableRow key={surat.noSurat}>
-                  <TableCell className="font-medium">{surat.noSurat}</TableCell>
-                  <TableCell>{surat.perihal}</TableCell>
-                  <TableCell>
-                      <Badge variant={surat.jenis === 'Masuk' ? 'secondary' : 'outline'}>{surat.jenis}</Badge>
-                  </TableCell>
-                  <TableCell>{surat.tanggal}</TableCell>
-                  <TableCell>{surat.dariKe}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant[surat.status as keyof typeof statusVariant]}>{surat.status}</Badge>
-                  </TableCell>
-                  <TableCell>{surat.penanggungJawab}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>Lihat Detail Surat</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleActionClick(surat, 'alur')}>Lihat Alur Lengkap</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
-                    Tidak ada data yang ditemukan untuk rentang tanggal ini.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <DataTable
+            columns={columns}
+            data={filteredData}
+            searchKey="perihal"
+            searchPlaceholder="Cari berdasarkan perihal..."
+          />
         </CardContent>
       </Card>
 

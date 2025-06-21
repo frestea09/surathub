@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
+import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -20,15 +20,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { AppLayout } from "@/components/templates/AppLayout";
+import { useRouter } from "next/navigation";
+import { DataTable } from "@/components/ui/data-table";
+
 
 const usersData = [
   {
@@ -63,6 +58,57 @@ const usersData = [
   },
 ];
 
+type User = typeof usersData[0];
+
+const columns: ColumnDef<User>[] = [
+    {
+        accessorKey: "nip",
+        header: "NIP/Username",
+    },
+    {
+        accessorKey: "nama",
+        header: "Nama",
+    },
+    {
+        accessorKey: "jabatan",
+        header: "Jabatan",
+    },
+    {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const status = row.getValue("status") as string;
+            return <Badge variant={status === 'Aktif' ? 'default' : 'destructive'}>{status}</Badge>;
+        }
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+            return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Ubah
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Hapus
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            )
+        }
+    }
+];
+
 export default function AdminPage() {
   const router = useRouter();
   
@@ -80,54 +126,12 @@ export default function AdminPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>NIP/Username</TableHead>
-                <TableHead>Nama</TableHead>
-                <TableHead>Jabatan</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead>
-                  <span className="sr-only">Aksi</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersData.map((user) => (
-                <TableRow key={user.nip}>
-                  <TableCell className="font-medium">{user.nip}</TableCell>
-                  <TableCell>{user.nama}</TableCell>
-                  <TableCell>{user.jabatan}</TableCell>
-                  <TableCell className="text-center">
-                      <Badge variant={user.status === 'Aktif' ? 'default' : 'destructive'}>
-                        {user.status}
-                      </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Ubah
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            columns={columns}
+            data={usersData}
+            searchKey="nama"
+            searchPlaceholder="Cari berdasarkan nama..."
+          />
         </CardContent>
       </Card>
     </AppLayout>
