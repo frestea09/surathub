@@ -17,6 +17,7 @@ import {
   Search,
   Settings,
   Truck,
+  CheckCircle,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,6 +65,18 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
 
 const initialSuratKeluarData = [
     {
@@ -119,14 +132,39 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 };
 
 export default function SuratKeluarPage() {
+  const { toast } = useToast();
   const [suratList, setSuratList] = useState<SuratKeluar[]>(initialSuratKeluarData);
   const [selectedSurat, setSelectedSurat] = useState<SuratKeluar | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isLacakOpen, setIsLacakOpen] = useState(false);
+  const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
 
-  const handleActionClick = (surat: SuratKeluar) => {
+  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip') => {
     setSelectedSurat(surat);
-    setIsDetailOpen(true);
+    if (action === 'detail') setIsDetailOpen(true);
+    if (action === 'lacak') setIsLacakOpen(true);
+    if (action === 'arsip') setIsArsipConfirmOpen(true);
+  };
+
+  const handleDownloadPdf = () => {
+    toast({
+        title: "Fitur Dalam Pengembangan",
+        description: "Fungsi unduh PDF akan segera tersedia.",
+    });
+  };
+
+  const handleArsipConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Diarsipkan' } : s)
+    );
+    toast({
+        title: "Berhasil",
+        description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
+    });
+    setIsArsipConfirmOpen(false);
+    setSelectedSurat(null);
   };
   
   const filteredSurat = suratList.filter(surat => {
@@ -350,20 +388,20 @@ export default function SuratKeluarPage() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                       <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                                      <DropdownMenuItem onClick={() => handleActionClick(surat)}>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
                                         <FileSearch className="mr-2 h-4 w-4" />
                                         Lihat Detail
                                       </DropdownMenuItem>
-                                       <DropdownMenuItem>
+                                       <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
                                         <Truck className="mr-2 h-4 w-4" />
                                         Lacak Pengiriman
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem onClick={handleDownloadPdf}>
                                         <Download className="mr-2 h-4 w-4" />
                                         Unduh PDF
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                                         <Archive className="mr-2 h-4 w-4" />
                                         Arsipkan
                                       </DropdownMenuItem>
@@ -421,7 +459,82 @@ export default function SuratKeluarPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Lacak Pengiriman Dialog */}
+      <Dialog open={isLacakOpen} onOpenChange={setIsLacakOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Lacak Pengiriman Surat</DialogTitle>
+            <DialogDescription>
+              Status pengiriman untuk surat nomor: {selectedSurat?.nomor}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <ul className="space-y-4">
+                <li className="flex items-start">
+                    <div className="flex flex-col items-center mr-4">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-primary-foreground">
+                            <Package className="h-4 w-4" />
+                        </div>
+                        <div className="w-px h-16 bg-border"></div>
+                    </div>
+                    <div>
+                        <p className="font-semibold">Draft Dibuat</p>
+                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 10:00 WIB</p>
+                        <p className="text-sm">Surat disiapkan oleh sistem.</p>
+                    </div>
+                </li>
+                <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-primary-foreground">
+                              <Truck className="h-4 w-4" />
+                          </div>
+                          <div className="w-px h-16 bg-border"></div>
+                      </div>
+                      <div>
+                        <p className="font-semibold">Surat Terkirim</p>
+                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 14:30 WIB</p>
+                         <p className="text-sm">Surat telah dikirim ke tujuan.</p>
+                      </div>
+                </li>
+                  <li className="flex items-start">
+                      <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white">
+                          <CheckCircle className="h-4 w-4" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="font-semibold">Diterima oleh Tujuan</p>
+                        <p className="text-sm text-muted-foreground">Selasa, 30 Jul 2024, 09:15 WIB</p>
+                        <p className="text-sm">Surat berhasil diterima oleh {selectedSurat?.tujuan}.</p>
+                      </div>
+                </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Arsip Confirm Dialog */}
+      <AlertDialog open={isArsipConfirmOpen} onOpenChange={setIsArsipConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Arsip Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengarsipkan surat ini? Status akan diubah menjadi &quot;Diarsipkan&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
 }
+
+    
