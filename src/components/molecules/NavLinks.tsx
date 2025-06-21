@@ -12,6 +12,7 @@ import {
   UserCog,
   Settings,
   History,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const mainNavItems = [
   { href: "/notifikasi", label: "Notifikasi", icon: Bell },
   { href: "/admin", label: "Admin", icon: UserCog },
   { href: "/log-aktivitas", label: "Log Aktivitas", icon: History },
+  { href: "/bantuan", label: "Bantuan", icon: HelpCircle },
 ];
 
 const secondaryNavItem = { href: "/pengaturan", label: "Pengaturan", icon: Settings };
