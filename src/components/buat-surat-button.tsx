@@ -28,6 +28,9 @@ export function BuatSuratButton() {
                 <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan-final')}>
                     Surat Pesanan (Vendor)
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/buat-berita-acara')}>
+                    Berita Acara Pemeriksaan
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )
