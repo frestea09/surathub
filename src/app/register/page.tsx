@@ -105,7 +105,8 @@ export default function RegisterPage() {
         nama,
         nip,
         jabatan,
-        status: "Aktif"
+        status: "Aktif",
+        password,
     };
 
     try {

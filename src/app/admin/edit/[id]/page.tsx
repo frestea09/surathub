@@ -42,6 +42,7 @@ type User = {
   nama: string;
   jabatan: string;
   status: string;
+  password?: string;
 };
 
 export default function EditUserPage() {
@@ -54,6 +55,7 @@ export default function EditUserPage() {
     nip: '',
     jabatan: '',
     status: '',
+    password: '',
   });
 
   useEffect(() => {
@@ -72,6 +74,7 @@ export default function EditUserPage() {
             nip: userToEdit.nip,
             jabatan: userToEdit.jabatan,
             status: userToEdit.status,
+            password: userToEdit.password || '',
           });
         } else {
           toast({ variant: "destructive", title: "Error", description: "Pengguna tidak ditemukan." });
@@ -147,6 +150,10 @@ export default function EditUserPage() {
             <div className="space-y-2">
               <Label htmlFor="nip">NIP / Username</Label>
               <Input id="nip" value={formData.nip} onChange={handleInputChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" value={formData.password} onChange={handleInputChange} placeholder="Kosongkan jika tidak ingin mengubah" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="jabatan">Jabatan / Role</Label>

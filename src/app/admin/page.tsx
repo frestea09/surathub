@@ -44,6 +44,7 @@ const initialUsersData = [
     nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
     jabatan: "Direktur",
     status: "Aktif",
+    password: "password-direktur",
   },
   {
     id: "ppk-01",
@@ -51,6 +52,7 @@ const initialUsersData = [
     nama: "Saep Trian Prasetia.S.Si.Apt",
     jabatan: "Pejabat Pembuat Komitmen",
     status: "Aktif",
+    password: "password-ppk",
   },
   {
     id: "ppbj-01",
@@ -58,6 +60,7 @@ const initialUsersData = [
     nama: "Deti Hapitri, A.Md.Gz",
     jabatan: "Pejabat Pengadaan Barang Jasa",
     status: "Aktif",
+    password: "password-ppbj",
   },
   {
     id: "admin-01",
@@ -65,6 +68,7 @@ const initialUsersData = [
     nama: "Admin Utama",
     jabatan: "Administrator Sistem",
     status: "Aktif",
+    password: "password-admin",
   },
   {
     id: "keu-01",
@@ -72,6 +76,7 @@ const initialUsersData = [
     nama: "Jane Doe",
     jabatan: "Kepala Bagian Keuangan",
     status: "Aktif",
+    password: "password-keuangan",
   },
   {
     id: "umum-01",
@@ -79,6 +84,7 @@ const initialUsersData = [
     nama: "Budi Darmawan",
     jabatan: "Kepala Bagian Umum",
     status: "Non-Aktif",
+    password: "password-umum",
   },
    {
     id: "yanmed-01",
@@ -86,6 +92,7 @@ const initialUsersData = [
     nama: "Dr. Anisa Fitriani, Sp.A",
     jabatan: "Kepala Bidang Pelayanan Medik",
     status: "Aktif",
+    password: "password-yanmed",
   },
 ];
 
@@ -146,6 +153,10 @@ export default function AdminPage() {
       {
           accessorKey: "jabatan",
           header: "Jabatan",
+      },
+      {
+        accessorKey: "password",
+        header: "Password",
       },
       {
           accessorKey: "status",
