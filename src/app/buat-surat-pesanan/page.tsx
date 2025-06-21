@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
 
 type Item = {
   id: number;
@@ -59,6 +60,7 @@ const initialItems: Item[] = [
 
 export default function BuatSuratPesananPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nomor: '000.3/PPBJ-RSUD OTISTA/IV/2025',
     perihal: 'Penerbitan Surat Pesanan',
@@ -157,6 +159,7 @@ export default function BuatSuratPesananPage() {
         
         localStorage.setItem('suratPesananList', JSON.stringify(list));
         toast({ title: "Berhasil", description: "Data surat pesanan berhasil disimpan sebagai draft." });
+        router.push('/surat-keluar');
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -478,3 +481,5 @@ export default function BuatSuratPesananPage() {
     </div>
   );
 }
+
+    

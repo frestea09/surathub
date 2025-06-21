@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
 
 type BeritaAcara = {
   formData: any;
@@ -22,6 +23,7 @@ type BeritaAcara = {
 
 export default function BuatBastbPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nomor: 'BASTB/06/FAR/IV/2025',
     narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.',
@@ -107,6 +109,7 @@ export default function BuatBastbPage() {
         
         localStorage.setItem('bastbList', JSON.stringify(list));
         toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
+        router.push('/surat-keluar');
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -369,3 +372,5 @@ export default function BuatBastbPage() {
     </div>
   );
 }
+
+    

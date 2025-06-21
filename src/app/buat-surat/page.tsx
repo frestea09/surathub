@@ -10,9 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { ArrowLeft, Printer, Sparkles, Save } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 export default function BuatSuratPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nomor: '000.3/PPK-RSUD OTISTA/IV/2025',
     lampiran: '-',
@@ -64,6 +66,7 @@ export default function BuatSuratPage() {
           title: "Berhasil",
           description: "Data surat berhasil disimpan sebagai draft.",
         });
+        router.push('/surat-keluar');
       }
     } catch (error) {
       toast({
@@ -231,3 +234,5 @@ export default function BuatSuratPage() {
     </div>
   );
 }
+
+    

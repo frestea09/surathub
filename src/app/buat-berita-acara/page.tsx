@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
 
 type Item = {
   id: number;
@@ -58,6 +59,7 @@ const initialItems: Item[] = [
 
 export default function BuatBeritaAcaraPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nomor: '06/PPK-FAR/RSUDO/IV/2025',
     narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini Pejabat Pembuat Komitmen RSUD Oto Iskandar Di Nata Tahun Anggaran 2025, dengan ini menyatakan dengan sebenarnya telah melaksanakan pemeriksaan barang dan jasa.',
@@ -154,6 +156,7 @@ export default function BuatBeritaAcaraPage() {
         
         localStorage.setItem('beritaAcaraList', JSON.stringify(list));
         toast({ title: "Berhasil", description: "Data berita acara berhasil disimpan sebagai draft." });
+        router.push('/surat-keluar');
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -443,3 +446,5 @@ export default function BuatBeritaAcaraPage() {
     </div>
   );
 }
+
+    
