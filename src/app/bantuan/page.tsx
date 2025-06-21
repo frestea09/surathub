@@ -23,47 +23,49 @@ type HelpContent = {
 const helpContent: Record<string, HelpContent> = {
     admin: {
         faq: [
-            { q: "Bagaimana cara menambahkan pengguna baru?", a: "Masuk ke menu 'Admin' dari sidebar, lalu klik tombol 'Tambah Pengguna'. Isi formulir yang tersedia dan simpan." },
-            { q: "Bagaimana cara mengubah atau menonaktifkan pengguna?", a: "Di halaman 'Admin', temukan pengguna yang ingin diubah, klik menu tiga titik di sebelah kanan, lalu pilih 'Ubah'. Anda dapat mengubah detail dan status pengguna di halaman edit." },
-            { q: "Dimana saya bisa melihat aktivitas sistem?", a: "Semua aktivitas penting tercatat di menu 'Log Aktivitas'. Halaman ini menunjukkan siapa yang melakukan apa dan kapan, sangat berguna untuk audit dan keamanan." }
+            { q: "Bagaimana cara menambahkan pengguna baru?", a: "Masuk ke menu 'Admin' dari sidebar, lalu klik tombol 'Tambah Pengguna' di pojok kanan atas. Isi formulir yang tersedia dan simpan." },
+            { q: "Bagaimana cara mengubah status pengguna (Aktif/Non-Aktif)?", a: "Di halaman 'Admin', temukan pengguna yang ingin diubah. Klik menu tiga titik di sebelah kanan, lalu pilih 'Ubah'. Di halaman edit, Anda akan menemukan dropdown 'Status' untuk mengubahnya." },
+            { q: "Mengapa saya tidak bisa menghapus beberapa pengguna awal?", a: "Pengguna awal seperti Direktur dan PPK adalah bagian dari data inti untuk demo alur kerja dan tidak dapat dihapus melalui UI untuk menjaga konsistensi data." },
+            { q: "Dimana saya bisa memantau semua aktivitas di sistem?", a: "Buka menu 'Log Aktivitas' dari sidebar. Halaman ini mencatat semua tindakan penting seperti login, pembuatan surat, perubahan data pengguna, dll. Gunakan filter di atas tabel untuk mencari log spesifik." }
         ],
         guide: [
-            { title: "Mengelola Pengguna", steps: ["Buka menu 'Admin' untuk melihat semua pengguna.", "Gunakan tombol 'Tambah Pengguna' untuk mendaftarkan akun baru.", "Gunakan menu aksi (tiga titik) untuk 'Ubah' atau 'Hapus' pengguna yang sudah ada."] },
-            { title: "Memantau Sistem", steps: ["Buka menu 'Log Aktivitas' untuk meninjau jejak audit.", "Gunakan filter untuk mencari aktivitas spesifik berdasarkan pengguna atau jenis aksi."] }
+            { title: "Mengelola Pengguna (CRUD)", steps: ["Buka menu 'Admin' untuk melihat, mencari, dan memfilter semua pengguna.", "Klik 'Tambah Pengguna' untuk mendaftarkan akun baru.", "Gunakan menu aksi (tiga titik) pada setiap baris untuk 'Ubah' data dan status pengguna, atau 'Hapus' pengguna dari sistem.", "Saat mengubah, Anda akan diarahkan ke halaman khusus edit. Setelah selesai, Anda akan kembali ke daftar admin."] },
+            { title: "Memantau Sistem via Log", steps: ["Buka menu 'Log Aktivitas'.", "Gunakan filter 'Filter Pengguna' atau 'Filter Aksi' untuk menyaring catatan.", "Periksa log secara berkala untuk mendeteksi aktivitas yang tidak biasa atau upaya login yang gagal."] }
         ]
     },
     direktur: {
         faq: [
-            { q: "Bagaimana cara melihat ringkasan status semua surat?", a: "Halaman 'Dashboard' adalah tempat utama Anda. Di sana terdapat kartu statistik, grafik, dan tabel yang merangkum semua aktivitas surat-menyurat." },
-            { q: "Bagaimana cara saya menyetujui atau menolak surat?", a: "Di halaman 'Surat Masuk' atau 'Surat Keluar', gunakan menu aksi (tiga titik) pada surat yang relevan. Anda akan menemukan opsi untuk menyetujui, menolak, atau melakukan disposisi." },
-            { q: "Dimana saya bisa melihat laporan detail?", a: "Menu 'Laporan' menyediakan analisis mendalam. Anda dapat memfilter berdasarkan rentang tanggal dan mengekspor data ke CSV untuk analisis lebih lanjut." }
+            { q: "Bagaimana cara melihat ringkasan performa seluruh unit?", a: "Halaman 'Dashboard' adalah pusat informasi Anda. Gunakan dropdown 'Tampilan Sebagai' di pojok kanan atas untuk beralih perspektif dan melihat data spesifik untuk unit lain, seperti Keuangan atau Pengadaan." },
+            { q: "Bagaimana cara saya menyetujui atau menolak surat dengan cepat?", a: "Di halaman 'Dashboard' pada tabel 'Surat Terbaru', atau di halaman 'Surat Masuk'/'Surat Keluar', gunakan menu aksi (tiga titik) pada surat yang relevan. Anda akan menemukan opsi untuk 'Setujui', 'Tolak', atau 'Buat Disposisi'." },
+            { q: "Bagaimana cara mengekspor laporan untuk rapat?", a: "Masuk ke menu 'Laporan', atur rentang tanggal yang Anda inginkan menggunakan filter tanggal, lalu klik tombol 'Ekspor'. Ini akan mengunduh file CSV yang berisi data yang ditampilkan di tabel." }
         ],
         guide: [
-            { title: "Menggunakan Dashboard", steps: ["Gunakan dropdown 'Tampilan Sebagai' untuk melihat perspektif unit lain.", "Periksa kartu statistik untuk gambaran cepat.", "Analisis tren bulanan melalui grafik volume surat."] },
-            { title: "Merespon Surat", steps: ["Buka 'Surat Masuk' untuk melihat surat yang memerlukan tindakan Anda.", "Gunakan tombol 'Buat Disposisi' untuk meneruskan surat ke staf terkait.", "Gunakan opsi 'Tolak' jika surat tidak sesuai."] },
-            { title: "Menganalisis Laporan", steps: ["Buka menu 'Laporan'.", "Pilih rentang tanggal yang diinginkan.", "Klik 'Ekspor' untuk mengunduh data dalam format CSV."] }
+            { title: "Menggunakan Dashboard Interaktif", steps: ["Saat pertama kali masuk, Dashboard menampilkan ringkasan data untuk semua unit.", "Gunakan dropdown 'Tampilan Sebagai' untuk memfilter data berdasarkan unit atau peran tertentu.", "Periksa kartu statistik untuk gambaran cepat dan analisis tren melalui grafik."] },
+            { title: "Merespon & Mendelegasikan Surat", steps: ["Buka 'Surat Masuk' untuk melihat surat yang memerlukan tindakan.", "Gunakan 'Buat Disposisi' untuk meneruskan surat dengan instruksi ke staf/unit terkait.", "Gunakan opsi 'Tolak' atau 'Setujui' untuk merespon surat dengan cepat."] },
+            { title: "Menganalisis & Mengekspor Laporan", steps: ["Buka menu 'Laporan'.", "Pilih rentang tanggal yang diinginkan.", "Grafik dan tabel akan otomatis diperbarui.", "Klik 'Ekspor' untuk mengunduh data dalam format CSV untuk analisis lebih lanjut."] }
         ]
     },
     ppk: {
         faq: [
-            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar, misalnya 'Surat Perintah' atau 'Berita Acara'." },
-            { q: "Dimana saya bisa melihat draf surat yang sudah saya simpan?", a: "Semua draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'." },
-            { q: "Bagaimana alur pembuatan surat dari awal sampai akhir?", a: "Alurnya adalah: Surat Perintah -> Surat Pesanan (Internal) -> Surat Pesanan (Vendor) -> Berita Acara Pemeriksaan -> Berita Acara Serah Terima. Anda bisa menggunakan tombol 'Ambil Data' di setiap tahap untuk menarik informasi dari surat sebelumnya." }
+            { q: "Bagaimana cara membuat rangkaian surat pengadaan dari awal sampai akhir?", a: "Alurnya adalah: Surat Perintah -> Surat Pesanan (Internal) -> Surat Pesanan (Vendor) -> Berita Acara Pemeriksaan -> Berita Acara Serah Terima. Anda bisa memulai dengan klik 'Buat Surat'." },
+            { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya (misal, membuat Surat Pesanan dari Surat Perintah), klik 'Ambil Data' untuk otomatis mengisi informasi yang relevan dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." },
+            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'." },
+            { q: "Tanggal yang saya pilih ternyata hari libur, apakah bermasalah?", a: "Tidak masalah. Sistem akan memberi Anda peringatan jika tanggal yang dipilih adalah hari libur nasional, namun Anda tetap dapat melanjutkannya jika memang diperlukan. Ini hanya sebagai pengingat." }
         ],
         guide: [
-            { title: "Membuat Surat Pengadaan", steps: ["Mulai dengan membuat 'Surat Perintah' dari menu 'Buat Surat'.", "Setelah disimpan, lanjutkan ke 'Surat Pesanan (Internal)' dan gunakan fitur 'Ambil Data' untuk mengimpor detail dari Surat Perintah.", "Lanjutkan alur yang sama untuk jenis surat berikutnya hingga BASTB."] },
-            { title: "Melacak Status Surat", steps: ["Buka halaman 'Surat Keluar' untuk melihat status semua surat yang telah Anda buat.", "Gunakan menu aksi (tiga titik) dan pilih 'Lacak Alur' untuk melihat riwayat lengkap sebuah surat."] }
+            { title: "Membuat Alur Surat Pengadaan", steps: ["Klik 'Buat Surat', lalu pilih 'Surat Perintah' dan isi detailnya. Simpan sebagai draf.", "Selanjutnya, buat 'Surat Pesanan (Internal)'. Gunakan fitur 'Ambil Data' untuk menarik detail dari Surat Perintah yang tadi dibuat.", "Lanjutkan alur yang sama untuk 'Surat Pesanan (Vendor)', 'Berita Acara Pemeriksaan', hingga 'Berita Acara Serah Terima'. Selalu gunakan 'Ambil Data' untuk menyambungkan alur."] },
+            { title: "Melacak Status & Menyimpan Draf", steps: ["Buka halaman 'Surat Keluar' untuk melihat status semua surat yang Anda buat.", "Gunakan tab (Semua, Draft, Terkirim) untuk memfilter.", "Setelah menyimpan draf, Anda akan otomatis diarahkan ke tab 'Draft' di halaman 'Surat Keluar'."] }
         ]
     },
     staf: {
         faq: [
-            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar." },
-            { q: "Dimana saya bisa melihat draf surat yang sudah saya simpan?", a: "Semua draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'." },
-            { q: "Bagaimana saya tahu jika ada surat masuk untuk saya?", a: "Periksa halaman 'Surat Masuk' dan menu 'Notifikasi' (ikon lonceng) secara berkala untuk melihat surat atau disposisi yang ditujukan kepada Anda." }
+            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar yang tersedia." },
+            { q: "Di mana saya bisa menemukan draf yang belum selesai?", a: "Semua draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'. Anda bisa melanjutkannya dari sana." },
+            { q: "Bagaimana saya tahu jika ada surat atau tugas baru untuk saya?", a: "Periksa halaman 'Surat Masuk' dan menu 'Notifikasi' (ikon lonceng) secara berkala. Surat yang didisposisikan kepada Anda akan muncul di sana." }
         ],
         guide: [
-            { title: "Membuat Surat", steps: ["Klik 'Buat Surat', pilih template yang sesuai.", "Isi semua detail yang diperlukan pada formulir di sebelah kiri.", "Gunakan panel 'Preview' di sebelah kanan untuk memastikan format surat sudah benar sebelum menyimpan atau mencetak."] },
-            { title: "Menindaklanjuti Surat Masuk", steps: ["Buka 'Surat Masuk', cari surat yang didisposisikan kepada Anda.", "Lakukan tindakan sesuai instruksi.", "Setelah selesai, gunakan menu aksi (tiga titik) dan pilih 'Selesaikan Proses' untuk mengubah statusnya."] }
+            { title: "Membuat Surat Umum", steps: ["Klik 'Buat Surat', lalu pilih template yang sesuai (misal: Surat Perintah).", "Isi semua detail yang diperlukan pada formulir.", "Gunakan panel 'Preview' di sebelah kanan untuk memastikan format surat sudah benar sebelum 'Simpan' atau 'Cetak'."] },
+            { title: "Menindaklanjuti Disposisi", steps: ["Buka 'Surat Masuk', cari surat yang statusnya 'Didisposisikan' kepada Anda.", "Baca instruksi pada disposisi.", "Setelah tindakan selesai, gunakan menu aksi (tiga titik) dan pilih 'Selesaikan Proses' untuk mengubah statusnya menjadi 'Selesai'."] }
         ]
     }
 };

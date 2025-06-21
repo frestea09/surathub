@@ -20,17 +20,21 @@ type LogEntry = {
 };
 
 const mockLogData: LogEntry[] = [
-  { id: "log1", tanggal: "2024-08-01 10:05:12", pengguna: "Admin", aksi: "LOGIN", detail: "Pengguna berhasil login", status: "Info" },
-  { id: "log2", tanggal: "2024-08-01 10:10:22", pengguna: "Admin", aksi: "BUAT_SURAT", detail: "Membuat draf surat keluar No. 008/SP/RSUD-O/VIII/2024", status: "Berhasil" },
-  { id: "log3", tanggal: "2024-08-01 10:15:03", pengguna: "Admin", aksi: "KIRIM_SURAT", detail: "Mengirim surat keluar No. 008/SP/RSUD-O/VIII/2024", status: "Berhasil" },
-  { id: "log4", tanggal: "2024-08-01 11:00:45", pengguna: "Admin", aksi: "TERIMA_SURAT", detail: "Surat masuk No. INV/2024/08/1001 diterima", status: "Info" },
-  { id: "log5", tanggal: "2024-08-01 11:02:15", pengguna: "Admin", aksi: "DISPOSISI", detail: "Disposisi surat No. INV/2024/08/1001 ke Bagian Keuangan", status: "Berhasil" },
-  { id: "log6", tanggal: "2024-08-01 12:30:00", pengguna: "Admin", aksi: "TAMBAH_PENGGUNA", detail: "Pengguna 'user-test' ditambahkan", status: "Berhasil" },
-  { id: "log7", tanggal: "2024-08-01 12:35:10", pengguna: "Admin", aksi: "UBAH_PENGGUNA", detail: "Data pengguna 'Budi Darmawan' diubah", status: "Berhasil" },
-  { id: "log8", tanggal: "2024-08-01 14:00:00", pengguna: "system", aksi: "LOGIN_GAGAL", detail: "Upaya login gagal untuk pengguna 'tidakada'", status: "Gagal" },
-  { id: "log9", tanggal: "2024-08-01 14:05:00", pengguna: "Admin", aksi: "HAPUS_SURAT", detail: "Surat masuk No. 123/A/UM/2024 dihapus", status: "Berhasil" },
-  { id: "log10", tanggal: "2024-08-01 15:00:00", pengguna: "Direktur", aksi: "TOLAK_SURAT", detail: "Surat keluar No. 007/MEMO/RSUD-O/VIII/2024 ditolak", status: "Info" },
-  { id: "log11", tanggal: "2024-08-01 16:00:00", pengguna: "Admin", aksi: "LOGOUT", detail: "Pengguna berhasil logout", status: "Info" },
+  { id: "log1", tanggal: "2024-08-01 10:05:12", pengguna: "admin", aksi: "LOGIN_BERHASIL", detail: "Pengguna 'admin' berhasil login dari IP 192.168.1.10", status: "Info" },
+  { id: "log2", tanggal: "2024-08-01 10:10:22", pengguna: "ppk_saep", aksi: "BUAT_SURAT_PERINTAH", detail: "Membuat draf 'Surat Perintah' No. 000.3/PPK-RSUD OTISTA/IV/2025", status: "Berhasil" },
+  { id: "log3", tanggal: "2024-08-01 10:15:03", pengguna: "ppk_saep", aksi: "KIRIM_SURAT", detail: "Mengirim surat keluar No. 000.3/PPK-RSUD OTISTA/IV/2025", status: "Berhasil" },
+  { id: "log4", tanggal: "2024-08-01 11:00:45", pengguna: "admin", aksi: "TERIMA_SURAT_MASUK", detail: "Surat masuk No. INV/2024/07/998 dari 'CV. ATK Bersama' diterima", status: "Info" },
+  { id: "log5", tanggal: "2024-08-01 11:02:15", pengguna: "admin", aksi: "BUAT_DISPOSISI", detail: "Disposisi surat No. INV/2024/07/998 ke 'Kepala Bagian Keuangan'", status: "Berhasil" },
+  { id: "log6", tanggal: "2024-08-01 12:30:00", pengguna: "admin", aksi: "TAMBAH_PENGGUNA", detail: "Pengguna 'budi_darmawan' (Kepala Bagian Umum) ditambahkan", status: "Berhasil" },
+  { id: "log7", tanggal: "2024-08-01 12:35:10", pengguna: "admin", aksi: "UBAH_PENGGUNA", detail: "Status pengguna 'Budi Darmawan' diubah menjadi Non-Aktif", status: "Berhasil" },
+  { id: "log8", tanggal: "2024-08-01 14:00:00", pengguna: "system", aksi: "LOGIN_GAGAL", detail: "Upaya login gagal untuk pengguna 'tidakada' dari IP 202.55.12.34", status: "Gagal" },
+  { id: "log9", tanggal: "2024-08-01 14:05:00", pengguna: "ppbj_deti", aksi: "HAPUS_DRAFT", detail: "Draft surat pesanan No. 003/SP-DRAFT/VIII/2024 dihapus", status: "Berhasil" },
+  { id: "log10", tanggal: "2024-08-01 15:00:00", pengguna: "direktur_yani", aksi: "TOLAK_SURAT", detail: "Surat keluar No. 007/MEMO/RSUD-O/VIII/2024 ditolak", status: "Info" },
+  { id: "log11", tanggal: "2024-08-01 15:15:45", pengguna: "keuangan_jane", aksi: "SELESAIKAN_PROSES", detail: "Proses surat masuk No. 005/B/FIN/2024 diselesaikan", status: "Berhasil" },
+  { id: "log12", tanggal: "2024-08-01 15:30:00", pengguna: "direktur_yani", aksi: "LIHAT_LAPORAN", detail: "Melihat laporan rentang tanggal 01/07/2024 - 31/07/2024", status: "Info" },
+  { id: "log13", tanggal: "2024-08-01 15:31:00", pengguna: "direktur_yani", aksi: "EKSPOR_LAPORAN", detail: "Mengekspor laporan ke CSV", status: "Berhasil" },
+  { id: "log14", tanggal: "2024-08-01 16:00:00", pengguna: "admin", aksi: "LOGOUT", detail: "Pengguna 'admin' berhasil logout", status: "Info" },
+  { id: "log15", tanggal: "2024-08-01 16:05:00", pengguna: "admin", aksi: "HAPUS_PENGGUNA", detail: "Pengguna 'user_lama' dihapus dari sistem", status: "Berhasil" },
 ];
 
 const statusConfig: { [key: string]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ElementType } } = {
