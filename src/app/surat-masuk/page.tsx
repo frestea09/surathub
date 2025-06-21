@@ -77,10 +77,10 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const initialSuratMasukData = [
     {
@@ -142,6 +142,30 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Diarsipkan: "default",
 };
 
+const allRoles = [
+  "Direktur",
+  "Dewan Pengawas",
+  "Satuan Pengawasan Intern (SPI)",
+  "Wakil Direktur Umum dan Sumber Daya",
+  "Kepala Bagian Umum dan Kepegawaian",
+  "Tim Kerja Bidang Umum & Kepegawaian",
+  "Kepala Bagian Keuangan",
+  "Tim Kerja Bidang Pendapatan",
+  "Tim Kerja Bidang Pengeluaran",
+  "Kepala Bagian Perencanaan dan Kehumasan",
+  "Wakil Direktur Pelayanan",
+  "Kepala Bidang Pelayanan Medik",
+  "Kepala Bidang Pelayanan Keperawatan",
+  "Kepala Bidang Mutu Pelayanan",
+  "Kepala Bidang Rawat Inap",
+  "Wakil Direktur Penunjang",
+  "Kepala Bidang Penunjang Medik",
+  "Tim Kerja Bidang Farmasi",
+  "Kepala Bidang Penunjang Non-Medik",
+  "Komite Rekrutmen Medis",
+  "SMF (Sarana Medis Fungsional)",
+];
+
 export default function SuratMasukPage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -149,6 +173,7 @@ export default function SuratMasukPage() {
   const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDisposisiOpen, setIsDisposisiOpen] = useState(false);
+  const [disposisiTo, setDisposisiTo] = useState<string[]>([]);
   const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
@@ -157,7 +182,10 @@ export default function SuratMasukPage() {
   const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
-    if (action === 'disposisi') setIsDisposisiOpen(true);
+    if (action === 'disposisi') {
+        setDisposisiTo([]);
+        setIsDisposisiOpen(true);
+    };
     if (action === 'arsip') setIsArsipConfirmOpen(true);
     if (action === 'lacak-disposisi') setIsLacakDisposisiOpen(true);
   };
@@ -175,19 +203,25 @@ export default function SuratMasukPage() {
     setSelectedSurat(null);
   };
 
-  const handleDisposisiSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleDisposisiSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const tujuan = formData.get('tujuan') as string;
     
-    if (!selectedSurat || !tujuan) return;
+    if (!selectedSurat || disposisiTo.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Disposisi",
+            description: "Silakan pilih setidaknya satu tujuan disposisi.",
+        });
+        return;
+    }
 
+    const tujuanJoined = disposisiTo.join(', ');
     setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', disposisi: tujuan } : s)
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', disposisi: tujuanJoined } : s)
     );
      toast({
         title: "Disposisi Berhasil",
-        description: `Surat nomor ${selectedSurat.nomor} telah didisposisikan ke ${tujuan}.`,
+        description: `Surat nomor ${selectedSurat.nomor} telah didisposisikan ke ${tujuanJoined}.`,
     });
     setIsDisposisiOpen(false);
     setSelectedSurat(null);
@@ -502,44 +536,49 @@ export default function SuratMasukPage() {
       
       {/* Disposisi Dialog */}
       <Dialog open={isDisposisiOpen} onOpenChange={setIsDisposisiOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Buat Disposisi Surat</DialogTitle>
-            <DialogDescription>
-              Teruskan surat ke bagian atau pejabat terkait.
-            </DialogDescription>
-          </DialogHeader>
-           <form onSubmit={handleDisposisiSubmit}>
+        <DialogContent>
+          <form onSubmit={handleDisposisiSubmit}>
+            <DialogHeader>
+              <DialogTitle>Buat Disposisi Surat</DialogTitle>
+              <DialogDescription>
+                Teruskan surat ke bagian atau pejabat terkait. Pilih satu atau lebih tujuan.
+              </DialogDescription>
+            </DialogHeader>
             <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="tujuan">Disposisi Kepada</Label>
-                    <Select name="tujuan" required>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih Tujuan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Direktur Utama">Direktur Utama</SelectItem>
-                            <SelectItem value="Bagian Keuangan">Bagian Keuangan</SelectItem>
-                            <SelectItem value="Bagian Pengadaan">Bagian Pengadaan</SelectItem>
-                            <SelectItem value="Bagian Rekam Medis">Bagian Rekam Medis</SelectItem>
-                            <SelectItem value="HRD">HRD</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="instruksi">Instruksi</Label>
-                    <Textarea id="instruksi" name="instruksi" placeholder="Contoh: 'Untuk ditindaklanjuti segera'" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="catatan">Catatan</Label>
-                    <Textarea id="catatan" name="catatan" placeholder="Catatan tambahan jika ada..." />
-                </div>
+              <div className="space-y-2">
+                <Label>Tujuan Disposisi</Label>
+                <ScrollArea className="h-48 w-full rounded-md border p-4">
+                  <div className="space-y-2">
+                    {allRoles.map((role) => (
+                      <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`role-${role}`}
+                          onCheckedChange={(checked) => {
+                            setDisposisiTo((prev) =>
+                              checked ? [...prev, role] : prev.filter((r) => r !== role)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={`role-${role}`} className="font-normal">{role}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instruksi">Instruksi</Label>
+                <Textarea id="instruksi" name="instruksi" placeholder="Contoh: 'Untuk ditindaklanjuti segera'" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="catatan">Catatan</Label>
+                <Textarea id="catatan" name="catatan" placeholder="Catatan tambahan jika ada..." />
+              </div>
             </div>
             <DialogFooter>
-                <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
-                <Button type="submit">Kirim Disposisi</Button>
+              <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
+              <Button type="submit">Kirim Disposisi</Button>
             </DialogFooter>
-           </form>
+          </form>
         </DialogContent>
       </Dialog>
 

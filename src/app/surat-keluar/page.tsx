@@ -79,7 +79,9 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialSuratKeluarData = [
     {
@@ -128,6 +130,35 @@ const initialSuratKeluarData = [
 
 type SuratKeluar = typeof initialSuratKeluarData[0];
 
+const usersData = [
+  {
+    id: "user1",
+    nama: "Saep Trian Prasetia.S.Si.Apt",
+    jabatan: "Pejabat Pembuat Komitmen",
+  },
+  {
+    id: "user2",
+    nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
+    jabatan: "Kuasa Pengguna Anggaran",
+  },
+  {
+    id: "user3",
+    nama: "Deti Hapitri, A.Md.Gz",
+    jabatan: "Pejabat Pengadaan Barang Jasa",
+  },
+  {
+    id: "user4",
+    nama: "Admin",
+    jabatan: "Direktur",
+  },
+  {
+    id: "user5",
+    nama: "Jane Doe",
+    jabatan: "Kepala Bagian Keuangan",
+  },
+];
+
+
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Terkirim: "default",
   Draft: "secondary",
@@ -142,7 +173,8 @@ export default function SuratKeluarPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
-  const [isKirimConfirmOpen, setIsKirimConfirmOpen] = useState(false);
+  const [isKirimDialogOpen, setIsKirimDialogOpen] = useState(false);
+  const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("semua");
 
   useEffect(() => {
@@ -154,35 +186,35 @@ export default function SuratKeluarPage() {
                 nomor: s.nomor,
                 perihal: s.perihal,
                 tujuan: s.penerima,
-                tanggal: s.tempatTanggal ? s.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                tanggal: s.tempatTanggal ? s.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
                 status: s.status || 'Draft'
             }));
             const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s: any) => ({
                 nomor: s.formData.nomor,
                 perihal: s.formData.perihal,
                 tujuan: s.formData.penerima,
-                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
                 status: s.formData.status || 'Draft'
             }));
             const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s: any) => ({
                 nomor: s.formData.nomor,
                 perihal: s.formData.perihal,
                 tujuan: s.formData.penerima,
-                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1] : new Date().toISOString().split('T')[0],
+                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
                 status: s.formData.status || 'Draft'
             }));
              const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s: any) => ({
                 nomor: s.formData.nomor,
                 perihal: "Berita Acara Pemeriksaan",
                 tujuan: s.formData.vendorNama,
-                tanggal: s.formData.tanggalSuratReferensi || new Date().toISOString().split('T')[0],
+                tanggal: s.formData.tanggalSuratReferensi ? s.formData.tanggalSuratReferensi.replace(/\//g, '-') : new Date().toISOString().split('T')[0],
                 status: s.formData.status || 'Draft'
             }));
             const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s: any) => ({
                 nomor: s.formData.nomor,
                 perihal: "Berita Acara Serah Terima",
                 tujuan: "Internal",
-                tanggal: s.formData.tanggalSuratPesanan || new Date().toISOString().split('T')[0],
+                tanggal: s.formData.tanggalSuratPesanan ? s.formData.tanggalSuratPesanan.replace(/\//g, '-') : new Date().toISOString().split('T')[0],
                 status: s.formData.status || 'Draft'
             }));
 
@@ -199,7 +231,7 @@ export default function SuratKeluarPage() {
                 index === self.findIndex((s) => s.nomor === surat.nomor)
             );
 
-            setSuratList(uniqueSurat);
+            setSuratList(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
         } catch (e) {
             console.error("Failed to load surat from localStorage", e);
             setSuratList(initialSuratKeluarData);
@@ -213,7 +245,10 @@ export default function SuratKeluarPage() {
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'lacak') setIsLacakOpen(true);
     if (action === 'arsip') setIsArsipConfirmOpen(true);
-    if (action === 'kirim') setIsKirimConfirmOpen(true);
+    if (action === 'kirim') {
+        setPenerima([]);
+        setIsKirimDialogOpen(true);
+    }
   };
 
   const handleDownloadPdf = () => {
@@ -236,16 +271,23 @@ export default function SuratKeluarPage() {
     setSelectedSurat(null);
   };
 
-  const handleKirimConfirm = () => {
-    if (!selectedSurat) return;
+  const handleKirimSubmit = () => {
+    if (!selectedSurat || penerima.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Mengirim",
+            description: "Silakan pilih setidaknya satu penerima.",
+        });
+        return;
+    }
     setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim' } : s)
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim', tujuan: penerima.join(', ') } : s)
     );
     toast({
         title: "Berhasil Terkirim",
-        description: `Surat nomor ${selectedSurat.nomor} telah dikirim.`,
+        description: `Surat nomor ${selectedSurat.nomor} telah dikirim ke ${penerima.length} penerima.`,
     });
-    setIsKirimConfirmOpen(false);
+    setIsKirimDialogOpen(false);
     setSelectedSurat(null);
   };
   
@@ -624,6 +666,54 @@ export default function SuratKeluarPage() {
         </DialogContent>
       </Dialog>
       
+      {/* Kirim Surat Dialog */}
+      <Dialog open={isKirimDialogOpen} onOpenChange={setIsKirimDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Kirim Surat</DialogTitle>
+            <DialogDescription>
+              Pilih penerima surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Pilih Penerima</Label>
+              <ScrollArea className="h-48 w-full rounded-md border p-4">
+                <div className="space-y-2">
+                  {usersData.map((user) => (
+                    <div key={user.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`user-${user.id}`}
+                        onCheckedChange={(checked) => {
+                          setPenerima((prev) =>
+                            checked
+                              ? [...prev, user.nama]
+                              : prev.filter((p) => p !== user.nama)
+                          );
+                        }}
+                      />
+                      <Label htmlFor={`user-${user.id}`} className="font-normal">
+                        {user.nama} <span className="text-muted-foreground">({user.jabatan})</span>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Pesan Tambahan (Opsional)</Label>
+              <Textarea id="message" placeholder="Tambahkan pesan singkat untuk penerima..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Batal</Button>
+            </DialogClose>
+            <Button onClick={handleKirimSubmit}>Kirim Surat</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Arsip Confirm Dialog */}
       <AlertDialog open={isArsipConfirmOpen} onOpenChange={setIsArsipConfirmOpen}>
         <AlertDialogContent>
@@ -639,23 +729,6 @@ export default function SuratKeluarPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-       {/* Kirim Confirm Dialog */}
-      <AlertDialog open={isKirimConfirmOpen} onOpenChange={setIsKirimConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Pengiriman Surat</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin mengirim surat ini? Status akan diubah menjadi &quot;Terkirim&quot;.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleKirimConfirm}>Ya, Kirim</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </div>
   );
 }
