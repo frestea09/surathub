@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,17 +76,58 @@ const roles = {
   ],
 };
 
+const USERS_STORAGE_KEY = 'surathub_users';
+
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [jabatan, setJabatan] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast({
-      title: "Pengguna Ditambahkan",
-      description: "Pengguna baru telah berhasil ditambahkan ke sistem.",
-    });
-    router.push('/admin');
+    const formData = new FormData(e.currentTarget);
+    const nama = formData.get('nama-lengkap') as string;
+    const nip = formData.get('username') as string;
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirm-password') as string;
+    
+    if (password !== confirmPassword) {
+        toast({
+            variant: "destructive",
+            title: "Gagal",
+            description: "Password dan konfirmasi password tidak cocok.",
+        });
+        return;
+    }
+
+    const newUser = {
+        id: `user-${Date.now()}`,
+        nama,
+        nip,
+        jabatan,
+        status: "Aktif"
+    };
+
+    try {
+        const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+        const users = storedUsers ? JSON.parse(storedUsers) : [];
+        users.push(newUser);
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+        
+        toast({
+            title: "Pengguna Ditambahkan",
+            description: "Pengguna baru telah berhasil ditambahkan ke sistem.",
+        });
+        router.push('/admin');
+
+    } catch (error) {
+        console.error("Failed to save user:", error);
+        toast({
+            variant: "destructive",
+            title: "Gagal",
+            description: "Terjadi kesalahan saat menyimpan pengguna baru.",
+        });
+    }
   };
 
   return (
@@ -105,23 +146,23 @@ export default function RegisterPage() {
           <CardContent className="space-y-4">
              <div className="space-y-2">
               <Label htmlFor="nama-lengkap">Nama Lengkap</Label>
-              <Input id="nama-lengkap" placeholder="Masukkan nama lengkap" required />
+              <Input id="nama-lengkap" name="nama-lengkap" placeholder="Masukkan nama lengkap" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="username">NIP / Username</Label>
-              <Input id="username" placeholder="Masukkan NIP atau username" required />
+              <Input id="username" name="username" placeholder="Masukkan NIP atau username" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Masukkan password" required />
+              <Input id="password" name="password" type="password" placeholder="Masukkan password" required />
             </div>
              <div className="space-y-2">
               <Label htmlFor="confirm-password">Konfirmasi Password</Label>
-              <Input id="confirm-password" type="password" placeholder="Konfirmasi password Anda" required />
+              <Input id="confirm-password" name="confirm-password" type="password" placeholder="Konfirmasi password Anda" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
-              <Select required>
+              <Select required onValueChange={setJabatan}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Pilih jabatan pengguna" />
                 </SelectTrigger>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useToast } from "@/hooks/use-toast";
 
 
-const usersData = [
+const initialUsersData = [
   {
     id: "dir-01",
     nip: "196711022002121001",
@@ -89,18 +89,32 @@ const usersData = [
   },
 ];
 
-type User = typeof usersData[0];
+type User = typeof initialUsersData[0];
+const USERS_STORAGE_KEY = 'surathub_users';
 
 export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [userList, setUserList] = useState(usersData);
+  const [userList, setUserList] = useState<User[]>([]);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
+  useEffect(() => {
+    try {
+      const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+      if (storedUsers) {
+        setUserList(JSON.parse(storedUsers));
+      } else {
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
+        setUserList(initialUsersData);
+      }
+    } catch (error) {
+      console.error("Error accessing localStorage:", error);
+      setUserList(initialUsersData);
+    }
+  }, []);
+
   const handleEdit = (user: User) => {
-    // In a real app, you'd likely pass the user ID to the registration page
-    // to pre-fill the form for editing.
-    router.push('/register'); 
+    router.push(`/admin/edit/${user.id}`); 
   };
   
   const handleDeleteRequest = (user: User) => {
@@ -109,7 +123,10 @@ export default function AdminPage() {
   
   const handleDeleteConfirm = () => {
     if (!userToDelete) return;
-    setUserList(prev => prev.filter(u => u.id !== userToDelete.id));
+    const updatedList = userList.filter(u => u.id !== userToDelete.id);
+    setUserList(updatedList);
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedList));
+
     toast({
       title: "Pengguna Dihapus",
       description: `Pengguna dengan nama ${userToDelete.nama} telah berhasil dihapus.`,
