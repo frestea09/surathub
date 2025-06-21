@@ -12,6 +12,7 @@ import {
   UserCheck,
   XCircle,
   Search,
+  Trash2,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
@@ -163,11 +164,7 @@ export default function SuratKeluarPage() {
 
   const [suratList, setSuratList] = useState<SuratKeluar[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<SuratKeluar | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isLacakOpen, setIsLacakOpen] = useState(false);
-  const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
-  const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
-  const [isKirimDialogOpen, setIsKirimDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState< 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus' | null>(null);
   const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(tabQuery || "semua");
   const [kirimSearchTerm, setKirimSearchTerm] = useState("");
@@ -235,25 +232,19 @@ export default function SuratKeluarPage() {
     loadSuratData();
   }, []);
 
-  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak') => {
+  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
-    if (action === 'detail') setIsDetailOpen(true);
-    if (action === 'lacak') setIsLacakOpen(true);
-    if (action === 'arsip') setIsArsipConfirmOpen(true);
-    if (action === 'tolak') setIsTolakConfirmOpen(true);
+    setDialogAction(action);
     if (action === 'kirim') {
         setPenerima([]);
         setKirimSearchTerm("");
-        setIsKirimDialogOpen(true);
     }
   };
-
-  const handleDownloadPdf = () => {
-    toast({
-        title: "Fitur Dalam Pengembangan",
-        description: "Fungsi unduh PDF akan segera tersedia.",
-    });
-  };
+  
+  const closeDialog = () => {
+    setSelectedSurat(null);
+    setDialogAction(null);
+  }
 
   const handleArsipConfirm = () => {
     if (!selectedSurat) return;
@@ -264,8 +255,7 @@ export default function SuratKeluarPage() {
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
     });
-    setIsArsipConfirmOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
   
   const handleTolakConfirm = () => {
@@ -278,9 +268,20 @@ export default function SuratKeluarPage() {
         description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
         variant: "destructive"
     });
-    setIsTolakConfirmOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
+  
+  const handleHapusConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.filter(s => s.nomor !== selectedSurat.nomor)
+    );
+    toast({
+        title: "Berhasil Dihapus",
+        description: `Surat nomor ${selectedSurat.nomor} telah dihapus dari sistem.`,
+    });
+    closeDialog();
+  }
 
   const handleKirimSubmit = () => {
     if (!selectedSurat || penerima.length === 0) {
@@ -298,8 +299,7 @@ export default function SuratKeluarPage() {
         title: "Berhasil Terkirim",
         description: `Surat nomor ${selectedSurat.nomor} telah dikirim ke ${penerima.length} penerima.`,
     });
-    setIsKirimDialogOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
   
   const filteredSurat = suratList.filter(surat => {
@@ -366,20 +366,21 @@ export default function SuratKeluarPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
                               <FileSearch className="mr-2 h-4 w-4" />
-                              Lacak Alur Pengiriman
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleDownloadPdf}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Unduh PDF
+                              Lacak Alur
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                               <Archive className="mr-2 h-4 w-4" />
                               Arsipkan
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'tolak')}>
                               <XCircle className="mr-2 h-4 w-4" />
                               Tolak
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'hapus')}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Hapus
                           </DropdownMenuItem>
                       </DropdownMenuContent>
                   </DropdownMenu>
@@ -420,7 +421,7 @@ export default function SuratKeluarPage() {
       </Tabs>
 
       {/* Detail Dialog */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+      <Dialog open={dialogAction === 'detail'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Detail Surat Keluar</DialogTitle>
@@ -461,7 +462,7 @@ export default function SuratKeluarPage() {
       </Dialog>
       
       {/* Lacak Pengiriman Dialog */}
-      <Dialog open={isLacakOpen} onOpenChange={setIsLacakOpen}>
+      <Dialog open={dialogAction === 'lacak'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Alur Pengiriman Surat</DialogTitle>
@@ -531,7 +532,7 @@ export default function SuratKeluarPage() {
       </Dialog>
       
       {/* Kirim Surat Dialog */}
-      <Dialog open={isKirimDialogOpen} onOpenChange={setIsKirimDialogOpen}>
+      <Dialog open={dialogAction === 'kirim'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Kirim Surat</DialogTitle>
@@ -592,34 +593,35 @@ export default function SuratKeluarPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Arsip Confirm Dialog */}
-      <AlertDialog open={isArsipConfirmOpen} onOpenChange={setIsArsipConfirmOpen}>
+      {/* Confirmation Dialogs */}
+      <AlertDialog open={dialogAction === 'arsip' || dialogAction === 'tolak' || dialogAction === 'hapus'} onOpenChange={(open) => !open && closeDialog()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Arsip Surat</AlertDialogTitle>
+            <AlertDialogTitle>
+              {dialogAction === 'arsip' && 'Konfirmasi Arsip Surat'}
+              {dialogAction === 'tolak' && 'Konfirmasi Penolakan Surat'}
+              {dialogAction === 'hapus' && 'Konfirmasi Hapus Surat'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin mengarsipkan surat ini? Status akan diubah menjadi &quot;Diarsipkan&quot;.
+              {dialogAction === 'arsip' && 'Apakah Anda yakin ingin mengarsipkan surat ini? Status akan diubah menjadi "Diarsipkan".'}
+              {dialogAction === 'tolak' && 'Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi "Ditolak".'}
+              {dialogAction === 'hapus' && `Apakah Anda yakin ingin menghapus surat nomor ${selectedSurat?.nomor}? Tindakan ini tidak dapat dibatalkan.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-      {/* Tolak Confirm Dialog */}
-      <AlertDialog open={isTolakConfirmOpen} onOpenChange={setIsTolakConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Penolakan Surat</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi &quot;Ditolak&quot;.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleTolakConfirm} className={buttonVariants({ variant: "destructive" })}>Ya, Tolak</AlertDialogAction>
+            <AlertDialogCancel onClick={closeDialog}>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (dialogAction === 'arsip') handleArsipConfirm();
+                if (dialogAction === 'tolak') handleTolakConfirm();
+                if (dialogAction === 'hapus') handleHapusConfirm();
+              }}
+              className={buttonVariants({ variant: (dialogAction === 'tolak' || dialogAction === 'hapus') ? 'destructive' : 'default' })}
+            >
+              {dialogAction === 'arsip' && 'Ya, Arsipkan'}
+              {dialogAction === 'tolak' && 'Ya, Tolak'}
+              {dialogAction === 'hapus' && 'Ya, Hapus'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -124,19 +124,10 @@ export default function LoginPage() {
               </Select>
             </div>
           </CardContent>
-          <CardFooter className="flex-col gap-4">
+          <CardFooter>
             <Button type="submit" className="w-full">
               Login
             </Button>
-             <p className="text-center text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Daftar
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>

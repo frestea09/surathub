@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   Search,
   Share2,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -154,28 +155,23 @@ export default function SuratMasukPage() {
   const { toast } = useToast();
   const [suratList, setSuratList] = useState<SuratMasuk[]>(initialSuratMasukData);
   const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isDisposisiOpen, setIsDisposisiOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus' | null>(null);
   const [disposisiTo, setDisposisiTo] = useState<string[]>([]);
-  const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
-  const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
-  const [isSelesaiConfirmOpen, setIsSelesaiConfirmOpen] = useState(false);
-  const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
+  
+  const closeDialog = () => {
+    setSelectedSurat(null);
+    setDialogAction(null);
+  }
 
-  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi' | 'selesai' | 'tolak') => {
+  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
-    if (action === 'detail') setIsDetailOpen(true);
+    setDialogAction(action);
     if (action === 'disposisi') {
         setDisposisiTo([]);
         setDisposisiSearchTerm("");
-        setIsDisposisiOpen(true);
     };
-    if (action === 'arsip') setIsArsipConfirmOpen(true);
-    if (action === 'lacak-disposisi') setIsLacakDisposisiOpen(true);
-    if (action === 'selesai') setIsSelesaiConfirmOpen(true);
-    if (action === 'tolak') setIsTolakConfirmOpen(true);
   };
   
   const handleArsipConfirm = () => {
@@ -187,8 +183,7 @@ export default function SuratMasukPage() {
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
     });
-    setIsArsipConfirmOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
 
   const handleTolakConfirm = () => {
@@ -201,9 +196,20 @@ export default function SuratMasukPage() {
       description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
       variant: "destructive"
     });
-    setIsTolakConfirmOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
+  
+  const handleHapusConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.filter(s => s.nomor !== selectedSurat.nomor)
+    );
+    toast({
+        title: "Berhasil Dihapus",
+        description: `Surat nomor ${selectedSurat.nomor} telah dihapus dari sistem.`,
+    });
+    closeDialog();
+  }
   
   const handleSelesaiConfirm = () => {
     if (!selectedSurat) return;
@@ -214,8 +220,7 @@ export default function SuratMasukPage() {
       title: "Berhasil",
       description: `Proses untuk surat nomor ${selectedSurat.nomor} telah diselesaikan.`,
     });
-    setIsSelesaiConfirmOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
 
   const handleDisposisiSubmit = (e: React.FormEvent) => {
@@ -238,8 +243,7 @@ export default function SuratMasukPage() {
         title: "Disposisi Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah didisposisikan ke ${tujuanJoined}.`,
     });
-    setIsDisposisiOpen(false);
-    setSelectedSurat(null);
+    closeDialog();
   };
 
   const filteredSurat = suratList.filter(surat => {
@@ -306,7 +310,7 @@ export default function SuratMasukPage() {
                               <Share2 className="mr-2 h-4 w-4" />
                               Buat Disposisi
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak-disposisi')} disabled={surat.disposisi === 'Belum'}>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')} disabled={surat.disposisi === 'Belum'}>
                               <FileSearch className="mr-2 h-4 w-4" />
                               Lacak Disposisi
                           </DropdownMenuItem>
@@ -319,9 +323,14 @@ export default function SuratMasukPage() {
                               <Archive className="mr-2 h-4 w-4" />
                               Arsipkan
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'tolak')}>
                               <XCircle className="mr-2 h-4 w-4" />
                               Tolak
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'hapus')}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Hapus
                           </DropdownMenuItem>
                       </DropdownMenuContent>
                   </DropdownMenu>
@@ -362,7 +371,7 @@ export default function SuratMasukPage() {
       </Tabs>
 
       {/* Detail Dialog */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+      <Dialog open={dialogAction === 'detail'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Detail Surat Masuk</DialogTitle>
@@ -407,7 +416,7 @@ export default function SuratMasukPage() {
       </Dialog>
       
       {/* Disposisi Dialog */}
-      <Dialog open={isDisposisiOpen} onOpenChange={setIsDisposisiOpen}>
+      <Dialog open={dialogAction === 'disposisi'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <form onSubmit={handleDisposisiSubmit}>
             <DialogHeader>
@@ -469,7 +478,7 @@ export default function SuratMasukPage() {
       </Dialog>
 
       {/* Lacak Disposisi Dialog */}
-      <Dialog open={isLacakDisposisiOpen} onOpenChange={setIsLacakDisposisiOpen}>
+      <Dialog open={dialogAction === 'lacak'} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Alur Disposisi Surat</DialogTitle>
@@ -527,50 +536,39 @@ export default function SuratMasukPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Arsip Confirm Dialog */}
-      <AlertDialog open={isArsipConfirmOpen} onOpenChange={setIsArsipConfirmOpen}>
+      {/* Confirmation Dialogs */}
+      <AlertDialog open={['selesai', 'arsip', 'tolak', 'hapus'].includes(dialogAction || '')} onOpenChange={(open) => !open && closeDialog()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Arsip Surat</AlertDialogTitle>
+            <AlertDialogTitle>
+              {dialogAction === 'selesai' && 'Konfirmasi Penyelesaian Proses'}
+              {dialogAction === 'arsip' && 'Konfirmasi Arsip Surat'}
+              {dialogAction === 'tolak' && 'Konfirmasi Penolakan Surat'}
+              {dialogAction === 'hapus' && 'Konfirmasi Hapus Surat'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin mengarsipkan surat ini? Tindakan ini akan mengubah status surat menjadi &quot;Diarsipkan&quot; dan tidak dapat dibatalkan.
+              {dialogAction === 'selesai' && 'Apakah Anda yakin ingin menyelesaikan proses untuk surat ini? Status akan diubah menjadi "Selesai".'}
+              {dialogAction === 'arsip' && 'Apakah Anda yakin ingin mengarsipkan surat ini? Tindakan ini akan mengubah status surat menjadi "Diarsipkan".'}
+              {dialogAction === 'tolak' && 'Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi "Ditolak".'}
+              {dialogAction === 'hapus' && `Apakah Anda yakin ingin menghapus surat nomor ${selectedSurat?.nomor}? Tindakan ini tidak dapat dibatalkan.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Selesai Confirm Dialog */}
-      <AlertDialog open={isSelesaiConfirmOpen} onOpenChange={setIsSelesaiConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Penyelesaian Proses</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menyelesaikan proses untuk surat ini? Status akan diubah menjadi &quot;Selesai&quot;.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSelesaiConfirm}>Ya, Selesaikan</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-      {/* Tolak Confirm Dialog */}
-      <AlertDialog open={isTolakConfirmOpen} onOpenChange={setIsTolakConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Penolakan Surat</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi &quot;Ditolak&quot;.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleTolakConfirm} className={buttonVariants({ variant: "destructive" })}>Ya, Tolak</AlertDialogAction>
+            <AlertDialogCancel onClick={closeDialog}>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (dialogAction === 'selesai') handleSelesaiConfirm();
+                if (dialogAction === 'arsip') handleArsipConfirm();
+                if (dialogAction === 'tolak') handleTolakConfirm();
+                if (dialogAction === 'hapus') handleHapusConfirm();
+              }}
+              className={buttonVariants({ variant: (dialogAction === 'tolak' || dialogAction === 'hapus') ? 'destructive' : 'default' })}
+            >
+              {dialogAction === 'selesai' && 'Ya, Selesaikan'}
+              {dialogAction === 'arsip' && 'Ya, Arsipkan'}
+              {dialogAction === 'tolak' && 'Ya, Tolak'}
+              {dialogAction === 'hapus' && 'Ya, Hapus'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

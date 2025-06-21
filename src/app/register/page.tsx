@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from "@/hooks/use-toast";
 
-// Same roles as login page
 const roles = {
   "Pimpinan & Pengawas": [
     "Direktur",
@@ -78,12 +78,15 @@ const roles = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically handle the registration logic
-    // For now, just redirect to login page
-    router.push('/');
+    toast({
+      title: "Pengguna Ditambahkan",
+      description: "Pengguna baru telah berhasil ditambahkan ke sistem.",
+    });
+    router.push('/admin');
   };
 
   return (
@@ -93,13 +96,17 @@ export default function RegisterPage() {
             <div className="flex justify-center mb-4">
                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-12 w-12 text-primary"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
             </div>
-          <CardTitle className="text-2xl">Buat Akun Baru</CardTitle>
+          <CardTitle className="text-2xl">Tambah Pengguna Baru</CardTitle>
           <CardDescription>
-            Daftar untuk mengakses sistem manajemen surat
+            Isi formulir untuk menambahkan pengguna baru ke sistem.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
+             <div className="space-y-2">
+              <Label htmlFor="nama-lengkap">Nama Lengkap</Label>
+              <Input id="nama-lengkap" placeholder="Masukkan nama lengkap" required />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="username">NIP / Username</Label>
               <Input id="username" placeholder="Masukkan NIP atau username" required />
@@ -116,7 +123,7 @@ export default function RegisterPage() {
               <Label htmlFor="role">Jabatan / Role</Label>
               <Select required>
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Pilih jabatan Anda" />
+                  <SelectValue placeholder="Pilih jabatan pengguna" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(roles).map(([group, groupRoles]) => (
@@ -133,15 +140,14 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full">
-              Daftar
+              Simpan Pengguna
             </Button>
              <p className="text-center text-sm text-muted-foreground">
-                Sudah punya akun?{" "}
                 <Link
-                  href="/"
+                  href="/admin"
                   className="underline underline-offset-4 hover:text-primary"
                 >
-                  Login
+                  Kembali ke Manajemen Pengguna
                 </Link>
               </p>
           </CardFooter>

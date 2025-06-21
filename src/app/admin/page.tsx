@@ -1,11 +1,13 @@
 
 "use client";
 
+import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,98 +22,151 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/templates/AppLayout";
-import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/ui/data-table";
+import { useToast } from "@/hooks/use-toast";
 
 
 const usersData = [
   {
+    id: "dir-01",
+    nip: "196711022002121001",
+    nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
+    jabatan: "Direktur",
+    status: "Aktif",
+  },
+  {
+    id: "ppk-01",
     nip: "198408272008011005",
     nama: "Saep Trian Prasetia.S.Si.Apt",
     jabatan: "Pejabat Pembuat Komitmen",
     status: "Aktif",
   },
   {
-    nip: "196711022002121001",
-    nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
-    jabatan: "Kuasa Pengguna Anggaran",
-    status: "Aktif",
-  },
-  {
+    id: "ppbj-01",
     nip: "197711042005042013",
     nama: "Deti Hapitri, A.Md.Gz",
     jabatan: "Pejabat Pengadaan Barang Jasa",
     status: "Aktif",
   },
   {
-    nip: "123456789012345678",
-    nama: "Admin",
-    jabatan: "Direktur",
+    id: "admin-01",
+    nip: "admin",
+    nama: "Admin Utama",
+    jabatan: "Administrator Sistem",
     status: "Aktif",
   },
   {
-    nip: "098765432109876543",
+    id: "keu-01",
+    nip: "198001012005012002",
     nama: "Jane Doe",
     jabatan: "Kepala Bagian Keuangan",
+    status: "Aktif",
+  },
+  {
+    id: "umum-01",
+    nip: "198203152006041001",
+    nama: "Budi Darmawan",
+    jabatan: "Kepala Bagian Umum",
     status: "Non-Aktif",
+  },
+   {
+    id: "yanmed-01",
+    nip: "197505202003122001",
+    nama: "Dr. Anisa Fitriani, Sp.A",
+    jabatan: "Kepala Bidang Pelayanan Medik",
+    status: "Aktif",
   },
 ];
 
 type User = typeof usersData[0];
 
-const columns: ColumnDef<User>[] = [
-    {
-        accessorKey: "nip",
-        header: "NIP/Username",
-    },
-    {
-        accessorKey: "nama",
-        header: "Nama",
-    },
-    {
-        accessorKey: "jabatan",
-        header: "Jabatan",
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const status = row.getValue("status") as string;
-            return <Badge variant={status === 'Aktif' ? 'default' : 'destructive'}>{status}</Badge>;
-        }
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            return (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Toggle menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Ubah
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-            )
-        }
-    }
-];
-
 export default function AdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [userList, setUserList] = useState(usersData);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  const handleEdit = (user: User) => {
+    // In a real app, you'd likely pass the user ID to the registration page
+    // to pre-fill the form for editing.
+    router.push('/register'); 
+  };
   
+  const handleDeleteRequest = (user: User) => {
+    setUserToDelete(user);
+  };
+  
+  const handleDeleteConfirm = () => {
+    if (!userToDelete) return;
+    setUserList(prev => prev.filter(u => u.id !== userToDelete.id));
+    toast({
+      title: "Pengguna Dihapus",
+      description: `Pengguna dengan nama ${userToDelete.nama} telah berhasil dihapus.`,
+    });
+    setUserToDelete(null);
+  };
+  
+  const columns: ColumnDef<User>[] = [
+      {
+          accessorKey: "nip",
+          header: "NIP/Username",
+      },
+      {
+          accessorKey: "nama",
+          header: "Nama",
+      },
+      {
+          accessorKey: "jabatan",
+          header: "Jabatan",
+      },
+      {
+          accessorKey: "status",
+          header: "Status",
+          cell: ({ row }) => {
+              const status = row.getValue("status") as string;
+              return <Badge variant={status === 'Aktif' ? 'default' : 'destructive'}>{status}</Badge>;
+          }
+      },
+      {
+          id: "actions",
+          cell: ({ row }) => {
+            const user = row.original;
+              return (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleEdit(user)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Ubah
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteRequest(user)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              )
+          }
+      }
+  ];
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
@@ -122,16 +177,33 @@ export default function AdminPage() {
         <CardHeader>
           <CardTitle>Daftar Pengguna</CardTitle>
           <CardDescription>
-            Kelola pengguna yang terdaftar di sistem.
+            Kelola pengguna yang terdaftar di sistem. Tambah, ubah, atau hapus akun pengguna.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
             columns={columns}
-            data={usersData}
+            data={userList}
           />
         </CardContent>
       </Card>
+      
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus Pengguna</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus pengguna <span className="font-bold">{userToDelete?.nama}</span>? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className={buttonVariants({ variant: "destructive" })}>
+              Ya, Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

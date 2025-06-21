@@ -33,11 +33,12 @@ import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 
 const mockUsers = [
-    { id: 'admin', name: 'Admin', role: 'Admin', unit: 'All' },
-    { id: 'direktur', name: 'Dr. H. Yani Sumpena', role: 'Direktur', unit: 'All' },
-    { id: 'kabag-keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
-    { id: 'ppk', name: 'Saep Trian Prasetia', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
-    { id: 'kabag-umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
+    { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
+    { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur', unit: 'All' },
+    { id: 'keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
+    { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
+    { id: 'umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
+    { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
 ];
 
 const initialSuratData = [
@@ -84,13 +85,6 @@ export default function DashboardPage() {
     if (action === 'lacak') setIsLacakOpen(true);
     if (action === 'tolak') setIsTolakConfirmOpen(true);
   };
-  
-  const handleDownloadPdf = () => {
-    toast({
-      title: "Fitur Dalam Pengembangan",
-      description: "Fungsi unduh PDF akan segera tersedia.",
-    });
-  };
 
   const handleTolakConfirm = () => {
     if (!selectedSurat) return;
@@ -109,7 +103,7 @@ export default function DashboardPage() {
   const { filteredSurat, dynamicStatCards } = useMemo(() => {
       const surat = (currentUser.unit === 'All') 
           ? suratData
-          : suratData.filter(s => s.unit === currentUser.unit);
+          : suratData.filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" || s.unit === "Kepegawaian" );
 
       const cards = [
         {
@@ -175,10 +169,6 @@ export default function DashboardPage() {
               <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
                 <FileSearch className="mr-2 h-4 w-4" />
                  Lacak
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDownloadPdf}>
-                <Download className="mr-2 h-4 w-4" />
-                Unduh PDF
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
