@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type Item = {
   id: number;
@@ -317,11 +318,14 @@ export default function BuatSuratPesananPage() {
             <CardContent>
               <div className="bg-white text-black p-4 sm:p-8 font-serif text-[11pt] print:shadow-none print:p-0" id="surat-preview">
                 {/* KOP SURAT */}
-                <div className="text-center border-b-[3px] border-black pb-2 mb-4">
-                  <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
-                  <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
-                  <p className="text-xs">Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592</p>
-                  <p className="text-xs">E-mail: rsudotista@bandungkab.go.id</p>
+                <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
+                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg/1200px-Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg.png" alt="Logo" width={80} height={80} className="mr-4" data-ai-hint="government seal" />
+                  <div>
+                    <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
+                    <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
+                    <p className="text-xs">Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592</p>
+                    <p className="text-xs">E-mail: rsudotista@bandungkab.go.id</p>
+                  </div>
                 </div>
                 
                 <div className="flex justify-between items-start mb-4">
@@ -481,5 +485,3 @@ export default function BuatSuratPesananPage() {
     </div>
   );
 }
-
-    
