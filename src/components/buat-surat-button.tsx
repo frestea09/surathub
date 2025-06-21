@@ -47,13 +47,6 @@ export function BuatSuratButton() {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
 
-  // Function to handle navigation and close the dialog
-  const selectAndNavigate = (href: string) => {
-    router.push(href)
-    setOpen(false)
-  }
-
-  // Effect to listen for hotkey to open dialog
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "j" && (e.metaKey || e.ctrlKey)) {
@@ -82,7 +75,9 @@ export function BuatSuratButton() {
             {suratTypes.map((surat) => (
               <CommandItem
                 key={surat.href}
-                onSelect={() => selectAndNavigate(surat.href)}
+                onSelect={() => {
+                  router.push(surat.href)
+                }}
                 className="cursor-pointer"
               >
                 <surat.icon className="mr-2 h-4 w-4" />
