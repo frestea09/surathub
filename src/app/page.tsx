@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bell,
   CheckCircle,
@@ -14,7 +15,7 @@ import {
   Settings,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,9 +152,6 @@ export default function Home() {
               >
                 <FileText className="h-4 w-4" />
                 Surat Masuk
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                  12
-                </Badge>
               </Link>
               <Link
                 href="/surat-keluar"
@@ -219,9 +217,6 @@ export default function Home() {
                 >
                   <FileText className="h-5 w-5" />
                   Surat Masuk
-                   <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                    12
-                  </Badge>
                 </Link>
                 <Link
                   href="/surat-keluar"
@@ -268,7 +263,7 @@ export default function Home() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/32x32.png" alt="User" data-ai-hint="user avatar" />
+                  <Image src="https://placehold.co/32x32.png" alt="User" width={32} height={32} className="rounded-full" data-ai-hint="user avatar" />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>

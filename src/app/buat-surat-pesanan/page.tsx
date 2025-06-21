@@ -83,7 +83,7 @@ export default function BuatSuratPesananPage() {
     const totalAfterDiskon = subtotal - totalDiskon;
     const ppnValue = Math.round(totalAfterDiskon * (formData.ppn / 100));
     const grandTotal = totalAfterDiskon + ppnValue;
-    return { subtotal, totalDiskon, ppnValue, grandTotal };
+    return { subtotal, totalDiskon, totalAfterDiskon, ppnValue, grandTotal };
   }, [items, formData.ppn]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -378,7 +378,8 @@ export default function BuatSuratPesananPage() {
                     <div className="w-1/2">
                         <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
                             <span className="font-bold">TOTAL</span><span className="text-right font-bold">{formatCurrency(totals.subtotal)}</span>
-                            <span className="font-bold">DISKON {items.some(i => i.diskon > 0) ? '(%)' : ''}</span><span className="text-right font-bold">{formatCurrency(totals.totalDiskon)}</span>
+                            <span className="font-bold">DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalDiskon)}</span>
+                             <span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalAfterDiskon)}</span>
                             <span className="font-bold">PPN {formData.ppn}%</span><span className="text-right font-bold">{formatCurrency(totals.ppnValue)}</span>
                             <span className="font-bold">JUMLAH</span><span className="text-right font-bold">{formatCurrency(totals.grandTotal)}</span>
                         </div>

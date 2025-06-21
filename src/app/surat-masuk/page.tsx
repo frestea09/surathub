@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   Archive,
   Bell,
@@ -18,7 +19,7 @@ import {
   Share2,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -338,7 +339,7 @@ export default function SuratMasukPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/32x32.png" alt="User" data-ai-hint="user avatar" />
+                  <Image src="https://placehold.co/32x32.png" alt="User" width={32} height={32} className="rounded-full" data-ai-hint="user avatar" />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>

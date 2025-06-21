@@ -377,20 +377,24 @@ export default function BuatSuratPesananFinalPage() {
 
                 <div className="flex justify-end mb-4">
                     <div className="w-1/2">
-                        <div className="grid grid-cols-[1fr_auto] border-t border-black py-1">
-                            <span/>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
+                            <span className="font-bold">Subtotal</span>
+                            <span className="font-bold text-right">{formatCurrency(totals.subtotal)}</span>
+                        </div>
+                         <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
+                            <span className="font-bold">Diskon</span>
+                            <span className="font-bold text-right">{formatCurrency(totals.totalDiskon)}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
+                            <span className="font-bold">Total Setelah Diskon</span>
                             <span className="font-bold text-right">{formatCurrency(totals.totalAfterDiskon)}</span>
                         </div>
-                        <div className="grid grid-cols-[1fr_auto] border-t border-black py-1">
-                            <span className="font-bold text-left">DISKON 0%</span>
-                            <span className="font-bold text-right">-</span>
-                        </div>
-                        <div className="grid grid-cols-[1fr_auto] border-t border-black py-1">
-                            <span className="font-bold text-left">PPN {formData.ppn}%</span>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
+                            <span className="font-bold">PPN {formData.ppn}%</span>
                             <span className="font-bold text-right">{formatCurrency(totals.ppnValue)}</span>
                         </div>
-                        <div className="grid grid-cols-[1fr_auto] border-t border-b border-black py-1">
-                            <span className="font-bold text-left">JUMLAH</span>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
+                            <span className="font-bold">JUMLAH</span>
                             <span className="font-bold text-right">{formatCurrency(totals.grandTotal)}</span>
                         </div>
                     </div>
