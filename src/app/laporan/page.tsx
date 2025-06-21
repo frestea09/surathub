@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  AlertTriangle,
+  XCircle,
   CheckCircle,
   Clock,
   Download,
@@ -72,11 +72,12 @@ const allSuratData = [
   { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-07-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan", unit: "Pengadaan" },
   { noSurat: "004/BASTB/RSUD-O/VII/2024", perihal: "Berita Acara Serah Terima", jenis: "Keluar", tanggal: "2024-07-31", dariKe: "Internal", status: "Diarsipkan", penanggungJawab: "Sistem", unit: "Umum" },
   { noSurat: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", dariKe: "CV. ATK Bersama", status: "Baru", penanggungJawab: "Admin", unit: "Keuangan" },
+  { noSurat: "REJ/2024/07/001", perihal: "Permohonan Kerjasama Ditolak", jenis: "Masuk", tanggal: "2024-07-27", dariKe: "PT. Farmasi Mundur", status: "Ditolak", penanggungJawab: "Admin", unit: "Pengadaan" },
 ];
 
 type SuratLaporan = typeof allSuratData[0];
 
-const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db"];
+const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db", "#FF6961"];
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
@@ -85,6 +86,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Terkirim: "default",
   Selesai: "default",
   Diarsipkan: "outline",
+  Ditolak: "destructive",
 };
 
 export default function LaporanPage() {
@@ -114,10 +116,10 @@ export default function LaporanPage() {
         icon: Clock,
       },
       {
-        title: "Surat Lewat Tenggat",
-        value: data.filter(s => s.status === 'Baru').length.toString(),
-        description: "Perlu perhatian segera",
-        icon: AlertTriangle,
+        title: "Surat Ditolak",
+        value: data.filter(s => s.status === 'Ditolak').length.toString(),
+        description: "Total surat yang ditolak",
+        icon: XCircle,
       },
       {
         title: "Selesai Bulan Ini",
@@ -148,6 +150,7 @@ export default function LaporanPage() {
       { name: "Diproses / Terkirim", value: data.filter(s => s.status === 'Didisposisikan' || s.status === 'Terkirim').length },
       { name: "Selesai", value: data.filter(s => s.status === 'Selesai').length },
       { name: "Diarsipkan", value: data.filter(s => s.status === 'Diarsipkan').length },
+      { name: "Ditolak", value: data.filter(s => s.status === 'Ditolak').length },
     ];
 
     return { filteredData: data, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };

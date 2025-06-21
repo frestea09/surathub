@@ -10,10 +10,12 @@ import {
   MoreHorizontal,
   Send,
   UserCheck,
+  XCircle,
+  Search,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -113,6 +115,13 @@ const initialSuratKeluarData = [
         tanggal: "2024-08-02",
         status: "Draft"
     },
+    {
+        nomor: "007/MEMO/RSUD-O/VIII/2024",
+        perihal: "Pembatalan Rapat",
+        tujuan: "Seluruh Kepala Bagian",
+        tanggal: "2024-08-03",
+        status: "Ditolak"
+    },
 ];
 
 type SuratKeluar = typeof initialSuratKeluarData[0];
@@ -149,6 +158,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Terkirim: "default",
   Draft: "secondary",
   Diarsipkan: "outline",
+  Ditolak: "destructive",
 };
 
 export default function SuratKeluarPage() {
@@ -158,6 +168,7 @@ export default function SuratKeluarPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
+  const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
   const [isKirimDialogOpen, setIsKirimDialogOpen] = useState(false);
   const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("semua");
@@ -226,11 +237,12 @@ export default function SuratKeluarPage() {
     loadSuratData();
   }, []);
 
-  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim') => {
+  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'lacak') setIsLacakOpen(true);
     if (action === 'arsip') setIsArsipConfirmOpen(true);
+    if (action === 'tolak') setIsTolakConfirmOpen(true);
     if (action === 'kirim') {
         setPenerima([]);
         setKirimSearchTerm("");
@@ -255,6 +267,20 @@ export default function SuratKeluarPage() {
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
     });
     setIsArsipConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+  
+  const handleTolakConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s)
+    );
+    toast({
+        title: "Berhasil",
+        description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
+        variant: "destructive"
+    });
+    setIsTolakConfirmOpen(false);
     setSelectedSurat(null);
   };
 
@@ -283,6 +309,7 @@ export default function SuratKeluarPage() {
     if (activeTab === "draft") return surat.status === "Draft";
     if (activeTab === "terkirim") return surat.status === "Terkirim";
     if (activeTab === "diarsipkan") return surat.status === "Diarsipkan";
+    if (activeTab === "ditolak") return surat.status === "Ditolak";
     return true;
   });
 
@@ -304,6 +331,7 @@ export default function SuratKeluarPage() {
             <TabsTrigger value="draft">Draft</TabsTrigger>
             <TabsTrigger value="terkirim">Terkirim</TabsTrigger>
             <TabsTrigger value="diarsipkan">Diarsipkan</TabsTrigger>
+            <TabsTrigger value="ditolak" className="text-destructive">Ditolak</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value={activeTab}>
@@ -363,9 +391,13 @@ export default function SuratKeluarPage() {
                                     Unduh PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
+                                   <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                                     <Archive className="mr-2 h-4 w-4" />
                                     Arsipkan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick(surat, 'tolak')}>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Tolak
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -564,6 +596,22 @@ export default function SuratKeluarPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Tolak Confirm Dialog */}
+      <AlertDialog open={isTolakConfirmOpen} onOpenChange={setIsTolakConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penolakan Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi &quot;Ditolak&quot;.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTolakConfirm} className={buttonVariants({ variant: "destructive" })}>Ya, Tolak</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
