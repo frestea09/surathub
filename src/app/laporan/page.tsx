@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -16,6 +15,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
+import { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,10 +69,11 @@ const allSuratData = [
   { noSurat: "123/A/UM/2024", perihal: "Undangan Rapat Koordinasi", jenis: "Masuk", tanggal: "2024-07-25", dariKe: "Kemenkes", status: "Didisposisikan", penanggungJawab: "Direktur Utama", unit: "Pimpinan" },
   { noSurat: "001/SP/RSUD-O/VII/2024", perihal: "Surat Perintah Pengadaan ATK", jenis: "Keluar", tanggal: "2024-07-28", dariKe: "Pejabat Pengadaan", status: "Terkirim", penanggungJawab: "Admin", unit: "Pengadaan" },
   { noSurat: "003/BA/RSUD-O/VII/2024", perihal: "Berita Acara Pemeriksaan", jenis: "Keluar", tanggal: "2024-07-30", dariKe: "Internal", status: "Draft", penanggungJawab: "Admin", unit: "Pengadaan" },
-  { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-07-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan", unit: "Pengadaan" },
+  { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-06-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan", unit: "Pengadaan" },
   { noSurat: "004/BASTB/RSUD-O/VII/2024", perihal: "Berita Acara Serah Terima", jenis: "Keluar", tanggal: "2024-07-31", dariKe: "Internal", status: "Diarsipkan", penanggungJawab: "Sistem", unit: "Umum" },
   { noSurat: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", dariKe: "CV. ATK Bersama", status: "Baru", penanggungJawab: "Admin", unit: "Keuangan" },
   { noSurat: "REJ/2024/07/001", perihal: "Permohonan Kerjasama Ditolak", jenis: "Masuk", tanggal: "2024-07-27", dariKe: "PT. Farmasi Mundur", status: "Ditolak", penanggungJawab: "Admin", unit: "Pengadaan" },
+  { noSurat: "REJ/2024/06/001", perihal: "Permohonan Kerjasama Ditolak", jenis: "Masuk", tanggal: "2024-06-15", dariKe: "PT. Sehat Sejahtera", status: "Ditolak", penanggungJawab: "Admin", unit: "Pimpinan" },
 ];
 
 type SuratLaporan = typeof allSuratData[0];
@@ -95,6 +96,10 @@ export default function LaporanPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+  });
 
   const handleRoleChange = (userId: string) => {
       const user = mockUsers.find(u => u.id === userId);
@@ -104,9 +109,18 @@ export default function LaporanPage() {
   };
 
   const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
-    const data = (currentUser.unit === 'All')
+    let dataByUnit = (currentUser.unit === 'All')
       ? allSuratData
       : allSuratData.filter(s => s.unit === currentUser.unit);
+      
+    const dataByDate = date?.from
+      ? dataByUnit.filter(surat => {
+          const suratDate = new Date(surat.tanggal);
+          const from = date.from!;
+          const to = date.to ? new Date(date.to.setHours(23, 59, 59, 999)) : new Date(from.setHours(23, 59, 59, 999));
+          return suratDate >= from && suratDate <= to;
+      })
+      : dataByUnit;
 
     const cards = [
       {
@@ -117,50 +131,92 @@ export default function LaporanPage() {
       },
       {
         title: "Surat Ditolak",
-        value: data.filter(s => s.status === 'Ditolak').length.toString(),
+        value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(),
         description: "Total surat yang ditolak",
         icon: XCircle,
       },
       {
         title: "Selesai Bulan Ini",
-        value: data.filter(s => s.status === 'Selesai').length.toString(),
+        value: dataByDate.filter(s => s.status === 'Selesai').length.toString(),
         description: "+20.1% dari bulan lalu",
         icon: CheckCircle,
       },
       {
         title: "Total Surat Dibuat",
-        value: data.length.toString(),
+        value: dataByDate.length.toString(),
         description: "Total semua surat masuk & keluar",
         icon: FileText,
       },
     ];
     
     const volumeData = [
-      { name: "Jan", total: data.filter(s => new Date(s.tanggal).getMonth() === 0).length },
-      { name: "Feb", total: data.filter(s => new Date(s.tanggal).getMonth() === 1).length },
-      { name: "Mar", total: data.filter(s => new Date(s.tanggal).getMonth() === 2).length },
-      { name: "Apr", total: data.filter(s => new Date(s.tanggal).getMonth() === 3).length },
-      { name: "Mei", total: data.filter(s => new Date(s.tanggal).getMonth() === 4).length },
-      { name: "Jun", total: data.filter(s => new Date(s.tanggal).getMonth() === 5).length },
-      { name: "Jul", total: data.filter(s => new Date(s.tanggal).getMonth() === 6).length },
+      { name: "Jan", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 0).length },
+      { name: "Feb", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 1).length },
+      { name: "Mar", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 2).length },
+      { name: "Apr", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 3).length },
+      { name: "Mei", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 4).length },
+      { name: "Jun", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 5).length },
+      { name: "Jul", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 6).length },
     ];
     
     const statusData = [
-      { name: "Baru / Draft", value: data.filter(s => s.status === 'Baru' || s.status === 'Draft').length },
-      { name: "Diproses / Terkirim", value: data.filter(s => s.status === 'Didisposisikan' || s.status === 'Terkirim').length },
-      { name: "Selesai", value: data.filter(s => s.status === 'Selesai').length },
-      { name: "Diarsipkan", value: data.filter(s => s.status === 'Diarsipkan').length },
-      { name: "Ditolak", value: data.filter(s => s.status === 'Ditolak').length },
-    ];
+      { name: "Baru / Draft", value: dataByDate.filter(s => s.status === 'Baru' || s.status === 'Draft').length },
+      { name: "Diproses / Terkirim", value: dataByDate.filter(s => s.status === 'Didisposisikan' || s.status === 'Terkirim').length },
+      { name: "Selesai", value: dataByDate.filter(s => s.status === 'Selesai').length },
+      { name: "Diarsipkan", value: dataByDate.filter(s => s.status === 'Diarsipkan').length },
+      { name: "Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak').length },
+    ].filter(item => item.value > 0);
 
-    return { filteredData: data, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
-  }, [currentUser]);
+    return { filteredData: dataByDate, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
+  }, [currentUser, date]);
 
 
   const handleExport = () => {
+    if (filteredData.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Ekspor",
+            description: "Tidak ada data untuk diekspor pada rentang tanggal yang dipilih.",
+        });
+        return;
+    }
+    
+    const headers = ["Nomor Surat", "Perihal", "Jenis", "Tanggal", "Dari/Ke", "Status Saat Ini", "Penanggung Jawab", "Unit"];
+    
+    const csvRows = [
+        headers.join(','),
+        ...filteredData.map(row => 
+            [
+                `"${row.noSurat}"`,
+                `"${row.perihal.replace(/"/g, '""')}"`,
+                `"${row.jenis}"`,
+                `"${row.tanggal}"`,
+                `"${row.dariKe}"`,
+                `"${row.status}"`,
+                `"${row.penanggungJawab}"`,
+                `"${row.unit}"`
+            ].join(',')
+        )
+    ];
+    
+    const csvString = csvRows.join('\n');
+    
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `laporan-surat-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
     toast({
-      title: "Fitur Dalam Pengembangan",
-      description: "Fungsi ekspor data laporan akan segera tersedia.",
+        title: "Ekspor Berhasil",
+        description: "Data laporan telah berhasil diunduh.",
     });
   };
 
@@ -254,7 +310,7 @@ export default function LaporanPage() {
             <CardDescription>Lacak alur dan status semua surat dalam sistem untuk {currentUser.unit === 'All' ? 'semua unit' : `unit ${currentUser.unit}`}.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-              <DateRangePicker />
+              <DateRangePicker date={date} setDate={setDate} />
               <Button onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
                 Ekspor
@@ -276,7 +332,7 @@ export default function LaporanPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((surat) => (
+              {filteredData.length > 0 ? filteredData.map((surat) => (
                 <TableRow key={surat.noSurat}>
                   <TableCell className="font-medium">{surat.noSurat}</TableCell>
                   <TableCell>{surat.perihal}</TableCell>
@@ -305,7 +361,13 @@ export default function LaporanPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center">
+                    Tidak ada data yang ditemukan untuk rentang tanggal ini.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
