@@ -5,20 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell,
-  FileText,
   Home,
   LineChart,
-  MoreHorizontal,
   Package,
   PanelLeft,
-  Pencil,
   Settings,
-  Trash2,
+  FileText,
   UserCog,
+  Mail,
+  Share2,
+  Archive,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,71 +34,51 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BuatSuratButton } from "@/components/buat-surat-button";
+import { Badge } from "@/components/ui/badge";
 
-const usersData = [
+const allNotifications = [
   {
-    nip: "198408272008011005",
-    nama: "Saep Trian Prasetia.S.Si.Apt",
-    jabatan: "Pejabat Pembuat Komitmen",
-    status: "Aktif",
-  },
-  {
-    nip: "196711022002121001",
-    nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
-    jabatan: "Kuasa Pengguna Anggaran",
-    status: "Aktif",
-  },
-  {
-    nip: "197711042005042013",
-    nama: "Deti Hapitri, A.Md.Gz",
-    jabatan: "Pejabat Pengadaan Barang Jasa",
-    status: "Aktif",
-  },
-  {
-    nip: "123456789012345678",
-    nama: "Admin",
-    jabatan: "Direktur",
-    status: "Aktif",
-  },
-  {
-    nip: "098765432109876543",
-    nama: "Jane Doe",
-    jabatan: "Kepala Bagian Keuangan",
-    status: "Non-Aktif",
-  },
-];
-
-const notifications = [
-  {
+    icon: Mail,
     title: "Surat Baru Diterima",
     description: "Surat dari Kemenkes perihal Undangan Rapat.",
     time: "5 menit lalu",
+    link: "/surat-masuk",
   },
   {
+    icon: Share2,
     title: "Disposisi Berhasil",
-    description: "Surat 005/B/FIN/2024 telah didisposisikan.",
+    description: "Surat 005/B/FIN/2024 telah didisposisikan ke Direktur.",
     time: "1 jam lalu",
+    link: "/surat-masuk",
   },
   {
+    icon: Archive,
     title: "Surat Telah Diarsipkan",
     description: "Surat BAST-2024-04-098 telah diarsipkan.",
     time: "Kemarin",
+    link: "/surat-keluar",
+  },
+  {
+    icon: Mail,
+    title: "Surat Baru Diterima",
+    description: "Invoice dari CV. ATK Bersama.",
+    time: "Kemarin",
+    link: "/surat-masuk",
+  },
+  {
+    icon: Share2,
+    title: "Disposisi Dilihat",
+    description: "Direktur telah melihat disposisi Anda.",
+    time: "2 hari lalu",
+    link: "/surat-masuk",
   },
 ];
 
-export default function AdminPage() {
+export default function NotifikasiPage() {
   const router = useRouter();
-  
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-muted/40 md:block">
@@ -142,14 +121,14 @@ export default function AdminPage() {
               </Link>
               <Link
                 href="/notifikasi"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Bell className="h-4 w-4" />
                 Notifikasi
               </Link>
               <Link
                 href="/admin"
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <UserCog className="h-4 w-4" />
                 Admin
@@ -221,14 +200,14 @@ export default function AdminPage() {
                 </Link>
                 <Link
                   href="/notifikasi"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
                 >
                   <Bell className="h-5 w-5" />
                   Notifikasi
                 </Link>
                 <Link
                   href="/admin"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
                   <UserCog className="h-5 w-5" />
                   Admin
@@ -244,10 +223,10 @@ export default function AdminPage() {
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1" />
-          <DropdownMenu>
+           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
+               <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
+                 <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{allNotifications.slice(0, 3).length}</Badge>
                 <Bell className="h-4 w-4" />
                 <span className="sr-only">Toggle notifications</span>
               </Button>
@@ -255,8 +234,8 @@ export default function AdminPage() {
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {notifications.map((notif, index) => (
-                <DropdownMenuItem key={index} className="flex flex-col items-start gap-1 whitespace-normal" onClick={() => router.push('/surat-masuk')}>
+              {allNotifications.slice(0, 3).map((notif, index) => (
+                <DropdownMenuItem key={index} className="flex flex-col items-start gap-1 whitespace-normal" onClick={() => router.push(notif.link)}>
                   <p className="font-semibold">{notif.title}</p>
                   <p className="text-xs text-muted-foreground">{notif.description}</p>
                   <p className="text-xs text-muted-foreground">{notif.time}</p>
@@ -291,65 +270,31 @@ export default function AdminPage() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold md:text-2xl">Manajemen Pengguna</h1>
-            <Button onClick={() => router.push('/register')}>Tambah Pengguna</Button>
+            <h1 className="text-lg font-semibold md:text-2xl">Notifikasi</h1>
+            <Button variant="outline" size="sm">Tandai semua terbaca</Button>
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Daftar Pengguna</CardTitle>
+              <CardTitle>Semua Notifikasi</CardTitle>
               <CardDescription>
-                Kelola pengguna yang terdaftar di sistem.
+                Berikut adalah daftar semua notifikasi Anda.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>NIP/Username</TableHead>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Jabatan</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead>
-                      <span className="sr-only">Aksi</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {usersData.map((user) => (
-                    <TableRow key={user.nip}>
-                      <TableCell className="font-medium">{user.nip}</TableCell>
-                      <TableCell>{user.nama}</TableCell>
-                      <TableCell>{user.jabatan}</TableCell>
-                      <TableCell className="text-center">
-                         <Badge variant={user.status === 'Aktif' ? 'default' : 'destructive'}>
-                           {user.status}
-                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                               <Pencil className="mr-2 h-4 w-4" />
-                               Ubah
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-4">
+                {allNotifications.map((notif, index) => (
+                  <div key={index} className="flex items-start gap-4 p-3 -mx-3 rounded-lg hover:bg-muted cursor-pointer" onClick={() => router.push(notif.link)}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <notif.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{notif.title}</p>
+                      <p className="text-sm text-muted-foreground">{notif.description}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">{notif.time}</p>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </main>

@@ -366,6 +366,13 @@ export default function SuratKeluarPage() {
                 Laporan
               </Link>
               <Link
+                href="/notifikasi"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <Bell className="h-4 w-4" />
+                Notifikasi
+              </Link>
+              <Link
                 href="/admin"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
@@ -437,6 +444,13 @@ export default function SuratKeluarPage() {
                   <LineChart className="h-5 w-5" />
                   Laporan
                 </Link>
+                 <Link
+                  href="/notifikasi"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Bell className="h-5 w-5" />
+                  Notifikasi
+                </Link>
                 <Link
                   href="/admin"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
@@ -469,7 +483,7 @@ export default function SuratKeluarPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="relative h-8 w-8">
+              <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full">
                  <Badge className="absolute -top-1 -right-1 h-4 w-4 justify-center p-0 text-xs">{notifications.length}</Badge>
                 <Bell className="h-4 w-4" />
                 <span className="sr-only">Toggle notifications</span>
@@ -479,14 +493,14 @@ export default function SuratKeluarPage() {
               <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {notifications.map((notif, index) => (
-                <DropdownMenuItem key={index} className="flex flex-col items-start gap-1 whitespace-normal">
+                <DropdownMenuItem key={index} className="flex flex-col items-start gap-1 whitespace-normal" onClick={() => router.push('/surat-masuk')}>
                   <p className="font-semibold">{notif.title}</p>
                   <p className="text-xs text-muted-foreground">{notif.description}</p>
                   <p className="text-xs text-muted-foreground">{notif.time}</p>
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="justify-center text-sm text-primary">
+              <DropdownMenuItem className="justify-center text-sm text-primary" onClick={() => router.push('/notifikasi')}>
                 Lihat semua notifikasi
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -791,5 +805,3 @@ export default function SuratKeluarPage() {
     </div>
   );
 }
-
-    
