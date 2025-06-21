@@ -94,7 +94,7 @@ export default function PengaturanPage() {
                 Surat Keluar
               </Link>
               <Link
-                href="#"
+                href="/laporan"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
@@ -173,7 +173,7 @@ export default function PengaturanPage() {
                   Surat Keluar
                 </Link>
                 <Link
-                  href="#"
+                  href="/laporan"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
                   <LineChart className="h-5 w-5" />
