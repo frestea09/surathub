@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -408,10 +409,6 @@ export default function BuatBeritaAcaraPage() {
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
             Simpan
-          </Button>
-          <Button variant="outline">
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate with AI
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />

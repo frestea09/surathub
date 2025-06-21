@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -107,10 +108,6 @@ export default function BuatSuratPage() {
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
             Simpan
-          </Button>
-          <Button variant="outline">
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate with AI
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -236,7 +233,7 @@ export default function BuatSuratPage() {
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
                   <Image
-                    src={LogoRSUDSoreang}
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg/1200px-Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg.png"
                     alt="Logo"
                     width={80}
                     height={80}
