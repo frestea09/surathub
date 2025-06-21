@@ -23,7 +23,10 @@ export function BuatSuratButton() {
                     Surat Perintah
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan')}>
-                    Surat Pesanan
+                    Surat Pesanan (Internal)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan-final')}>
+                    Surat Pesanan (Vendor)
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
