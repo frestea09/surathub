@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2, Download, Save } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 type Item = {
   id: number;
@@ -21,6 +23,12 @@ type Item = {
   jumlah: number;
   hargaSatuan: number;
   diskon: number; // percentage
+};
+
+type SuratPerintah = {
+  nomor: string;
+  perihal: string;
+  tempatTanggal: string;
 };
 
 const initialItems: Item[] = [
@@ -66,6 +74,8 @@ export default function BuatSuratPesananPage() {
     ppn: 11,
   });
   const [items, setItems] = useState<Item[]>(initialItems);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [availableSurat, setAvailableSurat] = useState<SuratPerintah[]>([]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => sum + (item.jumlah * item.hargaSatuan), 0);
@@ -98,45 +108,61 @@ export default function BuatSuratPesananPage() {
     window.print();
   };
 
-  const handleImportData = () => {
-    const dataString = localStorage.getItem('suratPerintahData');
-    if (dataString) {
-      try {
-        const importData = JSON.parse(dataString);
-        setFormData(prev => ({
-          ...prev,
-          nomorSuratReferensi: importData.nomor || prev.nomorSuratReferensi,
-          tanggalSuratReferensi: importData.tempatTanggal ? importData.tempatTanggal.split(', ')[1] : prev.tanggalSuratReferensi,
-        }));
-        toast({
-          title: "Berhasil",
-          description: "Data dari Surat Perintah berhasil dimuat.",
-        });
-      } catch (error) {
-        toast({
+  const handleOpenImportDialog = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const dataString = localStorage.getItem('suratPerintahList');
+        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
+      }
+    } catch (error) {
+      toast({
           variant: "destructive",
           title: "Gagal Membaca Data",
-          description: "Format data tidak valid.",
-        });
-      }
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Data dari Surat Perintah tidak ditemukan.",
+          description: "Gagal memuat daftar surat perintah.",
       });
     }
+    setIsImportDialogOpen(true);
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('suratPesananData', JSON.stringify({ formData, items }));
-      } catch (error) {
-        console.error("Failed to save to localStorage", error);
-      }
+  const handleImportSelection = (importData: SuratPerintah) => {
+    setFormData(prev => ({
+      ...prev,
+      nomorSuratReferensi: importData.nomor || prev.nomorSuratReferensi,
+      tanggalSuratReferensi: importData.tempatTanggal ? importData.tempatTanggal.split(', ')[1] : prev.tanggalSuratReferensi,
+    }));
+    setIsImportDialogOpen(false);
+    toast({
+      title: "Berhasil",
+      description: `Data dari surat ${importData.nomor} berhasil dimuat.`,
+    });
+  };
+
+  const handleSave = () => {
+    if (!formData.nomor) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
+      return;
     }
-  }, [formData, items]);
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const list = JSON.parse(localStorage.getItem('suratPesananList') || '[]');
+        const dataToSave = { formData, items };
+        const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
+        
+        if (existingIndex > -1) {
+          list[existingIndex] = dataToSave;
+        } else {
+          list.push(dataToSave);
+        }
+        
+        localStorage.setItem('suratPesananList', JSON.stringify(list));
+        toast({ title: "Berhasil", description: "Data surat pesanan berhasil disimpan." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
+      console.error("Failed to save to localStorage", error);
+    }
+  };
 
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID').format(value);
@@ -152,9 +178,13 @@ export default function BuatSuratPesananPage() {
         </Link>
         <h1 className="text-xl font-semibold">Buat Surat Pesanan</h1>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" onClick={handleImportData}>
+            <Button variant="outline" onClick={handleOpenImportDialog}>
               <Download className="mr-2 h-4 w-4" />
               Ambil Data
+            </Button>
+            <Button variant="outline" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Simpan
             </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
@@ -225,7 +255,7 @@ export default function BuatSuratPesananPage() {
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="ppn">PPN (%)</Label>
-                  <Input id="ppn" type="number" value={formData.ppn} onChange={handleFormChange} />
+                  <Input id="ppn" type="number" value={formData.ppn} onChange={e => setFormData(prev => ({...prev, ppn: parseInt(e.target.value) || 0}))} />
                 </div>
             </CardContent>
           </Card>
@@ -373,6 +403,33 @@ export default function BuatSuratPesananPage() {
            </Card>
         </div>
       </main>
+
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Pilih Surat Perintah untuk Diimpor</DialogTitle>
+                <DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-96">
+                <div className="pr-4">
+                  {availableSurat.length > 0 ? (
+                      availableSurat.map((surat: SuratPerintah) => (
+                          <div key={surat.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                              <div>
+                                  <p className="font-semibold">{surat.nomor}</p>
+                                  <p className="text-sm text-muted-foreground">{surat.perihal}</p>
+                              </div>
+                              <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
+                          </div>
+                      ))
+                  ) : (
+                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Surat Perintah yang tersimpan.</p>
+                  )}
+                </div>
+            </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      
       <style jsx global>{`
         @media print {
           body * {
@@ -412,3 +469,4 @@ export default function BuatSuratPesananPage() {
     </div>
   );
 }
+

@@ -1,15 +1,18 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, Save } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 export default function BuatSuratPage() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     nomor: '000.3/PPK-RSUD OTISTA/IV/2025',
     lampiran: '-',
@@ -33,16 +36,43 @@ export default function BuatSuratPage() {
     window.print();
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('suratPerintahData', JSON.stringify(formData));
-      } catch (error) {
-        console.error("Failed to save to localStorage", error);
-      }
+  const handleSave = () => {
+    if (!formData.nomor) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: "Nomor surat tidak boleh kosong.",
+      });
+      return;
     }
-  }, [formData]);
-
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const list = JSON.parse(localStorage.getItem('suratPerintahList') || '[]');
+        const existingIndex = list.findIndex((item: any) => item.nomor === formData.nomor);
+        
+        if (existingIndex > -1) {
+          list[existingIndex] = formData;
+        } else {
+          list.push(formData);
+        }
+        
+        localStorage.setItem('suratPerintahList', JSON.stringify(list));
+        
+        toast({
+          title: "Berhasil",
+          description: "Data surat berhasil disimpan.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: "Terjadi kesalahan saat menyimpan data.",
+      });
+      console.error("Failed to save to localStorage", error);
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -55,6 +85,10 @@ export default function BuatSuratPage() {
          </Link>
          <h1 className="text-xl font-semibold">Buat Surat Perintah</h1>
          <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Simpan
+            </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
               Generate with AI

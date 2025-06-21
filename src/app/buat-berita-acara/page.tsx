@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, PlusCircle, Trash2, Download, Save } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 type Item = {
   id: number;
@@ -20,6 +22,11 @@ type Item = {
   merk: string;
   jumlah: number;
   keterangan: string;
+};
+
+type SuratPesananFinal = {
+  formData: any;
+  items: Omit<Item, 'keterangan'>[];
 };
 
 const initialItems: Item[] = [
@@ -63,6 +70,8 @@ export default function BuatBeritaAcaraPage() {
     pejabatNip: 'NIP. 198408272008011005',
   });
   const [items, setItems] = useState<Item[]>(initialItems);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [availableSurat, setAvailableSurat] = useState<SuratPesananFinal[]>([]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -86,59 +95,70 @@ export default function BuatBeritaAcaraPage() {
     window.print();
   };
 
-  const handleImportData = () => {
-    const dataString = localStorage.getItem('suratPesananFinalData');
-    if (dataString) {
-      try {
-        const importData = JSON.parse(dataString);
-        setFormData(prev => ({
-          ...prev,
-          vendorNama: importData.formData?.penerima || prev.vendorNama,
-          penyediaNama: importData.formData?.penerima || prev.penyediaNama,
-          nomorSuratReferensi: importData.formData?.nomor || prev.nomorSuratReferensi,
-          tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratReferensi,
-        }));
-        
-        type IncomingItem = Omit<Item, 'keterangan'>;
-        const mappedItems: Item[] = (importData.items || []).map((item: IncomingItem) => ({
-          id: item.id,
-          nama: item.nama,
-          satuan: item.satuan,
-          merk: item.merk,
-          jumlah: item.jumlah,
-          keterangan: 'Baik sesuai dengan SP', // Default value
-        }));
-        setItems(mappedItems);
-
-        toast({
-          title: "Berhasil",
-          description: "Data dari Surat Pesanan Vendor berhasil dimuat.",
-        });
-      } catch (error) {
-         toast({
+  const handleOpenImportDialog = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const dataString = localStorage.getItem('suratPesananFinalList');
+        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
+      }
+    } catch (error) {
+      toast({
           variant: "destructive",
           title: "Gagal Membaca Data",
-          description: "Format data tidak valid.",
-        });
-      }
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Data dari Surat Pesanan Vendor tidak ditemukan.",
+          description: "Gagal memuat daftar surat pesanan vendor.",
       });
     }
+    setIsImportDialogOpen(true);
+  };
+  
+  const handleImportSelection = (importData: SuratPesananFinal) => {
+    setFormData(prev => ({
+      ...prev,
+      vendorNama: importData.formData?.penerima || prev.vendorNama,
+      penyediaNama: importData.formData?.penerima || prev.penyediaNama,
+      nomorSuratReferensi: importData.formData?.nomor || prev.nomorSuratReferensi,
+      tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratReferensi,
+    }));
+    
+    const mappedItems: Item[] = (importData.items || []).map((item) => ({
+      ...item,
+      keterangan: 'Baik sesuai dengan SP', // Default value
+    }));
+    setItems(mappedItems);
+
+    setIsImportDialogOpen(false);
+    toast({
+      title: "Berhasil",
+      description: `Data dari surat ${importData.formData.nomor} berhasil dimuat.`,
+    });
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-       try {
-        localStorage.setItem('beritaAcaraData', JSON.stringify({ formData, items }));
-      } catch (error) {
-        console.error("Failed to save to localStorage", error);
-      }
+  const handleSave = () => {
+    if (!formData.nomor) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
+      return;
     }
-  }, [formData, items]);
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const list = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]');
+        const dataToSave = { formData, items };
+        const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
+        
+        if (existingIndex > -1) {
+          list[existingIndex] = dataToSave;
+        } else {
+          list.push(dataToSave);
+        }
+        
+        localStorage.setItem('beritaAcaraList', JSON.stringify(list));
+        toast({ title: "Berhasil", description: "Data berita acara berhasil disimpan." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
+      console.error("Failed to save to localStorage", error);
+    }
+  };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID').format(value);
 
@@ -153,9 +173,13 @@ export default function BuatBeritaAcaraPage() {
         </Link>
         <h1 className="text-xl font-semibold">Buat Berita Acara</h1>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" onClick={handleImportData}>
+            <Button variant="outline" onClick={handleOpenImportDialog}>
               <Download className="mr-2 h-4 w-4" />
               Ambil Data
+            </Button>
+             <Button variant="outline" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Simpan
             </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
@@ -352,6 +376,33 @@ export default function BuatBeritaAcaraPage() {
            </Card>
         </div>
       </main>
+
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Pilih Surat Pesanan (Vendor) untuk Diimpor</DialogTitle>
+                <DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-96">
+                <div className="pr-4">
+                  {availableSurat.length > 0 ? (
+                      availableSurat.map((surat: SuratPesananFinal) => (
+                          <div key={surat.formData.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                              <div>
+                                  <p className="font-semibold">{surat.formData.nomor}</p>
+                                  <p className="text-sm text-muted-foreground">{surat.formData.perihal}</p>
+                              </div>
+                              <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
+                          </div>
+                      ))
+                  ) : (
+                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Surat Pesanan (Vendor) yang tersimpan.</p>
+                  )}
+                </div>
+            </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      
       <style jsx global>{`
         @media print {
           body * {

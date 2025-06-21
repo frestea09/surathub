@@ -1,16 +1,23 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Sparkles, Download } from 'lucide-react';
+import { ArrowLeft, Printer, Sparkles, Download, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
+type BeritaAcara = {
+  formData: any;
+  items: any[];
+};
 
 export default function BuatBastbPage() {
   const { toast } = useToast();
@@ -31,6 +38,9 @@ export default function BuatBastbPage() {
     tanggalBeritaAcara: '30 April 2025',
     narasiPenutup: 'Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.',
   });
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [availableSurat, setAvailableSurat] = useState<BeritaAcara[]>([]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -41,50 +51,67 @@ export default function BuatBastbPage() {
     window.print();
   };
 
-  const handleImportData = () => {
-    const dataString = localStorage.getItem('beritaAcaraData');
-    if (dataString) {
-      try {
-        const importData = JSON.parse(dataString);
-        setFormData(prev => ({
-          ...prev,
-          nomorBeritaAcara: importData.formData?.nomor || prev.nomorBeritaAcara,
-          // Extracting date from narration is complex, using existing or placeholder
-          tanggalBeritaAcara: prev.tanggalBeritaAcara, 
-          nomorSuratPesanan: importData.formData?.nomorSuratReferensi || prev.nomorSuratPesanan,
-          tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratPesanan,
-          pihak1Nama: importData.formData?.pejabatNama || prev.pihak1Nama,
-          pihak1Nip: importData.formData?.pejabatNip ? importData.formData.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
-        }));
-        toast({
-          title: "Berhasil",
-          description: "Data dari Berita Acara berhasil dimuat.",
-        });
-      } catch (error) {
-         toast({
+  const handleOpenImportDialog = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const dataString = localStorage.getItem('beritaAcaraList');
+        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
+      }
+    } catch (error) {
+      toast({
           variant: "destructive",
           title: "Gagal Membaca Data",
-          description: "Format data tidak valid.",
-        });
-      }
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Data dari Berita Acara tidak ditemukan.",
+          description: "Gagal memuat daftar Berita Acara.",
       });
     }
+    setIsImportDialogOpen(true);
+  };
+  
+  const handleImportSelection = (importData: BeritaAcara) => {
+    setFormData(prev => ({
+      ...prev,
+      nomorBeritaAcara: importData.formData?.nomor || prev.nomorBeritaAcara,
+      // Extracting date from narration is complex, using existing or placeholder
+      tanggalBeritaAcara: prev.tanggalBeritaAcara, 
+      nomorSuratPesanan: importData.formData?.nomorSuratReferensi || prev.nomorSuratPesanan,
+      tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi || prev.tanggalSuratPesanan,
+      pihak1Nama: importData.formData?.pejabatNama || prev.pihak1Nama,
+      pihak1Nip: importData.formData?.pejabatNip ? importData.formData.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
+    }));
+
+    setIsImportDialogOpen(false);
+    toast({
+      title: "Berhasil",
+      description: `Data dari berita acara ${importData.formData.nomor} berhasil dimuat.`,
+    });
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('bastbData', JSON.stringify(formData));
-      } catch (error) {
-        console.error("Failed to save to localStorage", error);
-      }
+  const handleSave = () => {
+    if (!formData.nomor) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
+      return;
     }
-  }, [formData]);
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const list = JSON.parse(localStorage.getItem('bastbList') || '[]');
+        const dataToSave = { formData };
+        const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
+        
+        if (existingIndex > -1) {
+          list[existingIndex] = dataToSave;
+        } else {
+          list.push(dataToSave);
+        }
+        
+        localStorage.setItem('bastbList', JSON.stringify(list));
+        toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
+      console.error("Failed to save to localStorage", error);
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -97,9 +124,13 @@ export default function BuatBastbPage() {
         </Link>
         <h1 className="text-xl font-semibold">Buat Berita Acara Serah Terima</h1>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" onClick={handleImportData}>
+            <Button variant="outline" onClick={handleOpenImportDialog}>
               <Download className="mr-2 h-4 w-4" />
               Ambil Data
+            </Button>
+            <Button variant="outline" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Simpan
             </Button>
             <Button variant="outline">
               <Sparkles className="mr-2 h-4 w-4" />
@@ -271,6 +302,33 @@ export default function BuatBastbPage() {
            </Card>
         </div>
       </main>
+
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle>
+                <DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-96">
+                <div className="pr-4">
+                  {availableSurat.length > 0 ? (
+                      availableSurat.map((surat: BeritaAcara) => (
+                          <div key={surat.formData.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                              <div>
+                                  <p className="font-semibold">{surat.formData.nomor}</p>
+                                  <p className="text-sm text-muted-foreground">Vendor: {surat.formData.vendorNama}</p>
+                              </div>
+                              <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
+                          </div>
+                      ))
+                  ) : (
+                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara yang tersimpan.</p>
+                  )}
+                </div>
+            </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      
       <style jsx global>{`
         @media print {
           body * {
