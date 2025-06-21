@@ -1,8 +1,6 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -18,32 +16,8 @@ model User {
   nip       String   @unique
   nama      String
   jabatan   String
-  status    String // "Aktif" or "Non-Aktif"
+  status    String   @default("Aktif")
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-// A generic model to hold all types of letters.
-// The `content` field can store form-specific data for each letter type as JSON.
-model Surat {
-  id        String     @id @default(cuid())
-  nomor     String     @unique
-  perihal   String
-  tanggal   DateTime
-  jenis     SuratJenis
-  status    String
-  tujuan    String
-  content   Json?      // Stores the form-specific data, e.g., items, narasi, etc.
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-enum SuratJenis {
-  SURAT_PERINTAH
-  SURAT_PESANAN_INTERNAL
-  SURAT_PESANAN_VENDOR
-  BERITA_ACARA_PEMERIKSAAN
-  BERITA_ACARA_SERAH_TERIMA
-  MASUK
 }
