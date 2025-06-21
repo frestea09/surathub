@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 import {
@@ -25,12 +24,11 @@ type ChartData = {
 };
 
 export function DashboardChart() {
-  const t = useTranslations('DashboardPage');
   const [data, setData] = useState<ChartData[]>([]);
 
   const chartConfig = {
     total: {
-      label: t('totalArchive'),
+      label: "Total Arsip",
       color: "hsl(var(--chart-1))",
     },
   };
@@ -55,8 +53,8 @@ export function DashboardChart() {
   return (
     <Card className="col-span-1 lg:col-span-1 xl:col-span-1">
       <CardHeader>
-        <CardTitle>{t('chartTitle')}</CardTitle>
-        <CardDescription>{t('chartDescription')}</CardDescription>
+        <CardTitle>Statistik Surat</CardTitle>
+        <CardDescription>Total surat yang diarsipkan per bulan.</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
         {data.length === 0 ? (
