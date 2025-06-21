@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, Download, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2 } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,40 +37,121 @@ const mockUsers = [
     { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur', unit: 'All' },
     { id: 'keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
     { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
+    { id: 'ppbj', name: 'Deti Hapitri, A.Md.Gz', role: 'Pejabat Pengadaan Barang Jasa', unit: 'Pengadaan' },
     { id: 'umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
     { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
 ];
 
-const initialSuratData = [
-  { nomor: "SP-2024-05-001", judul: "Surat Perintah Pengadaan ATK", jenis: "SPP", tipe: "Keluar", status: "Diproses", tanggal: "2024-05-20", unit: "Umum", penanggungJawab: "Admin" },
-  { nomor: "BA-2024-05-015", judul: "Berita Acara Pemeriksaan Barang", jenis: "BA", tipe: "Keluar", status: "Disetujui", tanggal: "2024-05-18", unit: "Pengadaan", penanggungJawab: "Saep Trian Prasetia" },
-  { nomor: "ND-2024-05-032", judul: "Nota Dinas Rapat Koordinasi", jenis: "Nota Dinas", tipe: "Keluar", status: "Terkirim", tanggal: "2024-05-17", unit: "Pimpinan", penanggungJawab: "Dr. H. Yani Sumpena" },
-  { nomor: "BAST-2024-04-098", judul: "BAST Pengadaan Komputer", jenis: "BAST", tipe: "Keluar", status: "Selesai", tanggal: "2024-04-30", unit: "Keuangan", penanggungJawab: "Jane Doe" },
-  { nomor: "SP-2024-05-002", judul: "Surat Perintah Perbaikan AC", jenis: "SPP", tipe: "Keluar", status: "Diproses", tanggal: "2024-05-21", unit: "Umum", penanggungJawab: "Admin" },
-  { nomor: "ND-2024-05-033", judul: "Nota Dinas Cuti Tahunan", jenis: "Nota Dinas", tipe: "Keluar", status: "Terkirim", tanggal: "2024-05-22", unit: "Kepegawaian", penanggungJawab: "Kepala Bagian Umum" },
-  { nomor: "INV/2024/07/998", judul: "Invoice Pembelian ATK", jenis: "Masuk", tipe: "Masuk", tanggal: "2024-07-26", unit: "Keuangan", penanggungJawab: "Admin" },
-  { nomor: "123/A/UM/2024", judul: "Undangan Rapat Koordinasi", jenis: "Masuk", tipe: "Masuk", tanggal: "2024-07-25", unit: "Pimpinan", penanggungJawab: "Direktur Utama" },
+// SuratMasuk and SuratKeluar now act as the source of truth, loaded from localStorage
+const initialSuratMasukData = [
+    {
+        nomor: "123/A/UM/2024",
+        perihal: "Undangan Rapat Koordinasi",
+        pengirim: "Kementerian Kesehatan",
+        tanggal: "2024-07-25",
+        status: "Didisposisikan",
+        disposisi: "Direktur Utama"
+    },
+    {
+        nomor: "INV/2024/07/998",
+        perihal: "Invoice Pembelian ATK",
+        pengirim: "CV. ATK Bersama",
+        tanggal: "2024-07-26",
+        status: "Baru",
+        disposisi: "Belum"
+    },
 ];
 
-type Surat = typeof initialSuratData[0];
+type Surat = {
+    nomor: string;
+    judul: string;
+    jenis: "Surat Masuk" | "Surat Keluar";
+    tipe: string;
+    status: string;
+    tanggal: string;
+    unit: string;
+    penanggungJawab: string;
+};
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Disetujui: "default",
   Selesai: "default",
+  Terkirim: "default",
+  Diarsipkan: "default",
   Diproses: "secondary",
-  Terkirim: "outline",
+  Draft: "secondary",
+  Baru: "secondary",
+  Didisposisikan: "outline",
   Ditolak: "destructive",
-  Masuk: "secondary",
 };
+
+const getUnitForSurat = (surat: any): string => {
+    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
+    if (perihal.includes('keuangan')) return 'Keuangan';
+    if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
+    if (perihal.includes('dinas')) return 'Umum';
+    if (surat.tujuan?.toLowerCase().includes('kepala') || surat.tujuan?.toLowerCase().includes('direktur')) return 'Pimpinan';
+    return 'Umum';
+}
+
 
 export default function DashboardPage() {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
-  const [suratData, setSuratData] = useState<Surat[]>(initialSuratData);
+  const [suratData, setSuratData] = useState<Surat[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    const loadAllSuratData = () => {
+        try {
+            if (typeof window === 'undefined') return;
+
+            const mapToUnifiedFormat = (item: any, jenis: 'Surat Keluar' | 'Surat Masuk', tipe: string, unit?: string): Surat => {
+                const base = jenis === 'Surat Keluar' ? item.formData || item : item;
+                const tanggal = base.tempatTanggal?.split(', ')[1]?.replace(/\//g, '-') || base.tanggal || new Date().toISOString().split('T')[0];
+                return {
+                    nomor: base.nomor,
+                    judul: base.perihal,
+                    jenis,
+                    tipe,
+                    status: base.status || 'Draft',
+                    tanggal,
+                    unit: unit || getUnitForSurat(base),
+                    penanggungJawab: base.namaPenandaTangan || base.disposisi || 'Admin',
+                };
+            };
+
+            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SPP', 'Pengadaan'));
+            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SP', 'Pengadaan'));
+            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SP-Vendor', 'Pengadaan'));
+            const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'BA', 'Pengadaan'));
+            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'BASTB', 'Pengadaan'));
+            const suratMasukList = initialSuratMasukData.map(s => mapToUnifiedFormat(s, 'Surat Masuk', 'Masuk'));
+
+            const allSurat = [
+                ...suratMasukList,
+                ...suratPerintahList, 
+                ...suratPesananList, 
+                ...suratPesananFinalList, 
+                ...beritaAcaraList, 
+                ...bastbList
+            ];
+            
+            const uniqueSurat = allSurat.filter((surat, index, self) =>
+                index === self.findIndex((s) => s.nomor === surat.nomor)
+            );
+
+            setSuratData(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
+        } catch (e) {
+            console.error("Failed to load surat from localStorage", e);
+            setSuratData([]);
+        }
+    };
+    loadAllSuratData();
+  }, []);
 
   const handleRoleChange = (userId: string) => {
     const user = mockUsers.find(u => u.id === userId);
@@ -103,12 +184,12 @@ export default function DashboardPage() {
   const { filteredSurat, dynamicStatCards } = useMemo(() => {
       const surat = (currentUser.unit === 'All') 
           ? suratData
-          : suratData.filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" || s.unit === "Kepegawaian" );
+          : suratData.filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" );
 
       const cards = [
         {
           title: "Surat Diproses",
-          value: surat.filter(s => s.status === 'Diproses').length.toString(),
+          value: surat.filter(s => ['Diproses', 'Draft', 'Baru', 'Didisposisikan'].includes(s.status)).length.toString(),
           description: "Surat dalam proses pengerjaan",
           icon: FileClock,
         },
@@ -120,8 +201,14 @@ export default function DashboardPage() {
         },
         {
           title: "Selesai Bulan Ini",
-          value: surat.filter(s => s.status === 'Selesai' || s.status === 'Disetujui').length.toString(),
-          description: "Total surat yang sudah selesai",
+          value: surat.filter(s => {
+              const suratDate = new Date(s.tanggal);
+              const now = new Date();
+              return (s.status === 'Selesai' || s.status === 'Disetujui' || s.status === 'Terkirim' || s.status === 'Diarsipkan') &&
+                  suratDate.getMonth() === now.getMonth() &&
+                  suratDate.getFullYear() === now.getFullYear();
+          }).length.toString(),
+          description: "Total surat yang sudah selesai bulan ini",
           icon: CheckCircle,
         },
         {
@@ -295,7 +382,7 @@ export default function DashboardPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {selectedSurat?.tipe === 'Masuk' ? (
+            {selectedSurat?.jenis === 'Surat Masuk' ? (
               <ul className="space-y-4">
                   <li className="flex items-start">
                       <div className="flex flex-col items-center mr-4">

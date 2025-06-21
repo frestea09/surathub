@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   XCircle,
   CheckCircle,
@@ -60,18 +60,73 @@ const mockUsers = [
     { id: 'kabag-umum', name: 'Budi Darmawan', role: 'Kepala Bagian Umum', unit: 'Umum' },
 ];
 
-const allSuratData = [
-  { noSurat: "123/A/UM/2024", perihal: "Undangan Rapat Koordinasi", jenis: "Masuk", tanggal: "2024-07-25", dariKe: "Kemenkes", status: "Didisposisikan", penanggungJawab: "Direktur Utama", unit: "Pimpinan" },
-  { noSurat: "001/SP/RSUD-O/VII/2024", perihal: "Surat Perintah Pengadaan ATK", jenis: "Keluar", tanggal: "2024-07-28", dariKe: "Pejabat Pengadaan", status: "Terkirim", penanggungJawab: "Admin", unit: "Pengadaan" },
-  { noSurat: "003/BA/RSUD-O/VII/2024", perihal: "Berita Acara Pemeriksaan", jenis: "Keluar", tanggal: "2024-07-30", dariKe: "Internal", status: "Draft", penanggungJawab: "Admin", unit: "Pengadaan" },
-  { noSurat: "PNW/2024/VI/045", perihal: "Penawaran Kerjasama", jenis: "Masuk", tanggal: "2024-06-22", dariKe: "PT. Medika Jaya", status: "Selesai", penanggungJawab: "Bagian Pengadaan", unit: "Pengadaan" },
-  { noSurat: "004/BASTB/RSUD-O/VII/2024", perihal: "Berita Acara Serah Terima", jenis: "Keluar", tanggal: "2024-07-31", dariKe: "Internal", status: "Diarsipkan", penanggungJawab: "Sistem", unit: "Umum" },
-  { noSurat: "INV/2024/07/998", perihal: "Invoice Pembelian ATK", jenis: "Masuk", tanggal: "2024-07-26", dariKe: "CV. ATK Bersama", status: "Baru", penanggungJawab: "Admin", unit: "Keuangan" },
-  { noSurat: "REJ/2024/07/001", perihal: "Permohonan Kerjasama Ditolak", jenis: "Masuk", tanggal: "2024-07-27", dariKe: "PT. Farmasi Mundur", status: "Ditolak", penanggungJawab: "Admin", unit: "Pengadaan" },
-  { noSurat: "REJ/2024/06/001", perihal: "Permohonan Kerjasama Ditolak", jenis: "Masuk", tanggal: "2024-06-15", dariKe: "PT. Sehat Sejahtera", status: "Ditolak", penanggungJawab: "Admin", unit: "Pimpinan" },
+const initialSuratMasukData = [
+    {
+        noSurat: "123/A/UM/2024",
+        perihal: "Undangan Rapat Koordinasi",
+        pengirim: "Kementerian Kesehatan",
+        tanggal: "2024-07-25",
+        status: "Didisposisikan",
+        disposisi: "Direktur Utama",
+        unit: "Pimpinan"
+    },
+    {
+        noSurat: "PNW/2024/VI/045",
+        perihal: "Penawaran Kerjasama",
+        pengirim: "PT. Medika Jaya",
+        tanggal: "2024-06-22",
+        status: "Selesai",
+        disposisi: "Bagian Pengadaan",
+        unit: "Pengadaan"
+    },
+    {
+        noSurat: "INV/2024/07/998",
+        perihal: "Invoice Pembelian ATK",
+        pengirim: "CV. ATK Bersama",
+        tanggal: "2024-07-26",
+        status: "Baru",
+        disposisi: "Admin",
+        unit: "Keuangan"
+    },
+    {
+        noSurat: "REJ/2024/07/001",
+        perihal: "Permohonan Kerjasama Ditolak",
+        pengirim: "PT. Farmasi Mundur",
+        tanggal: "2024-07-27",
+        status: "Ditolak",
+        disposisi: "Admin",
+        unit: "Pengadaan"
+    },
+    {
+        noSurat: "REJ/2024/06/001",
+        perihal: "Permohonan Kerjasama Ditolak",
+        pengirim: "PT. Sehat Sejahtera",
+        tanggal: "2024-06-15",
+        status: "Ditolak",
+        disposisi: "Admin",
+        unit: "Pimpinan"
+    },
 ];
 
-type SuratLaporan = typeof allSuratData[0];
+type SuratLaporan = {
+  noSurat: string;
+  perihal: string;
+  jenis: 'Masuk' | 'Keluar';
+  tanggal: string;
+  dariKe: string;
+  status: string;
+  penanggungJawab: string;
+  unit: string;
+};
+
+const getUnitForSurat = (surat: any): string => {
+    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
+    if (perihal.includes('keuangan')) return 'Keuangan';
+    if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
+    if (perihal.includes('dinas')) return 'Umum';
+    if (surat.tujuan?.toLowerCase().includes('kepala') || surat.tujuan?.toLowerCase().includes('direktur')) return 'Pimpinan';
+    return 'Umum';
+}
 
 const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db", "#FF6961"];
 
@@ -87,14 +142,64 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export default function LaporanPage() {
   const { toast } = useToast();
+  const [allSuratData, setAllSuratData] = useState<SuratLaporan[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<SuratLaporan | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    from: new Date(new Date().getFullYear(), 0, 1),
+    to: new Date(new Date().getFullYear(), 11, 31),
   });
+
+  useEffect(() => {
+    const loadAllSuratData = () => {
+        try {
+            if (typeof window === 'undefined') return;
+
+            const mapToLaporanFormat = (item: any, jenis: 'Keluar' | 'Masuk'): SuratLaporan => {
+                const base = jenis === 'Keluar' ? item.formData || item : item;
+                const tanggal = base.tempatTanggal?.split(', ')[1]?.replace(/\//g, '-') || base.tanggal || new Date().toISOString().split('T')[0];
+                return {
+                    noSurat: base.nomor || base.noSurat,
+                    perihal: base.perihal,
+                    jenis,
+                    tanggal,
+                    dariKe: base.penerima || base.pengirim || base.vendorNama || 'Internal',
+                    status: base.status || 'Draft',
+                    penanggungJawab: base.namaPenandaTangan || base.disposisi || 'Admin',
+                    unit: base.unit || getUnitForSurat(base),
+                };
+            };
+
+            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
+            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
+            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
+            const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
+            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
+            const suratMasukList = initialSuratMasukData.map(s => mapToLaporanFormat(s, 'Masuk'));
+
+            const allSurat = [
+                ...suratMasukList,
+                ...suratPerintahList, 
+                ...suratPesananList, 
+                ...suratPesananFinalList, 
+                ...beritaAcaraList, 
+                ...bastbList
+            ];
+            
+            const uniqueSurat = allSurat.filter((surat, index, self) =>
+                index === self.findIndex((s) => s.noSurat === surat.noSurat)
+            );
+
+            setAllSuratData(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
+        } catch (e) {
+            console.error("Failed to load surat from localStorage", e);
+            setAllSuratData([]);
+        }
+    };
+    loadAllSuratData();
+  }, []);
 
   const handleRoleChange = (userId: string) => {
       const user = mockUsers.find(u => u.id === userId);
@@ -144,15 +249,11 @@ export default function LaporanPage() {
       },
     ];
     
-    const volumeData = [
-      { name: "Jan", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 0).length },
-      { name: "Feb", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 1).length },
-      { name: "Mar", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 2).length },
-      { name: "Apr", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 3).length },
-      { name: "Mei", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 4).length },
-      { name: "Jun", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 5).length },
-      { name: "Jul", total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === 6).length },
-    ];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const volumeData = monthNames.map((monthName, index) => ({
+      name: monthName,
+      total: dataByDate.filter(s => new Date(s.tanggal).getMonth() === index).length
+    }));
     
     const statusData = [
       { name: "Baru / Draft", value: dataByDate.filter(s => s.status === 'Baru' || s.status === 'Draft').length },
@@ -163,7 +264,7 @@ export default function LaporanPage() {
     ].filter(item => item.value > 0);
 
     return { filteredData: dataByDate, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
-  }, [currentUser, date]);
+  }, [currentUser, date, allSuratData]);
 
 
   const handleExport = () => {
@@ -330,7 +431,7 @@ export default function LaporanPage() {
               <BarChart data={suratVolumeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="total" fill="#77B5FE" radius={[4, 4, 0, 0]} />
               </BarChart>
