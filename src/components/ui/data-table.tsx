@@ -62,10 +62,10 @@ export function DataTable<TData, TValue>({
     return {
       nomor: columnMap.get("nomor") ?? columnMap.get("noSurat"),
       perihal: columnMap.get("perihal") ?? columnMap.get("judul"),
-      nama: columnMap.get("nama"),
-      status: columnMap.get("status"),
-      pengguna: columnMap.get("pengguna"),
-      aksi: columnMap.get("aksi"),
+      nama: columnMap.has("nama") ? columnMap.get("nama") : undefined,
+      status: columnMap.has("status") ? columnMap.get("status") : undefined,
+      pengguna: columnMap.has("pengguna") ? columnMap.get("pengguna") : undefined,
+      aksi: columnMap.has("aksi") ? columnMap.get("aksi") : undefined,
     }
   }, [table]);
 
