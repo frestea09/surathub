@@ -1,0 +1,188 @@
+"use client";
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
+import { ArrowLeft, Printer, Sparkles } from 'lucide-react';
+
+export default function BuatSuratPage() {
+  const [formData, setFormData] = useState({
+    nomor: '000.3/PPK-RSUD OTISTA/IV/2025',
+    lampiran: '-',
+    perihal: 'Perintah Pengadaan Barang Farmasi',
+    tempatTanggal: 'Soreang, 08 April 2025',
+    penerima: 'Pejabat Pengadaan Barang Jasa',
+    penerimaTempat: 'Tempat',
+    isiSurat: 'Berdasarkan Surat Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 002/FAR-RSUD/IV/2025 , perihal pengadaan obat dan BMHP pada Farmasi, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segara persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku dan memperhatikan ketersedian stok Obat dan BMHP.',
+    penutup: 'Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih',
+    jabatanPenandaTangan: 'Pejabat Pembuat Komitmen',
+    namaPenandaTangan: 'Saep Trian Prasetia.S.Si..Apt',
+    nipPenandaTangan: 'NIP. 198408272008011005',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+  
+  const handlePrint = () => {
+    window.print();
+  };
+
+
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
+         <Link href="/">
+          <Button size="icon" variant="outline" className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
+         </Link>
+         <h1 className="text-xl font-semibold">Buat Surat Perintah</h1>
+         <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate with AI
+            </Button>
+            <Button onClick={handlePrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Cetak
+            </Button>
+          </div>
+      </header>
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detail Surat</CardTitle>
+              <CardDescription>
+                Isi detail surat yang akan dibuat.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nomor">Nomor Surat</Label>
+                <Input id="nomor" value={formData.nomor} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lampiran">Lampiran</Label>
+                <Input id="lampiran" value={formData.lampiran} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="perihal">Perihal</Label>
+                <Input id="perihal" value={formData.perihal} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tempatTanggal">Tempat & Tanggal</Label>
+                <Input id="tempatTanggal" value={formData.tempatTanggal} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="penerima">Penerima (Yth)</Label>
+                <Input id="penerima" value={formData.penerima} onChange={handleInputChange} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="penerimaTempat">Di</Label>
+                <Input id="penerimaTempat" value={formData.penerimaTempat} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="isiSurat">Isi Surat</Label>
+                <Textarea id="isiSurat" value={formData.isiSurat} onChange={handleInputChange} rows={6} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="penutup">Kalimat Penutup</Label>
+                <Textarea id="penutup" value={formData.penutup} onChange={handleInputChange} rows={2} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="jabatanPenandaTangan">Jabatan Penanda Tangan</Label>
+                <Input id="jabatanPenandaTangan" value={formData.jabatanPenandaTangan} onChange={handleInputChange} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="namaPenandaTangan">Nama Penanda Tangan</Label>
+                <Input id="namaPenandaTangan" value={formData.namaPenandaTangan} onChange={handleInputChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nipPenandaTangan">NIP Penanda Tangan</Label>
+                <Input id="nipPenandaTangan" value={formData.nipPenandaTangan} onChange={handleInputChange} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-2">
+           <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle>Preview Surat</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white text-black p-8 sm:p-12 font-serif text-sm print:shadow-none print:p-0" id="surat-preview">
+                {/* KOP SURAT */}
+                <div className="text-center border-b-4 border-black pb-2 mb-4">
+                  <h1 className="font-bold text-lg">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
+                  <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
+                  <p className="text-xs">Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592</p>
+                  <p className="text-xs">E-mail: rsudotista@bandungkab.go.id</p>
+                </div>
+                 {/* BADAN SURAT */}
+                <div className="flex justify-end mb-4">
+                  <p>{formData.tempatTanggal}</p>
+                </div>
+
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 mb-4">
+                  <span className="font-semibold">Nomor</span><span>: {formData.nomor}</span>
+                  <span className="font-semibold">Lampiran</span><span>: {formData.lampiran}</span>
+                  <span className="font-semibold">Perihal</span><span className="font-semibold">: {formData.perihal}</span>
+                </div>
+                
+                <div className="mb-4">
+                  <p>Yth</p>
+                  <p>{formData.penerima}</p>
+                  <p>Di</p>
+                  <p className="ml-8">{formData.penerimaTempat}</p>
+                </div>
+
+                <p className="mb-4 text-justify indent-8">
+                  {formData.isiSurat}
+                </p>
+
+                <p className="mb-12 text-justify indent-8">
+                  {formData.penutup}
+                </p>
+
+                {/* TANDA TANGAN */}
+                <div className="flex justify-end">
+                    <div className="text-center">
+                        <p>{formData.jabatanPenandaTangan}</p>
+                        <div className="h-20"></div> {/* Space for signature */}
+                        <p className="font-bold underline">{formData.namaPenandaTangan}</p>
+                        <p>{formData.nipPenandaTangan}</p>
+                    </div>
+                </div>
+              </div>
+            </CardContent>
+           </Card>
+        </div>
+      </main>
+      {/* Print styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #surat-preview, #surat-preview * {
+            visibility: visible;
+          }
+          #surat-preview {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

@@ -201,10 +201,12 @@ export default function Home() {
             <Bell className="h-4 w-4" />
             <span className="sr-only">Toggle notifications</span>
           </Button>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Buat Surat
-          </Button>
+          <Link href="/buat-surat">
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Buat Surat
+            </Button>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
