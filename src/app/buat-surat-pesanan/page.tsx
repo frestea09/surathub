@@ -79,7 +79,7 @@ export default function BuatSuratPesananPage() {
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => sum + (item.jumlah * item.hargaSatuan), 0);
-    const totalDiskon = items.reduce((sum, item) => sum + (item.jumlah * item.hargaSatuan * item.diskon / 100), 0);
+    const totalDiskon = items.reduce((sum, item) => sum + (item.jumlah * item.hargaSatuan * (item.diskon / 100)), 0);
     const totalAfterDiskon = subtotal - totalDiskon;
     const ppnValue = Math.round(totalAfterDiskon * (formData.ppn / 100));
     const grandTotal = totalAfterDiskon + ppnValue;
@@ -170,7 +170,7 @@ export default function BuatSuratPesananPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Link href="/">
+        <Link href="/dashboard">
           <Button size="icon" variant="outline" className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
@@ -255,7 +255,7 @@ export default function BuatSuratPesananPage() {
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="ppn">PPN (%)</Label>
-                  <Input id="ppn" type="number" value={formData.ppn} onChange={e => setFormData(prev => ({...prev, ppn: parseInt(e.target.value) || 0}))} />
+                  <Input id="ppn" type="number" value={formData.ppn} onChange={e => setFormData(prev => ({...prev, ppn: parseInt(e.target.value, 10) || 0}))} />
                 </div>
             </CardContent>
           </Card>
@@ -288,15 +288,15 @@ export default function BuatSuratPesananPage() {
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor={`jumlah-${item.id}`}>Jumlah</Label>
-                              <Input type="number" id={`jumlah-${item.id}`} value={item.jumlah} onChange={(e) => handleItemChange(item.id, 'jumlah', parseInt(e.target.value) || 0)} />
+                              <Input type="number" id={`jumlah-${item.id}`} value={item.jumlah} onChange={(e) => handleItemChange(item.id, 'jumlah', parseInt(e.target.value, 10) || 0)} />
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor={`harga-${item.id}`}>Harga Satuan</Label>
-                              <Input type="number" id={`harga-${item.id}`} value={item.hargaSatuan} onChange={(e) => handleItemChange(item.id, 'hargaSatuan', parseInt(e.target.value) || 0)} />
+                              <Input type="number" id={`harga-${item.id}`} value={item.hargaSatuan} onChange={(e) => handleItemChange(item.id, 'hargaSatuan', parseInt(e.target.value, 10) || 0)} />
                           </div>
                            <div className="space-y-2 col-span-2">
                               <Label htmlFor={`diskon-${item.id}`}>Diskon (%)</Label>
-                              <Input type="number" id={`diskon-${item.id}`} value={item.diskon} onChange={(e) => handleItemChange(item.id, 'diskon', parseInt(e.target.value) || 0)} />
+                              <Input type="number" id={`diskon-${item.id}`} value={item.diskon} onChange={(e) => handleItemChange(item.id, 'diskon', parseInt(e.target.value, 10) || 0)} />
                           </div>
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export default function BuatSuratPesananPage() {
                     </TableHeader>
                     <TableBody>
                         {items.map((item, index) => {
-                            const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - item.diskon / 100);
+                            const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - (item.diskon / 100));
                             return (
                                 <TableRow key={item.id}>
                                     <TableCell className="border border-black text-center">{index + 1}</TableCell>
@@ -375,12 +375,20 @@ export default function BuatSuratPesananPage() {
                 </Table>
 
                 <div className="flex justify-end mb-4">
-                    <div className="w-1/2">
-                        <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
+                    <div className="w-2/3 md:w-1/2">
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                             <span className="font-bold">TOTAL</span><span className="text-right font-bold">{formatCurrency(totals.subtotal)}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                             <span className="font-bold">DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalDiskon)}</span>
-                             <span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalAfterDiskon)}</span>
+                        </div>
+                         <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
+                            <span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalAfterDiskon)}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                             <span className="font-bold">PPN {formData.ppn}%</span><span className="text-right font-bold">{formatCurrency(totals.ppnValue)}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
                             <span className="font-bold">JUMLAH</span><span className="text-right font-bold">{formatCurrency(totals.grandTotal)}</span>
                         </div>
                     </div>
@@ -470,4 +478,3 @@ export default function BuatSuratPesananPage() {
     </div>
   );
 }
-
