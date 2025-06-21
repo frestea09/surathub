@@ -413,8 +413,6 @@ export default function SuratKeluarPage() {
                     <DataTable
                       columns={columns}
                       data={filteredSurat}
-                      searchKey="perihal"
-                      searchPlaceholder="Cari berdasarkan perihal..."
                     />
                 </CardContent>
                 </Card>

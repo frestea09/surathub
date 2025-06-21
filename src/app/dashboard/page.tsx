@@ -245,8 +245,6 @@ export default function DashboardPage() {
              <DataTable 
                 columns={columns} 
                 data={filteredSurat} 
-                searchKey="judul"
-                searchPlaceholder="Cari berdasarkan judul..."
               />
           </CardContent>
         </Card>

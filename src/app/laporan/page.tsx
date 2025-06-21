@@ -376,8 +376,6 @@ export default function LaporanPage() {
           <DataTable
             columns={columns}
             data={filteredData}
-            searchKey="perihal"
-            searchPlaceholder="Cari berdasarkan perihal..."
           />
         </CardContent>
       </Card>

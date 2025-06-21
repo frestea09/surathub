@@ -129,8 +129,6 @@ export default function AdminPage() {
           <DataTable
             columns={columns}
             data={usersData}
-            searchKey="nama"
-            searchPlaceholder="Cari berdasarkan nama..."
           />
         </CardContent>
       </Card>

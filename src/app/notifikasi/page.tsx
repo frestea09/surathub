@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Mail, Share2, Archive } from "lucide-react";
+import { Mail, Share2, Archive, XCircle } from "lucide-react";
 
 import {
   Card,
@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/templates/AppLayout";
 
 const allNotifications = [
+   {
+    icon: XCircle,
+    title: "Surat Ditolak",
+    description: "Surat 007/MEMO/RSUD-O/VIII/2024 telah ditolak.",
+    time: "30 menit lalu",
+    link: "/surat-keluar",
+  },
   {
     icon: Mail,
     title: "Surat Baru Diterima",

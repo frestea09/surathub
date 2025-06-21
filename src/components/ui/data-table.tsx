@@ -13,7 +13,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown } from "lucide-react"
 
 import {
   Table,
@@ -25,19 +24,16 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  searchKey: string
-  searchPlaceholder?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  searchKey,
-  searchPlaceholder = "Cari...",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -57,17 +53,77 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  React.useEffect(() => {
+    table.setPageSize(5);
+  }, [table]);
+
+  const filterableColumns = React.useMemo(() => ({
+    nomor: table.getColumn("nomor") || table.getColumn("noSurat"),
+    perihal: table.getColumn("perihal") || table.getColumn("judul"),
+    nama: table.getColumn("nama"),
+    status: table.getColumn("status"),
+  }), [table]);
+
+  const statuses = React.useMemo(() => {
+    if (!filterableColumns.status) return [];
+    const statusSet = new Set<string>();
+    data.forEach((row: any) => {
+      if (row.status) {
+        statusSet.add(row.status);
+      }
+    });
+    return Array.from(statusSet).sort();
+  }, [data, filterableColumns.status]);
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder={searchPlaceholder}
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+      <div className="flex flex-wrap items-center gap-2 py-4">
+        {filterableColumns.nomor && (
+            <Input
+            placeholder="Filter Nomor..."
+            value={(filterableColumns.nomor.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+                filterableColumns.nomor?.setFilterValue(event.target.value)
+            }
+            className="max-w-xs"
+            />
+        )}
+         {filterableColumns.perihal && (
+            <Input
+            placeholder="Filter Perihal/Judul..."
+            value={(filterableColumns.perihal.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+                filterableColumns.perihal?.setFilterValue(event.target.value)
+            }
+            className="max-w-xs"
+            />
+        )}
+         {filterableColumns.nama && (
+            <Input
+            placeholder="Filter Nama..."
+            value={(filterableColumns.nama.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+                filterableColumns.nama?.setFilterValue(event.target.value)
+            }
+            className="max-w-xs"
+            />
+        )}
+        {filterableColumns.status && statuses.length > 0 && (
+          <Select
+            value={(filterableColumns.status.getFilterValue() as string) ?? ""}
+            onValueChange={(value) => filterableColumns.status?.setFilterValue(value === "all" ? "" : value)}
+          >
+            <SelectTrigger className="w-full max-w-xs">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              {statuses.map((status) => (
+                <SelectItem key={status} value={status}>{status}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       <div className="rounded-md border">
         <Table>
@@ -115,7 +171,7 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} baris ditemukan.
+          {table.getFilteredRowModel().rows.length} dari {table.getCoreRowModel().rows.length} baris ditampilkan.
         </div>
         <Button
           variant="outline"

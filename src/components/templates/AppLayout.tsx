@@ -7,6 +7,12 @@ import { Header } from "@/components/organisms/Header";
 
 const MOCK_NOTIFICATIONS = [
   {
+    title: "Surat Ditolak",
+    description: "Surat 007/MEMO/RSUD-O/VIII/2024 telah ditolak.",
+    time: "30 menit lalu",
+    link: "/surat-keluar",
+  },
+  {
     title: "Surat Baru Diterima",
     description: "Surat dari Kemenkes perihal Undangan Rapat.",
     time: "5 menit lalu",
