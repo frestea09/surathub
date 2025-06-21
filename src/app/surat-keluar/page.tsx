@@ -475,9 +475,9 @@ export default function SuratKeluarPage() {
       <Dialog open={isLacakOpen} onOpenChange={setIsLacakOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lacak Pengiriman Surat</DialogTitle>
+            <DialogTitle>Lacak Pengiriman Eksternal</DialogTitle>
             <DialogDescription>
-              Status pengiriman untuk surat nomor: {selectedSurat?.nomor}
+              Melacak status pengiriman surat keluar ke tujuan eksternal.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
