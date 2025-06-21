@@ -4,6 +4,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   Bell,
@@ -141,6 +142,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export default function SuratMasukPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [suratList, setSuratList] = useState<SuratMasuk[]>(initialSuratMasukData);
   const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -241,7 +243,7 @@ export default function SuratMasukPage() {
           <div className="mt-auto p-4">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
-                href="#"
+                href="/pengaturan"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Settings className="h-4 w-4" />
@@ -302,7 +304,7 @@ export default function SuratMasukPage() {
                   Laporan
                 </Link>
                  <Link
-                  href="#"
+                  href="/pengaturan"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                 >
                   <Settings className="h-5 w-5" />
@@ -342,10 +344,10 @@ export default function SuratMasukPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profil</DropdownMenuItem>
-              <DropdownMenuItem>Pengaturan</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/profil')}>Profil</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/pengaturan')}>Pengaturan</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Keluar</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/')}>Keluar</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
