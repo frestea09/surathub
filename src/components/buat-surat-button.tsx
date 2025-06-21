@@ -31,6 +31,9 @@ export function BuatSuratButton() {
                 <DropdownMenuItem onClick={() => router.push('/buat-berita-acara')}>
                     Berita Acara Pemeriksaan
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/buat-bastb')}>
+                    Berita Acara Serah Terima
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )
