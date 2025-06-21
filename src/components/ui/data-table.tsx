@@ -64,6 +64,8 @@ export function DataTable<TData, TValue>({
       perihal: columnMap.get("perihal") ?? columnMap.get("judul"),
       nama: columnMap.get("nama"),
       status: columnMap.get("status"),
+      pengguna: columnMap.get("pengguna"),
+      aksi: columnMap.get("aksi"),
     }
   }, [table]);
 
@@ -110,6 +112,28 @@ export function DataTable<TData, TValue>({
             }
             className="max-w-xs"
             />
+        )}
+        {filterableColumns.pengguna && (
+          <Input
+            placeholder="Filter Pengguna..."
+            value={
+              (filterableColumns.pengguna.getFilterValue() as string) ?? ""
+            }
+            onChange={(event) =>
+              filterableColumns.pengguna?.setFilterValue(event.target.value)
+            }
+            className="max-w-xs"
+          />
+        )}
+        {filterableColumns.aksi && (
+          <Input
+            placeholder="Filter Aksi..."
+            value={(filterableColumns.aksi.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              filterableColumns.aksi?.setFilterValue(event.target.value)
+            }
+            className="max-w-xs"
+          />
         )}
         {filterableColumns.status && statuses.length > 0 && (
           <Select
