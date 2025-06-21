@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 import {
@@ -22,15 +24,16 @@ type ChartData = {
   total: number;
 };
 
-const chartConfig = {
-  total: {
-    label: "Total Surat",
-    color: "hsl(var(--chart-1))",
-  },
-};
-
 export function DashboardChart() {
+  const t = useTranslations('DashboardPage');
   const [data, setData] = useState<ChartData[]>([]);
+
+  const chartConfig = {
+    total: {
+      label: t('totalArchive'),
+      color: "hsl(var(--chart-1))",
+    },
+  };
 
   useEffect(() => {
     // Simulate data fetching
@@ -52,8 +55,8 @@ export function DashboardChart() {
   return (
     <Card className="col-span-1 lg:col-span-1 xl:col-span-1">
       <CardHeader>
-        <CardTitle>Analisis Surat</CardTitle>
-        <CardDescription>Total surat yang diproses per bulan.</CardDescription>
+        <CardTitle>{t('chartTitle')}</CardTitle>
+        <CardDescription>{t('chartDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
         {data.length === 0 ? (

@@ -2,37 +2,40 @@
 
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useRouter } from "@/navigation"
 import { PlusCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 export function BuatSuratButton() {
     const router = useRouter();
+    const tLayout = useTranslations('DashboardLayout');
+    const tButton = useTranslations('BuatSuratButton');
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Buat Surat
+                    {tLayout('createLetter')}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Pilih Jenis Surat</DropdownMenuLabel>
+                <DropdownMenuLabel>{tButton('label')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/buat-surat')}>
-                    Surat Perintah
+                    {tButton('perintah')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan')}>
-                    Surat Pesanan (Internal)
+                    {tButton('pesananInternal')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/buat-surat-pesanan-final')}>
-                    Surat Pesanan (Vendor)
+                    {tButton('pesananVendor')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/buat-berita-acara')}>
-                    Berita Acara Pemeriksaan
+                    {tButton('pemeriksaan')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/buat-bastb')}>
-                    Berita Acara Serah Terima
+                    {tButton('serahTerima')}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
