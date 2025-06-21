@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import {
   Archive,
   Bell,
+  CheckCircle,
   FileSearch,
   FileText,
   Home,
   LineChart,
+  Mailbox,
   MoreHorizontal,
   Package,
   PanelLeft,
@@ -147,15 +149,17 @@ export default function SuratMasukPage() {
   const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDisposisiOpen, setIsDisposisiOpen] = useState(false);
+  const [isLacakDisposisiOpen, setIsLacakDisposisiOpen] = useState(false);
   const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
 
 
-  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip') => {
+  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip' | 'lacak-disposisi') => {
     setSelectedSurat(surat);
     if (action === 'detail') setIsDetailOpen(true);
     if (action === 'disposisi') setIsDisposisiOpen(true);
     if (action === 'arsip') setIsArsipConfirmOpen(true);
+    if (action === 'lacak-disposisi') setIsLacakDisposisiOpen(true);
   };
   
   const handleArsipConfirm = () => {
@@ -428,6 +432,10 @@ export default function SuratMasukPage() {
                                         <Share2 className="mr-2 h-4 w-4" />
                                         Buat Disposisi
                                       </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak-disposisi')} disabled={surat.disposisi === 'Belum'}>
+                                        <FileSearch className="mr-2 h-4 w-4" />
+                                        Lacak Disposisi
+                                      </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                                         <Archive className="mr-2 h-4 w-4" />
@@ -532,6 +540,65 @@ export default function SuratMasukPage() {
                 <Button type="submit">Kirim Disposisi</Button>
             </DialogFooter>
            </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lacak Disposisi Dialog */}
+      <Dialog open={isLacakDisposisiOpen} onOpenChange={setIsLacakDisposisiOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alur Disposisi Surat</DialogTitle>
+            <DialogDescription>
+              Linimasa pergerakan surat masuk secara internal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <ul className="space-y-4">
+                <li className="flex items-start">
+                    <div className="flex flex-col items-center mr-4">
+                        <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white">
+                            <Mailbox className="h-4 w-4" />
+                        </div>
+                        <div className="w-px h-16 bg-border"></div>
+                    </div>
+                    <div>
+                        <p className="font-semibold">Surat Diterima</p>
+                        <p className="text-sm text-muted-foreground">{selectedSurat?.tanggal}</p>
+                        <p className="text-sm">Diterima dari: {selectedSurat?.pengirim}</p>
+                    </div>
+                </li>
+                <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white">
+                              <Share2 className="h-4 w-4" />
+                          </div>
+                          {(selectedSurat?.status === 'Selesai' || selectedSurat?.status === 'Diarsipkan') && <div className="w-px h-16 bg-border"></div>}
+                      </div>
+                      <div>
+                        <p className="font-semibold">Disposisi</p>
+                        <p className="text-sm text-muted-foreground">{selectedSurat?.tanggal}</p>
+                         <p className="text-sm">Oleh: Direktur, Kepada: {selectedSurat?.disposisi}</p>
+                      </div>
+                </li>
+                  {(selectedSurat?.status === 'Selesai' || selectedSurat?.status === 'Diarsipkan') && (
+                    <li className="flex items-start">
+                        <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white">
+                            <CheckCircle className="h-4 w-4" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="font-semibold">Selesai Diproses</p>
+                          <p className="text-sm text-muted-foreground">2 hari setelah tanggal diterima</p>
+                          <p className="text-sm">Proses telah diselesaikan oleh {selectedSurat?.disposisi}.</p>
+                        </div>
+                    </li>
+                  )}
+            </ul>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

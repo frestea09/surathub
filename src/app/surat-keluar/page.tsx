@@ -9,6 +9,7 @@ import {
   Bell,
   CheckCircle,
   Download,
+  FilePenLine,
   FileSearch,
   FileText,
   Home,
@@ -17,8 +18,9 @@ import {
   Package,
   PanelLeft,
   Search,
+  Send,
   Settings,
-  Truck,
+  UserCheck,
   UserCog,
 } from "lucide-react";
 
@@ -404,8 +406,8 @@ export default function SuratKeluarPage() {
                                         Lihat Detail
                                       </DropdownMenuItem>
                                        <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')}>
-                                        <Truck className="mr-2 h-4 w-4" />
-                                        Lacak Pengiriman
+                                        <FileSearch className="mr-2 h-4 w-4" />
+                                        Lacak Alur Pengiriman
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={handleDownloadPdf}>
                                         <Download className="mr-2 h-4 w-4" />
@@ -475,47 +477,60 @@ export default function SuratKeluarPage() {
       <Dialog open={isLacakOpen} onOpenChange={setIsLacakOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lacak Pengiriman Eksternal</DialogTitle>
+            <DialogTitle>Alur Pengiriman Surat</DialogTitle>
             <DialogDescription>
-              Melacak status pengiriman surat keluar ke tujuan eksternal.
+              Linimasa persetujuan internal dan pengiriman surat keluar.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <ul className="space-y-4">
                 <li className="flex items-start">
                     <div className="flex flex-col items-center mr-4">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-primary-foreground">
-                            <Package className="h-4 w-4" />
+                        <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white">
+                            <FilePenLine className="h-4 w-4" />
                         </div>
                         <div className="w-px h-16 bg-border"></div>
                     </div>
                     <div>
                         <p className="font-semibold">Draft Dibuat</p>
                         <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 10:00 WIB</p>
-                        <p className="text-sm">Surat disiapkan oleh sistem.</p>
+                        <p className="text-sm">Dibuat oleh: Tim Kerja Bidang Umum</p>
                     </div>
                 </li>
                 <li className="flex items-start">
                       <div className="flex flex-col items-center mr-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-primary-foreground">
-                              <Truck className="h-4 w-4" />
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white">
+                              <UserCheck className="h-4 w-4" />
                           </div>
                           <div className="w-px h-16 bg-border"></div>
                       </div>
                       <div>
-                        <p className="font-semibold">Surat Terkirim</p>
-                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 14:30 WIB</p>
-                         <p className="text-sm">Surat telah dikirim ke tujuan.</p>
+                        <p className="font-semibold">Disetujui Kepala Bagian</p>
+                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 11:30 WIB</p>
+                         <p className="text-sm">Disetujui oleh: Kepala Bagian Umum</p>
+                      </div>
+                </li>
+                <li className="flex items-start">
+                      <div className="flex flex-col items-center mr-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white">
+                              <UserCheck className="h-4 w-4" />
+                          </div>
+                          <div className="w-px h-16 bg-border"></div>
+                      </div>
+                      <div>
+                        <p className="font-semibold">Disetujui Wakil Direktur</p>
+                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 14:00 WIB</p>
+                         <p className="text-sm">Disetujui oleh: Wakil Direktur Umum</p>
                       </div>
                 </li>
                   <li className="flex items-start">
-                      <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white">
-                          <CheckCircle className="h-4 w-4" />
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-primary-foreground">
+                          <Send className="h-4 w-4" />
                       </div>
                       <div className="ml-4">
-                        <p className="font-semibold">Diterima oleh Tujuan</p>
-                        <p className="text-sm text-muted-foreground">Selasa, 30 Jul 2024, 09:15 WIB</p>
-                        <p className="text-sm">Surat berhasil diterima oleh {selectedSurat?.tujuan}.</p>
+                        <p className="font-semibold">Surat Terkirim</p>
+                        <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 14:30 WIB</p>
+                        <p className="text-sm">Surat berhasil dikirim ke {selectedSurat?.tujuan}.</p>
                       </div>
                 </li>
             </ul>
