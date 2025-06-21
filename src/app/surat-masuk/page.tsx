@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Archive,
@@ -18,6 +17,7 @@ import {
   Search,
   Settings,
   Share2,
+  UserCog,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -238,6 +238,13 @@ export default function SuratMasukPage() {
                 <LineChart className="h-4 w-4" />
                 Laporan
               </Link>
+              <Link
+                href="/admin"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <UserCog className="h-4 w-4" />
+                Admin
+              </Link>
             </nav>
           </div>
           <div className="mt-auto p-4">
@@ -269,7 +276,7 @@ export default function SuratMasukPage() {
             <SheetContent side="left" className="flex flex-col">
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
-                  href="#"
+                  href="/dashboard"
                   className="flex items-center gap-2 text-lg font-semibold"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
@@ -302,6 +309,13 @@ export default function SuratMasukPage() {
                 >
                   <LineChart className="h-5 w-5" />
                   Laporan
+                </Link>
+                <Link
+                  href="/admin"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
+                  <UserCog className="h-5 w-5" />
+                  Admin
                 </Link>
                  <Link
                   href="/pengaturan"
@@ -393,7 +407,7 @@ export default function SuratMasukPage() {
                                 <TableCell>{surat.pengirim}</TableCell>
                                 <TableCell className="text-center">{surat.tanggal}</TableCell>
                                 <TableCell className="text-center">
-                                  <Badge variant={statusVariant[surat.status]}>{surat.status}</Badge>
+                                  <Badge variant={statusVariant[surat.status as keyof typeof statusVariant]}>{surat.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-center">{surat.disposisi}</TableCell>
                                 <TableCell>

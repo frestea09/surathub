@@ -3,11 +3,11 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Archive,
   Bell,
+  CheckCircle,
   Download,
   FileSearch,
   FileText,
@@ -19,7 +19,7 @@ import {
   Search,
   Settings,
   Truck,
-  CheckCircle,
+  UserCog,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -219,6 +219,13 @@ export default function SuratKeluarPage() {
                 <LineChart className="h-4 w-4" />
                 Laporan
               </Link>
+              <Link
+                href="/admin"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <UserCog className="h-4 w-4" />
+                Admin
+              </Link>
             </nav>
           </div>
           <div className="mt-auto p-4">
@@ -283,6 +290,13 @@ export default function SuratKeluarPage() {
                 >
                   <LineChart className="h-5 w-5" />
                   Laporan
+                </Link>
+                <Link
+                  href="/admin"
+                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
+                  <UserCog className="h-5 w-5" />
+                  Admin
                 </Link>
                  <Link
                   href="/pengaturan"
@@ -373,7 +387,7 @@ export default function SuratKeluarPage() {
                                 <TableCell>{surat.tujuan}</TableCell>
                                 <TableCell className="text-center">{surat.tanggal}</TableCell>
                                 <TableCell className="text-center">
-                                  <Badge variant={statusVariant[surat.status]}>{surat.status}</Badge>
+                                  <Badge variant={statusVariant[surat.status as keyof typeof statusVariant]}>{surat.status}</Badge>
                                 </TableCell>
                                 <TableCell>
                                 <DropdownMenu>

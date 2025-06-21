@@ -25,6 +25,7 @@ import {
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Same roles as login page
 const roles = {
   "Pimpinan & Pengawas": [
     "Direktur",
@@ -75,12 +76,14 @@ const roles = {
   ],
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    // Here you would typically handle the registration logic
+    // For now, just redirect to login page
+    router.push('/');
   };
 
   return (
@@ -90,12 +93,12 @@ export default function LoginPage() {
             <div className="flex justify-center mb-4">
                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-12 w-12 text-primary"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
             </div>
-          <CardTitle className="text-2xl">Login SuratHub</CardTitle>
+          <CardTitle className="text-2xl">Buat Akun Baru</CardTitle>
           <CardDescription>
-            Masuk untuk mengakses sistem manajemen surat RSUD Oto Iskandar Di Nata
+            Daftar untuk mengakses sistem manajemen surat
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">NIP / Username</Label>
@@ -104,6 +107,10 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="Masukkan password" required />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="confirm-password">Konfirmasi Password</Label>
+              <Input id="confirm-password" type="password" placeholder="Konfirmasi password Anda" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
@@ -126,17 +133,17 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full">
-              Login
+              Daftar
             </Button>
              <p className="text-center text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Daftar
-              </Link>
-            </p>
+                Sudah punya akun?{" "}
+                <Link
+                  href="/"
+                  className="underline underline-offset-4 hover:text-primary"
+                >
+                  Login
+                </Link>
+              </p>
           </CardFooter>
         </form>
       </Card>
