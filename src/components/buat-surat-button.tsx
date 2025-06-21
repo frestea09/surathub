@@ -7,13 +7,13 @@ import { FileSignature, FileText, PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const suratTypes = [
   {
@@ -45,50 +45,30 @@ const suratTypes = [
 
 export function BuatSuratButton() {
   const router = useRouter()
-  const [open, setOpen] = React.useState(false)
 
   const handleSelect = (href: string) => {
     router.push(href)
-    setOpen(false)
   }
 
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
-      }
-    }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [])
-
-
   return (
-    <>
-      <Button onClick={() => setOpen(true)}>
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Buat Surat
-      </Button>
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Cari jenis surat..." />
-        <CommandList>
-          <CommandEmpty>Jenis surat tidak ditemukan.</CommandEmpty>
-          <CommandGroup heading="Pilih Jenis Surat">
-            {suratTypes.map((surat) => (
-              <CommandItem
-                key={surat.href}
-                value={surat.href}
-                onSelect={handleSelect}
-                className="cursor-pointer"
-              >
-                <surat.icon className="mr-2 h-4 w-4" />
-                <span>{surat.label}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Buat Surat
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuLabel>Pilih Jenis Surat</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          {suratTypes.map((surat) => (
+            <DropdownMenuItem key={surat.href} onSelect={() => handleSelect(surat.href)} className="cursor-pointer">
+              <surat.icon className="mr-2 h-4 w-4" />
+              <span>{surat.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
