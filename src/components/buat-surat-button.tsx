@@ -6,18 +6,11 @@ import { FileSignature, FileText, PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Input } from "./ui/input"
 
 const suratTypes = [
   {
@@ -50,11 +43,16 @@ const suratTypes = [
 export function BuatSuratButton() {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
+  const [searchTerm, setSearchTerm] = React.useState("")
 
   const handleSelect = (href: string) => {
     router.push(href)
     setOpen(false)
   }
+
+  const filteredSurat = suratTypes.filter(surat => 
+    surat.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,24 +63,33 @@ export function BuatSuratButton() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[250px] p-0">
-        <Command>
-          <CommandInput placeholder="Cari jenis surat..." />
-          <CommandList>
-            <CommandEmpty>Jenis surat tidak ditemukan.</CommandEmpty>
-            <CommandGroup>
-              {suratTypes.map((surat) => (
-                <CommandItem
-                  key={surat.href}
-                  onSelect={() => handleSelect(surat.href)}
-                  className="cursor-pointer"
-                >
-                  <surat.icon className="mr-2 h-4 w-4" />
-                  <span>{surat.label}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+        <div className="p-2">
+            <Input 
+                placeholder="Cari jenis surat..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-9"
+            />
+        </div>
+        <div className="flex flex-col p-1">
+            {filteredSurat.length > 0 ? (
+                filteredSurat.map((surat) => (
+                    <Button
+                        key={surat.href}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => handleSelect(surat.href)}
+                    >
+                        <surat.icon className="mr-2 h-4 w-4" />
+                        <span>{surat.label}</span>
+                    </Button>
+                ))
+            ) : (
+                <p className="p-4 text-center text-sm text-muted-foreground">
+                    Jenis surat tidak ditemukan.
+                </p>
+            )}
+        </div>
       </PopoverContent>
     </Popover>
   )
