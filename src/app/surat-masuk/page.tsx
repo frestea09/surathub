@@ -1,6 +1,12 @@
+
+"use client";
+
 import Link from "next/link";
+import React, { useState } from "react";
 import {
+  Archive,
   Bell,
+  FileSearch,
   FileText,
   Home,
   LineChart,
@@ -9,6 +15,7 @@ import {
   PanelLeft,
   Search,
   Settings,
+  Share2,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
@@ -46,8 +54,31 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { BuatSuratButton } from "@/components/buat-surat-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
-const suratMasukData = [
+
+const initialSuratMasukData = [
     {
         nomor: "123/A/UM/2024",
         perihal: "Undangan Rapat Koordinasi",
@@ -98,13 +129,72 @@ const suratMasukData = [
     },
 ];
 
+type SuratMasuk = typeof initialSuratMasukData[0];
+
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
   Didisposisikan: "outline",
   Selesai: "default",
+  Diarsipkan: "default",
 };
 
 export default function SuratMasukPage() {
+  const { toast } = useToast();
+  const [suratList, setSuratList] = useState<SuratMasuk[]>(initialSuratMasukData);
+  const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isDisposisiOpen, setIsDisposisiOpen] = useState(false);
+  const [isArsipConfirmOpen, setIsArsipConfirmOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("semua");
+
+
+  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'arsip') => {
+    setSelectedSurat(surat);
+    if (action === 'detail') setIsDetailOpen(true);
+    if (action === 'disposisi') setIsDisposisiOpen(true);
+    if (action === 'arsip') setIsArsipConfirmOpen(true);
+  };
+  
+  const handleArsipConfirm = () => {
+    if (!selectedSurat) return;
+    setSuratList(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Diarsipkan' } : s)
+    );
+    toast({
+        title: "Berhasil",
+        description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
+    });
+    setIsArsipConfirmOpen(false);
+    setSelectedSurat(null);
+  };
+
+  const handleDisposisiSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const tujuan = formData.get('tujuan') as string;
+    
+    if (!selectedSurat || !tujuan) return;
+
+    setSuratList(prev => 
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', disposisi: tujuan } : s)
+    );
+     toast({
+        title: "Disposisi Berhasil",
+        description: `Surat nomor ${selectedSurat.nomor} telah didisposisikan ke ${tujuan}.`,
+    });
+    setIsDisposisiOpen(false);
+    setSelectedSurat(null);
+  };
+
+  const filteredSurat = suratList.filter(surat => {
+    if (activeTab === "semua") return true;
+    if (activeTab === "baru") return surat.status === "Baru";
+    if (activeTab === "didisposisikan") return surat.status === "Didisposisikan";
+    if (activeTab === "selesai") return surat.status === "Selesai" || surat.status === "Diarsipkan";
+    return true;
+  });
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-muted/40 md:block">
@@ -131,7 +221,7 @@ export default function SuratMasukPage() {
                 <FileText className="h-4 w-4" />
                 Surat Masuk
                 <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                  2
+                  {suratList.filter(s => s.status === 'Baru').length}
                 </Badge>
               </Link>
               <Link
@@ -199,7 +289,7 @@ export default function SuratMasukPage() {
                   <FileText className="h-5 w-5" />
                   Surat Masuk
                    <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                    2
+                     {suratList.filter(s => s.status === 'Baru').length}
                   </Badge>
                 </Link>
                 <Link
@@ -268,16 +358,16 @@ export default function SuratMasukPage() {
           <div className="flex items-center">
             <h1 className="text-lg font-semibold md:text-2xl">Surat Masuk</h1>
           </div>
-          <Tabs defaultValue="semua">
+          <Tabs defaultValue="semua" onValueChange={setActiveTab}>
             <div className="flex items-center">
               <TabsList>
                 <TabsTrigger value="semua">Semua</TabsTrigger>
                 <TabsTrigger value="baru">Baru</TabsTrigger>
                 <TabsTrigger value="didisposisikan">Didisposisikan</TabsTrigger>
-                <TabsTrigger value="selesai">Selesai</TabsTrigger>
+                <TabsTrigger value="selesai">Selesai & Diarsipkan</TabsTrigger>
               </TabsList>
             </div>
-            <TabsContent value="semua">
+            <TabsContent value={activeTab}>
                  <Card>
                     <CardHeader>
                         <CardTitle>Daftar Surat Masuk</CardTitle>
@@ -299,14 +389,14 @@ export default function SuratMasukPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {suratMasukData.map((surat) => (
+                            {filteredSurat.map((surat) => (
                             <TableRow key={surat.nomor}>
                                 <TableCell className="font-medium">{surat.nomor}</TableCell>
                                 <TableCell>{surat.perihal}</TableCell>
                                 <TableCell>{surat.pengirim}</TableCell>
                                 <TableCell className="text-center">{surat.tanggal}</TableCell>
                                 <TableCell className="text-center">
-                                <Badge variant={statusVariant[surat.status]}>{surat.status}</Badge>
+                                  <Badge variant={statusVariant[surat.status]}>{surat.status}</Badge>
                                 </TableCell>
                                 <TableCell className="text-center">{surat.disposisi}</TableCell>
                                 <TableCell>
@@ -318,10 +408,20 @@ export default function SuratMasukPage() {
                                     </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                                    <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
-                                    <DropdownMenuItem>Buat Disposisi</DropdownMenuItem>
-                                    <DropdownMenuItem>Arsipkan</DropdownMenuItem>
+                                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
+                                        <FileSearch className="mr-2 h-4 w-4" />
+                                        Lihat Detail
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'disposisi')} disabled={surat.status !== 'Baru'}>
+                                        <Share2 className="mr-2 h-4 w-4" />
+                                        Buat Disposisi
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Arsipkan
+                                      </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                                 </TableCell>
@@ -335,6 +435,113 @@ export default function SuratMasukPage() {
           </Tabs>
         </main>
       </div>
+
+      {/* Detail Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detail Surat Masuk</DialogTitle>
+            <DialogDescription>
+              Detail lengkap dari surat yang dipilih.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSurat && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="nomor" className="text-right">Nomor</Label>
+                <Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" />
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="perihal" className="text-right">Perihal</Label>
+                <Input id="perihal" value={selectedSurat.perihal} readOnly className="col-span-3" />
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="pengirim" className="text-right">Pengirim</Label>
+                <Input id="pengirim" value={selectedSurat.pengirim} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tanggal" className="text-right">Tanggal</Label>
+                <Input id="tanggal" value={selectedSurat.tanggal} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">Status</Label>
+                <Input id="status" value={selectedSurat.status} readOnly className="col-span-3" />
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="disposisi" className="text-right">Disposisi</Label>
+                <Input id="disposisi" value={selectedSurat.disposisi} readOnly className="col-span-3" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Disposisi Dialog */}
+      <Dialog open={isDisposisiOpen} onOpenChange={setIsDisposisiOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Buat Disposisi Surat</DialogTitle>
+            <DialogDescription>
+              Teruskan surat ke bagian atau pejabat terkait.
+            </DialogDescription>
+          </DialogHeader>
+           <form onSubmit={handleDisposisiSubmit}>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="tujuan">Disposisi Kepada</Label>
+                    <Select name="tujuan" required>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Pilih Tujuan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Direktur Utama">Direktur Utama</SelectItem>
+                            <SelectItem value="Bagian Keuangan">Bagian Keuangan</SelectItem>
+                            <SelectItem value="Bagian Pengadaan">Bagian Pengadaan</SelectItem>
+                            <SelectItem value="Bagian Rekam Medis">Bagian Rekam Medis</SelectItem>
+                            <SelectItem value="HRD">HRD</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="instruksi">Instruksi</Label>
+                    <Textarea id="instruksi" name="instruksi" placeholder="Contoh: 'Untuk ditindaklanjuti segera'" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="catatan">Catatan</Label>
+                    <Textarea id="catatan" name="catatan" placeholder="Catatan tambahan jika ada..." />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
+                <Button type="submit">Kirim Disposisi</Button>
+            </DialogFooter>
+           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Arsip Confirm Dialog */}
+      <AlertDialog open={isArsipConfirmOpen} onOpenChange={setIsArsipConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Arsip Surat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengarsipkan surat ini? Tindakan ini akan mengubah status surat menjadi &quot;Diarsipkan&quot; dan tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArsipConfirm}>Ya, Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
+
+    
