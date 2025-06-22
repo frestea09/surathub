@@ -237,14 +237,7 @@ export default function BuatSuratPage() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg/1200px-Lambang_Kabupaten_Bandung%2C_Jawa_Barat%2C_Indonesia.svg.png"
-                    alt="Logo"
-                    width={80}
-                    height={80}
-                    className="mr-4"
-                    data-ai-hint="government seal"
-                  />
+                  <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
