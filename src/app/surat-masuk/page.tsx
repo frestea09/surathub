@@ -65,17 +65,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
-import { useSurat, type Surat } from "@/hooks/useSurat";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
-
-type SuratMasuk = {
-    nomor: string;
-    perihal: string;
-    pengirim: string;
-    tanggal: string;
-    status: string;
-    disposisi: string;
-};
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
@@ -113,8 +104,8 @@ const allRoles = [
 
 export default function SuratMasukPage() {
   const { toast } = useToast();
-  const { surat: allSurat, isLoading } = useSurat();
-  const [suratList, setSuratList] = useState<Surat[]>([]);
+  const { surat, isLoading, fetchAllSurat, updateSurat, deleteSurat } = useSuratStore();
+
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState<'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus' | null>(null);
   const [disposisiTo, setDisposisiTo] = useState<string[]>([]);
@@ -122,11 +113,10 @@ export default function SuratMasukPage() {
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
 
   useEffect(() => {
-    if (allSurat) {
-        const filtered = allSurat.filter(s => s.jenis === 'Surat Masuk');
-        setSuratList(filtered);
-    }
-  }, [allSurat]);
+    fetchAllSurat();
+  }, [fetchAllSurat]);
+
+  const suratList = useMemo(() => surat.filter(s => s.jenis === 'Surat Masuk'), [surat]);
   
   const closeDialog = () => {
     setSelectedSurat(null);
@@ -144,9 +134,7 @@ export default function SuratMasukPage() {
   
   const handleArsipConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Diarsipkan' } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Diarsipkan' });
     toast({
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
@@ -156,9 +144,7 @@ export default function SuratMasukPage() {
 
   const handleTolakConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev =>
-      prev.map(s => (s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s))
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Ditolak' });
     toast({
       title: "Berhasil",
       description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
@@ -169,9 +155,7 @@ export default function SuratMasukPage() {
   
   const handleHapusConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev => 
-      prev.filter(s => s.nomor !== selectedSurat.nomor)
-    );
+    deleteSurat(selectedSurat.nomor);
     toast({
         title: "Berhasil Dihapus",
         description: `Surat nomor ${selectedSurat.nomor} telah dihapus dari sistem.`,
@@ -181,9 +165,7 @@ export default function SuratMasukPage() {
   
   const handleSelesaiConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev =>
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Selesai' } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Selesai' });
     toast({
       title: "Berhasil",
       description: `Proses untuk surat nomor ${selectedSurat.nomor} telah diselesaikan.`,
@@ -204,9 +186,7 @@ export default function SuratMasukPage() {
     }
 
     const tujuanJoined = disposisiTo.join(', ');
-    setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', penanggungJawab: tujuanJoined } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Didisposisikan', penanggungJawab: tujuanJoined });
      toast({
         title: "Disposisi Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah didisposisikan ke ${tujuanJoined}.`,

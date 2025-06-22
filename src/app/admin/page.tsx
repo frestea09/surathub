@@ -1,8 +1,9 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUsers } from "@/hooks/useUsers";
+import { useUserStore } from '@/store/userStore';
 import { AppLayout } from "@/components/templates/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,11 @@ import { USER_PAGE_HEADING, USER_PAGE_DESCRIPTION, ADD_USER_BUTTON_LABEL } from 
 
 export default function AdminPage() {
   const router = useRouter();
-  const { users, isLoading, error } = useUsers();
+  const { users, isLoading, error, fetchUsers } = useUserStore();
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleAddUser = () => {
     router.push('/register');
@@ -59,7 +64,7 @@ export default function AdminPage() {
             <CardDescription>{USER_PAGE_DESCRIPTION}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-destructive text-center py-8">Gagal memuat data pengguna. Silakan coba lagi nanti.</p>
+            <p className="text-destructive text-center py-8">{error}</p>
           </CardContent>
         </Card>
       </AppLayout>
@@ -79,7 +84,7 @@ export default function AdminPage() {
           <CardDescription>{USER_PAGE_DESCRIPTION}</CardDescription>
         </CardHeader>
         <CardContent>
-          {users && <UserTable data={users} />}
+          <UserTable data={users} />
         </CardContent>
       </Card>
     </AppLayout>

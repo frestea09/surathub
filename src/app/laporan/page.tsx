@@ -52,7 +52,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppLayout } from "@/components/templates/AppLayout";
-import { useSurat, type Surat as SuratLaporan } from "@/hooks/useSurat";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const mockUsers = [
@@ -104,8 +104,8 @@ const ChartSkeleton = () => (
 
 export default function LaporanPage() {
   const { toast } = useToast();
-  const { surat: allSuratData, isLoading, error } = useSurat();
-  const [selectedSurat, setSelectedSurat] = useState<SuratLaporan | null>(null);
+  const { surat, isLoading, error, fetchAllSurat } = useSuratStore();
+  const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
@@ -113,6 +113,10 @@ export default function LaporanPage() {
     from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(new Date().getFullYear(), 11, 31),
   });
+
+  useEffect(() => {
+    fetchAllSurat();
+  }, [fetchAllSurat]);
 
 
   const handleRoleChange = (userId: string) => {
@@ -124,12 +128,12 @@ export default function LaporanPage() {
 
   const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
     let dataByUnit = (currentUser.unit === 'All')
-      ? allSuratData || []
-      : (allSuratData || []).filter(s => s.unit === currentUser.unit);
+      ? surat || []
+      : (surat || []).filter(s => s.unit === currentUser.unit);
       
     const dataByDate = date?.from
-      ? dataByUnit.filter(surat => {
-          const suratDate = new Date(surat.tanggal);
+      ? dataByUnit.filter(s => {
+          const suratDate = new Date(s.tanggal);
           const from = date.from!;
           const to = date.to ? new Date(date.to.setHours(23, 59, 59, 999)) : new Date(from.setHours(23, 59, 59, 999));
           return suratDate >= from && suratDate <= to;
@@ -178,7 +182,7 @@ export default function LaporanPage() {
     ].filter(item => item.value > 0);
 
     return { filteredData: dataByDate, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
-  }, [currentUser, date, allSuratData]);
+  }, [currentUser, date, surat]);
 
 
   const handleExport = () => {
@@ -230,7 +234,7 @@ export default function LaporanPage() {
     });
   };
 
-  const handleActionClick = (surat: SuratLaporan, action: 'detail' | 'alur') => {
+  const handleActionClick = (surat: Surat, action: 'detail' | 'alur') => {
     setSelectedSurat(surat);
     if (action === 'detail') {
       setIsDetailOpen(true);
@@ -239,7 +243,7 @@ export default function LaporanPage() {
     }
   };
 
-  const columns: ColumnDef<SuratLaporan>[] = [
+  const columns: ColumnDef<Surat>[] = [
       {
           accessorKey: "nomor",
           header: "Nomor Surat",
@@ -309,7 +313,7 @@ export default function LaporanPage() {
                         Gagal Memuat Data Laporan
                     </CardTitle>
                     <CardDescription className="text-destructive">
-                        Terjadi kesalahan saat mengambil data surat untuk laporan. Silakan coba muat ulang halaman.
+                        Terjadi kesalahan saat mengambil data surat untuk laporan: {error}
                     </CardDescription>
                 </CardHeader>
             </Card>

@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useSuratStore } from '@/store/suratStore';
 
 type BeritaAcara = {
   formData: any;
@@ -27,6 +28,8 @@ type BeritaAcara = {
 export default function BuatBastbPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const addSurat = useSuratStore(state => state.addSurat);
+
   const [formData, setFormData] = useState({
     nomor: 'BASTB/06/FAR/IV/2025',
     narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.',
@@ -104,24 +107,13 @@ export default function BuatBastbPage() {
     }
     
     try {
-      if (typeof window !== 'undefined') {
-        const list = JSON.parse(localStorage.getItem('bastbList') || '[]');
-        const dataToSave = { formData: { ...formData, status: 'Draft' } };
-        const existingIndex = list.findIndex((item: any) => item.formData.nomor === formData.nomor);
-        
-        if (existingIndex > -1) {
-          list[existingIndex] = dataToSave;
-        } else {
-          list.push(dataToSave);
-        }
-        
-        localStorage.setItem('bastbList', JSON.stringify(list));
-        toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
-        router.push("/surat-keluar?tab=draft");
-      }
+      const dataToSave = { formData: { ...formData, status: 'Draft' } };
+      addSurat('bastbList', dataToSave);
+      toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
+      router.push("/surat-keluar?tab=draft");
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
-      console.error("Failed to save to localStorage", error);
+      console.error("Failed to save", error);
     }
   };
 

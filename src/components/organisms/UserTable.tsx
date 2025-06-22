@@ -5,9 +5,8 @@ import React, { useState, useMemo } from 'react';
 import { ColumnDef, SortingState, ColumnFiltersState, useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSWRConfig } from 'swr';
 import { useToast } from "@/hooks/use-toast";
-import { User, deleteUser } from '@/data/users';
+import { useUserStore, type User } from '@/store/userStore';
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -39,7 +38,7 @@ interface UserTableProps {
 export default function UserTable({ data }: UserTableProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const { mutate } = useSWRConfig();
+  const deleteUser = useUserStore(state => state.deleteUser);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -56,7 +55,6 @@ export default function UserTable({ data }: UserTableProps) {
     if (!userToDelete) return;
     try {
       await deleteUser(userToDelete.id);
-      mutate('/api/users');
       toast({
         title: "Pengguna Dihapus",
         description: `Pengguna dengan nama ${userToDelete.nama} telah berhasil dihapus.`,
@@ -112,7 +110,8 @@ export default function UserTable({ data }: UserTableProps) {
         );
       }
     }
-  ], [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], []);
 
   const table = useReactTable({
     data,

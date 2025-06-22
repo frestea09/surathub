@@ -67,17 +67,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
-import { useSurat, type Surat } from "@/hooks/useSurat";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
-
-
-type SuratKeluar = {
-    nomor: string;
-    perihal: string;
-    tujuan: string;
-    tanggal: string;
-    status: string;
-}
 
 const usersData = [
   {
@@ -121,9 +112,8 @@ export default function SuratKeluarPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab');
-  const { surat: allSurat, isLoading } = useSurat();
+  const { surat, isLoading, fetchAllSurat, updateSurat, deleteSurat } = useSuratStore();
 
-  const [suratList, setSuratList] = useState<Surat[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState< 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus' | null>(null);
   const [penerima, setPenerima] = useState<string[]>([]);
@@ -131,11 +121,10 @@ export default function SuratKeluarPage() {
   const [kirimSearchTerm, setKirimSearchTerm] = useState("");
 
   useEffect(() => {
-    if (allSurat) {
-        const filtered = allSurat.filter(s => s.jenis === 'Surat Keluar');
-        setSuratList(filtered);
-    }
-  }, [allSurat]);
+    fetchAllSurat();
+  }, [fetchAllSurat]);
+
+  const suratList = useMemo(() => surat.filter(s => s.jenis === 'Surat Keluar'), [surat]);
 
   const handleActionClick = (surat: Surat, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
@@ -153,9 +142,7 @@ export default function SuratKeluarPage() {
 
   const handleArsipConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Diarsipkan' } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Diarsipkan' });
     toast({
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah diarsipkan.`,
@@ -165,9 +152,7 @@ export default function SuratKeluarPage() {
   
   const handleTolakConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Ditolak' });
     toast({
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
@@ -178,9 +163,7 @@ export default function SuratKeluarPage() {
   
   const handleHapusConfirm = () => {
     if (!selectedSurat) return;
-    setSuratList(prev => 
-      prev.filter(s => s.nomor !== selectedSurat.nomor)
-    );
+    deleteSurat(selectedSurat.nomor);
     toast({
         title: "Berhasil Dihapus",
         description: `Surat nomor ${selectedSurat.nomor} telah dihapus dari sistem.`,
@@ -197,9 +180,7 @@ export default function SuratKeluarPage() {
         });
         return;
     }
-    setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim', dariKe: penerima.join(', ') } : s)
-    );
+    updateSurat(selectedSurat.nomor, { status: 'Terkirim', dariKe: penerima.join(', ') });
     toast({
         title: "Berhasil Terkirim",
         description: `Surat nomor ${selectedSurat.nomor} telah dikirim ke ${penerima.length} penerima.`,

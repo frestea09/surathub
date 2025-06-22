@@ -31,7 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
-import { useSurat, type Surat } from "@/hooks/useSurat";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const mockUsers = [
@@ -73,12 +73,17 @@ const DashboardStatCardSkeleton = () => (
 
 export default function DashboardPage() {
   const { toast } = useToast();
-  const { surat: suratData, isLoading, error, mutate: mutateSurat } = useSurat();
+  const { surat, isLoading, error, fetchAllSurat, updateSurat } = useSuratStore();
+
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    fetchAllSurat();
+  }, [fetchAllSurat]);
 
   const handleRoleChange = (userId: string) => {
     const user = mockUsers.find(u => u.id === userId);
@@ -96,9 +101,7 @@ export default function DashboardPage() {
 
   const handleTolakConfirm = () => {
     if (!selectedSurat) return;
-    // In a real app, this would call an API. Here we simulate.
-    const updatedSurat = suratData?.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s);
-    mutateSurat(updatedSurat, false); // Update local cache without revalidating
+    updateSurat(selectedSurat.nomor, { status: 'Ditolak' });
     toast({
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
@@ -109,26 +112,26 @@ export default function DashboardPage() {
   };
 
   const { filteredSurat, dynamicStatCards } = useMemo(() => {
-      const surat = (currentUser.unit === 'All') 
-          ? suratData || []
-          : (suratData || []).filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" );
+      const data = (currentUser.unit === 'All') 
+          ? surat || []
+          : (surat || []).filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" );
 
       const cards = [
         {
           title: "Surat Diproses",
-          value: surat.filter(s => ['Diproses', 'Draft', 'Baru', 'Didisposisikan'].includes(s.status)).length.toString(),
+          value: data.filter(s => ['Diproses', 'Draft', 'Baru', 'Didisposisikan'].includes(s.status)).length.toString(),
           description: "Surat dalam proses pengerjaan",
           icon: FileClock,
         },
         {
           title: "Surat Ditolak",
-          value: surat.filter(s => s.status === 'Ditolak').length.toString(),
+          value: data.filter(s => s.status === 'Ditolak').length.toString(),
           description: "Surat yang telah ditolak",
           icon: XCircle,
         },
         {
           title: "Selesai Bulan Ini",
-          value: surat.filter(s => {
+          value: data.filter(s => {
               const suratDate = new Date(s.tanggal);
               const now = new Date();
               return (s.status === 'Selesai' || s.status === 'Disetujui' || s.status === 'Terkirim' || s.status === 'Diarsipkan') &&
@@ -140,14 +143,14 @@ export default function DashboardPage() {
         },
         {
           title: "Total Arsip",
-          value: surat.length.toString(),
+          value: data.length.toString(),
           description: "Total semua surat terarsip",
           icon: FileStack,
         },
       ];
 
-      return { filteredSurat: surat, dynamicStatCards: cards };
-  }, [currentUser, suratData]);
+      return { filteredSurat: data, dynamicStatCards: cards };
+  }, [currentUser, surat]);
 
   const columns: ColumnDef<Surat>[] = [
     { accessorKey: "nomor", header: "No. Surat" },
@@ -206,7 +209,7 @@ export default function DashboardPage() {
                         Gagal Memuat Data Surat
                     </CardTitle>
                     <CardDescription className="text-destructive">
-                        Terjadi kesalahan saat mengambil data surat. Silakan coba muat ulang halaman.
+                        Terjadi kesalahan saat mengambil data surat: {error}
                     </CardDescription>
                 </CardHeader>
             </Card>

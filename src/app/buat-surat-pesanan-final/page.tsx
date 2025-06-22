@@ -46,6 +46,7 @@ import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { useSuratStore } from "@/store/suratStore";
 
 type Item = {
   id: number;
@@ -275,6 +276,8 @@ const initialItems: Item[] = [
 export default function BuatSuratPesananFinalPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const addSurat = useSuratStore(state => state.addSurat);
+
   const [formData, setFormData] = useState({
     nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
     perihal: "Pesanan Barang Farmasi",
@@ -404,39 +407,24 @@ export default function BuatSuratPesananFinalPage() {
     }
 
     try {
-      if (typeof window !== "undefined") {
-        const list = JSON.parse(
-          localStorage.getItem("suratPesananFinalList") || "[]"
-        );
-        const dataToSave = {
-          formData: { ...formData, status: "Draft" },
-          items,
-        };
-        const existingIndex = list.findIndex(
-          (item: any) => item.formData.nomor === formData.nomor
-        );
-
-        if (existingIndex > -1) {
-          list[existingIndex] = dataToSave;
-        } else {
-          list.push(dataToSave);
-        }
-
-        localStorage.setItem("suratPesananFinalList", JSON.stringify(list));
-        toast({
-          title: "Berhasil",
-          description:
-            "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
-        });
-        router.push("/surat-keluar?tab=draft");
-      }
+      const dataToSave = {
+        formData: { ...formData, status: "Draft" },
+        items,
+      };
+      addSurat('suratPesananFinalList', dataToSave);
+      toast({
+        title: "Berhasil",
+        description:
+          "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
+      });
+      router.push("/surat-keluar?tab=draft");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Gagal Menyimpan",
         description: "Terjadi kesalahan saat menyimpan data.",
       });
-      console.error("Failed to save to localStorage", error);
+      console.error("Failed to save", error);
     }
   };
 
