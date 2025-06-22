@@ -46,34 +46,31 @@ type User = {
   password?: string;
 };
 
+// Define a type for the form data, omitting 'id'
+type UserFormData = Omit<User, 'id'>;
+
 export default function EditUserPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  
   const [user, setUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState({
-    nama: '',
-    nip: '',
-    jabatan: '',
-    status: '',
-    password: '',
-  });
-  const [isClient, setIsClient] = useState(false);
+  const [formData, setFormData] = useState<UserFormData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isClient) return;
     try {
-      const userId = params.id;
-      if (!userId) return;
+      const userId = params.id as string;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
 
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (storedUsers) {
-        const users = JSON.parse(storedUsers);
-        const userToEdit = users.find((u: User) => u.id === userId);
+        const users: User[] = JSON.parse(storedUsers);
+        const userToEdit = users.find((u) => u.id === userId);
+        
         if (userToEdit) {
           setUser(userToEdit);
           setFormData({
@@ -85,32 +82,33 @@ export default function EditUserPage() {
           });
         } else {
           toast({ variant: "destructive", title: "Error", description: "Pengguna tidak ditemukan." });
-          router.push('/admin');
         }
       }
     } catch (error) {
       console.error("Error loading user data:", error);
-      router.push('/admin');
+      toast({ variant: "destructive", title: "Error", description: "Gagal memuat data pengguna." });
+    } finally {
+      setLoading(false);
     }
-  }, [params.id, router, toast, isClient]);
+  }, [params.id, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    setFormData(prev => prev ? { ...prev, [id]: value } : null);
   };
 
-  const handleSelectChange = (name: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleSelectChange = (name: keyof UserFormData, value: string) => {
+    setFormData(prev => prev ? { ...prev, [name]: value } : null);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !formData) return;
 
     try {
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (storedUsers) {
-        const users: User[] = JSON.parse(storedUsers);
+        let users: User[] = JSON.parse(storedUsers);
         
         const isNipExist = users.some(u => u.nip === formData.nip && u.id !== user.id);
         if (isNipExist) {
@@ -122,8 +120,10 @@ export default function EditUserPage() {
           return;
         }
         
-        const updatedUsers = users.map((u: User) => 
-          u.id === user.id ? { ...u, ...formData } : u
+        const updatedUsers = users.map((u: User) =>
+          u.id === user.id
+            ? { ...u, ...formData, password: formData.password || u.password }
+            : u
         );
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
         
@@ -139,7 +139,7 @@ export default function EditUserPage() {
     }
   };
 
-  if (!isClient || !user) {
+  if (loading || !formData) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
         <Card className="w-full max-w-md">
@@ -168,6 +168,24 @@ export default function EditUserPage() {
         </Card>
       </div>
     );
+  }
+
+  if (!user) {
+     return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+        <Card className="w-full max-w-md text-center">
+            <CardHeader>
+                <CardTitle>Pengguna Tidak Ditemukan</CardTitle>
+                <CardDescription>Pengguna yang Anda coba edit tidak ada.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Button asChild>
+                    <Link href="/admin">Kembali ke Daftar Pengguna</Link>
+                 </Button>
+            </CardContent>
+        </Card>
+      </div>
+     );
   }
 
   return (

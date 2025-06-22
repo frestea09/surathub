@@ -103,16 +103,10 @@ const USERS_STORAGE_KEY = 'surathub_users';
 export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [userList, setUserList] = useState<User[]>([]);
+  const [userList, setUserList] = useState<User[] | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isClient) return;
     try {
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (storedUsers) {
@@ -125,7 +119,7 @@ export default function AdminPage() {
       console.error("Error accessing localStorage:", error);
       setUserList(initialUsersData);
     }
-  }, [isClient]);
+  }, []);
 
   const handleEdit = (user: User) => {
     router.push(`/admin/edit/${user.id}`); 
@@ -136,7 +130,7 @@ export default function AdminPage() {
   };
   
   const handleDeleteConfirm = () => {
-    if (!userToDelete) return;
+    if (!userToDelete || userList === null) return;
     const updatedList = userList.filter(u => u.id !== userToDelete.id);
     setUserList(updatedList);
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedList));
@@ -202,7 +196,7 @@ export default function AdminPage() {
       }
   ];
 
-  if (!isClient) {
+  if (userList === null) {
     return (
       <AppLayout>
         <div className="flex items-center justify-between">
