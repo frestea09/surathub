@@ -18,30 +18,55 @@ export default function AdminPage() {
     router.push('/register');
   };
 
-  const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 py-4">
-            <Skeleton className="h-10 max-w-xs w-full" />
-            <Skeleton className="h-10 max-w-xs w-full" />
-          </div>
-          <Skeleton className="h-64 w-full rounded-md border" />
+  // Guard Clause for Loading State
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold md:text-2xl">{USER_PAGE_HEADING}</h1>
+          <Button onClick={handleAddUser} disabled>{ADD_USER_BUTTON_LABEL}</Button>
         </div>
-      );
-    }
+        <Card>
+          <CardHeader>
+            <CardTitle>{USER_PAGE_HEADING}</CardTitle>
+            <CardDescription>{USER_PAGE_DESCRIPTION}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 py-4">
+                <Skeleton className="h-10 max-w-xs w-full" />
+                <Skeleton className="h-10 max-w-xs w-full" />
+              </div>
+              <Skeleton className="h-64 w-full rounded-md border" />
+            </div>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
 
-    if (error) {
-      return <p className="text-destructive text-center">Gagal memuat data pengguna.</p>;
-    }
-    
-    if (users) {
-      return <UserTable data={users} />;
-    }
-    
-    return null;
-  };
+  // Guard Clause for Error State
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold md:text-2xl">{USER_PAGE_HEADING}</h1>
+          <Button onClick={handleAddUser}>{ADD_USER_BUTTON_LABEL}</Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>{USER_PAGE_HEADING}</CardTitle>
+            <CardDescription>{USER_PAGE_DESCRIPTION}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-destructive text-center py-8">Gagal memuat data pengguna. Silakan coba lagi nanti.</p>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
 
+  // Render for Success State
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
@@ -54,7 +79,7 @@ export default function AdminPage() {
           <CardDescription>{USER_PAGE_DESCRIPTION}</CardDescription>
         </CardHeader>
         <CardContent>
-          {renderContent()}
+          {users && <UserTable data={users} />}
         </CardContent>
       </Card>
     </AppLayout>
