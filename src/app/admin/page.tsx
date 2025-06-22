@@ -35,6 +35,7 @@ import {
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const initialUsersData = [
@@ -104,8 +105,14 @@ export default function AdminPage() {
   const { toast } = useToast();
   const [userList, setUserList] = useState<User[]>([]);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
     try {
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (storedUsers) {
@@ -118,7 +125,7 @@ export default function AdminPage() {
       console.error("Error accessing localStorage:", error);
       setUserList(initialUsersData);
     }
-  }, []);
+  }, [isClient]);
 
   const handleEdit = (user: User) => {
     router.push(`/admin/edit/${user.id}`); 
@@ -194,6 +201,32 @@ export default function AdminPage() {
           }
       }
   ];
+
+  if (!isClient) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold md:text-2xl">Manajemen Pengguna</h1>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Daftar Pengguna</CardTitle>
+            <CardDescription>
+              Kelola pengguna yang terdaftar di sistem. Tambah, ubah, atau hapus akun pengguna.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+             <div className="flex items-center gap-2 py-4">
+                <Skeleton className="h-10 max-w-xs w-full" />
+                <Skeleton className="h-10 max-w-xs w-full" />
+            </div>
+            <Skeleton className="h-64 w-full" />
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

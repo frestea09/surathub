@@ -112,6 +112,17 @@ export default function RegisterPage() {
     try {
         const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
         const users = storedUsers ? JSON.parse(storedUsers) : [];
+        
+        const isNipExist = users.some((user: { nip: string; }) => user.nip === nip);
+        if (isNipExist) {
+          toast({
+            variant: "destructive",
+            title: "Gagal",
+            description: "NIP / Username sudah digunakan.",
+          });
+          return;
+        }
+
         users.push(newUser);
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
         
@@ -163,7 +174,7 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
-              <Select required onValueChange={setJabatan}>
+              <Select required onValueChange={setJabatan} name="jabatan">
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Pilih jabatan pengguna" />
                 </SelectTrigger>

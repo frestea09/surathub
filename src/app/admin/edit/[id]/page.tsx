@@ -25,6 +25,7 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from '@/components/ui/skeleton';
 
 const roles = {
   "Pimpinan & Pengawas": ["Direktur", "Dewan Pengawas", "Satuan Pengawasan Intern (SPI)"],
@@ -57,8 +58,14 @@ export default function EditUserPage() {
     status: '',
     password: '',
   });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
     try {
       const userId = params.id;
       if (!userId) return;
@@ -85,7 +92,7 @@ export default function EditUserPage() {
       console.error("Error loading user data:", error);
       router.push('/admin');
     }
-  }, [params.id, router, toast]);
+  }, [params.id, router, toast, isClient]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -103,7 +110,18 @@ export default function EditUserPage() {
     try {
       const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
       if (storedUsers) {
-        const users = JSON.parse(storedUsers);
+        const users: User[] = JSON.parse(storedUsers);
+        
+        const isNipExist = users.some(u => u.nip === formData.nip && u.id !== user.id);
+        if (isNipExist) {
+          toast({
+            variant: "destructive",
+            title: "Gagal",
+            description: "NIP / Username sudah digunakan oleh pengguna lain.",
+          });
+          return;
+        }
+        
         const updatedUsers = users.map((u: User) => 
           u.id === user.id ? { ...u, ...formData } : u
         );
@@ -121,11 +139,34 @@ export default function EditUserPage() {
     }
   };
 
-  if (!user) {
+  if (!isClient || !user) {
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-            <p>Loading...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <Skeleton className="h-8 w-48 mx-auto" />
+            <Skeleton className="h-4 w-64 mx-auto mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </CardContent>
+          <CardFooter className="flex-col gap-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-32" />
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
@@ -157,7 +198,7 @@ export default function EditUserPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="jabatan">Jabatan / Role</Label>
-              <Select value={formData.jabatan} onValueChange={(value) => handleSelectChange('jabatan', value)} required>
+              <Select value={formData.jabatan} onValueChange={(value) => handleSelectChange('jabatan', value)} name="jabatan" required>
                 <SelectTrigger id="jabatan">
                   <SelectValue placeholder="Pilih jabatan pengguna" />
                 </SelectTrigger>
@@ -175,7 +216,7 @@ export default function EditUserPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)} required>
+              <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)} name="status" required>
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Pilih status pengguna" />
                 </SelectTrigger>
