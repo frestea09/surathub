@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Archive,
   Download,
@@ -67,60 +67,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
+import { useSurat, type Surat } from "@/hooks/useSurat";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const initialSuratKeluarData = [
-    {
-        nomor: "001/SP/RSUD-O/VII/2024",
-        perihal: "Surat Perintah Pengadaan ATK",
-        tujuan: "Pejabat Pengadaan Barang Jasa",
-        tanggal: "2024-07-28",
-        status: "Terkirim"
-    },
-    {
-        nomor: "002/SP-V/RSUD-O/VII/2024",
-        perihal: "Pesanan Barang Farmasi",
-        tujuan: "PT. Medika Jaya",
-        tanggal: "2024-07-29",
-        status: "Terkirim"
-    },
-    {
-        nomor: "003/BA/RSUD-O/VII/2024",
-        perihal: "Berita Acara Pemeriksaan Barang",
-        tujuan: "Internal",
-        tanggal: "2024-07-30",
-        status: "Draft"
-    },
-    {
-        nomor: "004/BASTB/RSUD-O/VII/2024",
-        perihal: "Berita Acara Serah Terima Barang",
-        tujuan: "Internal",
-        tanggal: "2024-07-31",
-        status: "Diarsipkan"
-    },
-     {
-        nomor: "005/SPP/RSUD-O/VIII/2024",
-        perihal: "Surat Perintah Perjalanan Dinas",
-        tujuan: "Dr. Budi Santoso",
-        tanggal: "2024-08-01",
-        status: "Terkirim"
-    },
-     {
-        nomor: "006/ND/RSUD-O/VIII/2024",
-        perihal: "Nota Dinas Rapat Evaluasi",
-        tujuan: "Seluruh Kepala Bagian",
-        tanggal: "2024-08-02",
-        status: "Draft"
-    },
-    {
-        nomor: "007/MEMO/RSUD-O/VIII/2024",
-        perihal: "Pembatalan Rapat",
-        tujuan: "Seluruh Kepala Bagian",
-        tanggal: "2024-08-03",
-        status: "Ditolak"
-    },
-];
 
-type SuratKeluar = typeof initialSuratKeluarData[0];
+type SuratKeluar = {
+    nomor: string;
+    perihal: string;
+    tujuan: string;
+    tanggal: string;
+    status: string;
+}
 
 const usersData = [
   {
@@ -155,84 +112,32 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Draft: "secondary",
   Diarsipkan: "outline",
   Ditolak: "destructive",
+  Selesai: "default",
+  Baru: "secondary",
+  Didisposisikan: "outline",
 };
 
 export default function SuratKeluarPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab');
+  const { surat: allSurat, isLoading } = useSurat();
 
-  const [suratList, setSuratList] = useState<SuratKeluar[]>([]);
-  const [selectedSurat, setSelectedSurat] = useState<SuratKeluar | null>(null);
+  const [suratList, setSuratList] = useState<Surat[]>([]);
+  const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState< 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus' | null>(null);
   const [penerima, setPenerima] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(tabQuery || "semua");
   const [kirimSearchTerm, setKirimSearchTerm] = useState("");
 
   useEffect(() => {
-    const loadSuratData = () => {
-        try {
-            if (typeof window === 'undefined') return;
+    if (allSurat) {
+        const filtered = allSurat.filter(s => s.jenis === 'Surat Keluar');
+        setSuratList(filtered);
+    }
+  }, [allSurat]);
 
-            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s: any) => ({
-                nomor: s.nomor,
-                perihal: s.perihal,
-                tujuan: s.penerima,
-                tanggal: s.tempatTanggal ? s.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
-                status: s.status || 'Draft'
-            }));
-            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s: any) => ({
-                nomor: s.formData.nomor,
-                perihal: s.formData.perihal,
-                tujuan: s.formData.penerima,
-                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
-                status: s.formData.status || 'Draft'
-            }));
-            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s: any) => ({
-                nomor: s.formData.nomor,
-                perihal: s.formData.perihal,
-                tujuan: s.formData.penerima,
-                tanggal: s.formData.tempatTanggal ? s.formData.tempatTanggal.split(', ')[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0],
-                status: s.formData.status || 'Draft'
-            }));
-             const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s: any) => ({
-                nomor: s.formData.nomor,
-                perihal: "Berita Acara Pemeriksaan",
-                tujuan: s.formData.vendorNama,
-                tanggal: s.formData.tanggalSuratReferensi ? s.formData.tanggalSuratReferensi.replace(/\//g, '-') : new Date().toISOString().split('T')[0],
-                status: s.formData.status || 'Draft'
-            }));
-            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s: any) => ({
-                nomor: s.formData.nomor,
-                perihal: "Berita Acara Serah Terima",
-                tujuan: "Internal",
-                tanggal: s.formData.tanggalSuratPesanan ? s.formData.tanggalSuratPesanan.replace(/\//g, '-') : new Date().toISOString().split('T')[0],
-                status: s.formData.status || 'Draft'
-            }));
-
-            const allSurat = [
-                ...initialSuratKeluarData,
-                ...suratPerintahList, 
-                ...suratPesananList, 
-                ...suratPesananFinalList, 
-                ...beritaAcaraList, 
-                ...bastbList
-            ];
-            
-            const uniqueSurat = allSurat.filter((surat, index, self) =>
-                index === self.findIndex((s) => s.nomor === surat.nomor)
-            );
-
-            setSuratList(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
-        } catch (e) {
-            console.error("Failed to load surat from localStorage", e);
-            setSuratList(initialSuratKeluarData);
-        }
-    };
-    loadSuratData();
-  }, []);
-
-  const handleActionClick = (surat: SuratKeluar, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus') => {
+  const handleActionClick = (surat: Surat, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
     setDialogAction(action);
     if (action === 'kirim') {
@@ -293,7 +198,7 @@ export default function SuratKeluarPage() {
         return;
     }
     setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim', tujuan: penerima.join(', ') } : s)
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Terkirim', dariKe: penerima.join(', ') } : s)
     );
     toast({
         title: "Berhasil Terkirim",
@@ -302,14 +207,14 @@ export default function SuratKeluarPage() {
     closeDialog();
   };
   
-  const filteredSurat = suratList.filter(surat => {
+  const filteredSurat = useMemo(() => suratList.filter(surat => {
     if (activeTab === "semua") return true;
     if (activeTab === "draft") return surat.status === "Draft";
     if (activeTab === "terkirim") return surat.status === "Terkirim";
     if (activeTab === "diarsipkan") return surat.status === "Diarsipkan";
     if (activeTab === "ditolak") return surat.status === "Ditolak";
     return true;
-  });
+  }), [suratList, activeTab]);
 
   const filteredUsers = usersData.filter(
     user =>
@@ -317,17 +222,17 @@ export default function SuratKeluarPage() {
       user.jabatan.toLowerCase().includes(kirimSearchTerm.toLowerCase())
   );
   
-  const columns: ColumnDef<SuratKeluar>[] = [
+  const columns: ColumnDef<Surat>[] = [
       {
           accessorKey: "nomor",
           header: "Nomor Surat",
       },
       {
-          accessorKey: "perihal",
+          accessorKey: "judul",
           header: "Perihal",
       },
       {
-          accessorKey: "tujuan",
+          accessorKey: "dariKe",
           header: "Tujuan",
       },
       {
@@ -338,8 +243,8 @@ export default function SuratKeluarPage() {
           accessorKey: "status",
           header: "Status",
           cell: ({ row }) => {
-              const status = row.getValue("status") as string;
-              return <Badge variant={statusVariant[status as keyof typeof statusVariant]}>{status}</Badge>
+              const status = row.getValue("status") as keyof typeof statusVariant;
+              return <Badge variant={statusVariant[status]}>{status}</Badge>
           }
       },
       {
@@ -411,10 +316,18 @@ export default function SuratKeluarPage() {
                     <CardDescription>Kelola semua surat yang dibuat dan dikirim.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <DataTable
-                      columns={columns}
-                      data={filteredSurat}
-                    />
+                    {isLoading ? (
+                         <div className="space-y-4">
+                            <Skeleton className="h-10 w-1/2" />
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-8 w-1/3 ml-auto" />
+                        </div>
+                    ) : (
+                        <DataTable
+                            columns={columns}
+                            data={filteredSurat}
+                        />
+                    )}
                 </CardContent>
                 </Card>
         </TabsContent>
@@ -437,11 +350,11 @@ export default function SuratKeluarPage() {
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="perihal" className="text-right">Perihal</Label>
-                <Input id="perihal" value={selectedSurat.perihal} readOnly className="col-span-3" />
+                <Input id="perihal" value={selectedSurat.judul} readOnly className="col-span-3" />
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="tujuan" className="text-right">Tujuan</Label>
-                <Input id="tujuan" value={selectedSurat.tujuan} readOnly className="col-span-3" />
+                <Input id="tujuan" value={selectedSurat.dariKe} readOnly className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="tanggal" className="text-right">Tanggal</Label>
@@ -518,7 +431,7 @@ export default function SuratKeluarPage() {
                       <div className="ml-4">
                         <p className="font-semibold">Surat Terkirim</p>
                         <p className="text-sm text-muted-foreground">Senin, 29 Jul 2024, 14:30 WIB</p>
-                        <p className="text-sm">Surat berhasil dikirim ke {selectedSurat?.tujuan}.</p>
+                        <p className="text-sm">Surat berhasil dikirim ke {selectedSurat?.dariKe}.</p>
                       </div>
                 </li>
             </ul>

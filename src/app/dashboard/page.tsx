@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2 } from "lucide-react";
+import { Bell, CheckCircle, FileClock, FileStack, MoreHorizontal, FileSearch, XCircle, FilePenLine, Mailbox, Send, UserCheck, Share2, AlertTriangle } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
+import { useSurat, type Surat } from "@/hooks/useSurat";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const mockUsers = [
     { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
@@ -42,36 +44,6 @@ const mockUsers = [
     { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
 ];
 
-// SuratMasuk and SuratKeluar now act as the source of truth, loaded from localStorage
-const initialSuratMasukData = [
-    {
-        nomor: "123/A/UM/2024",
-        perihal: "Undangan Rapat Koordinasi",
-        pengirim: "Kementerian Kesehatan",
-        tanggal: "2024-07-25",
-        status: "Didisposisikan",
-        disposisi: "Direktur Utama"
-    },
-    {
-        nomor: "INV/2024/07/998",
-        perihal: "Invoice Pembelian ATK",
-        pengirim: "CV. ATK Bersama",
-        tanggal: "2024-07-26",
-        status: "Baru",
-        disposisi: "Belum"
-    },
-];
-
-type Surat = {
-    nomor: string;
-    judul: string;
-    jenis: "Surat Masuk" | "Surat Keluar";
-    tipe: string;
-    status: string;
-    tanggal: string;
-    unit: string;
-    penanggungJawab: string;
-};
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Disetujui: "default",
@@ -85,73 +57,28 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Ditolak: "destructive",
 };
 
-const getUnitForSurat = (surat: any): string => {
-    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
-    if (perihal.includes('keuangan')) return 'Keuangan';
-    if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
-    if (perihal.includes('dinas')) return 'Umum';
-    if (surat.tujuan?.toLowerCase().includes('kepala') || surat.tujuan?.toLowerCase().includes('direktur')) return 'Pimpinan';
-    return 'Umum';
-}
+const DashboardStatCardSkeleton = () => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-4" />
+        </CardHeader>
+        <CardContent>
+            <Skeleton className="h-8 w-1/4 mb-2" />
+            <Skeleton className="h-3 w-full" />
+        </CardContent>
+    </Card>
+);
 
 
 export default function DashboardPage() {
   const { toast } = useToast();
+  const { surat: suratData, isLoading, error, mutate: mutateSurat } = useSurat();
   const [currentUser, setCurrentUser] = useState(mockUsers[0]);
-  const [suratData, setSuratData] = useState<Surat[]>([]);
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLacakOpen, setIsLacakOpen] = useState(false);
   const [isTolakConfirmOpen, setIsTolakConfirmOpen] = useState(false);
-
-  useEffect(() => {
-    const loadAllSuratData = () => {
-        try {
-            if (typeof window === 'undefined') return;
-
-            const mapToUnifiedFormat = (item: any, jenis: 'Surat Keluar' | 'Surat Masuk', tipe: string, unit?: string): Surat => {
-                const base = jenis === 'Surat Keluar' ? item.formData || item : item;
-                const tanggal = base.tempatTanggal?.split(', ')[1]?.replace(/\//g, '-') || base.tanggal || new Date().toISOString().split('T')[0];
-                return {
-                    nomor: base.nomor,
-                    judul: base.perihal,
-                    jenis,
-                    tipe,
-                    status: base.status || 'Draft',
-                    tanggal,
-                    unit: unit || getUnitForSurat(base),
-                    penanggungJawab: base.namaPenandaTangan || base.disposisi || 'Admin',
-                };
-            };
-
-            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SPP', 'Pengadaan'));
-            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SP', 'Pengadaan'));
-            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'SP-Vendor', 'Pengadaan'));
-            const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'BA', 'Pengadaan'));
-            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s:any) => mapToUnifiedFormat(s, 'Surat Keluar', 'BASTB', 'Pengadaan'));
-            const suratMasukList = initialSuratMasukData.map(s => mapToUnifiedFormat(s, 'Surat Masuk', 'Masuk'));
-
-            const allSurat = [
-                ...suratMasukList,
-                ...suratPerintahList, 
-                ...suratPesananList, 
-                ...suratPesananFinalList, 
-                ...beritaAcaraList, 
-                ...bastbList
-            ];
-            
-            const uniqueSurat = allSurat.filter((surat, index, self) =>
-                index === self.findIndex((s) => s.nomor === surat.nomor)
-            );
-
-            setSuratData(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
-        } catch (e) {
-            console.error("Failed to load surat from localStorage", e);
-            setSuratData([]);
-        }
-    };
-    loadAllSuratData();
-  }, []);
 
   const handleRoleChange = (userId: string) => {
     const user = mockUsers.find(u => u.id === userId);
@@ -169,9 +96,9 @@ export default function DashboardPage() {
 
   const handleTolakConfirm = () => {
     if (!selectedSurat) return;
-    setSuratData(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s)
-    );
+    // In a real app, this would call an API. Here we simulate.
+    const updatedSurat = suratData?.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Ditolak' } : s);
+    mutateSurat(updatedSurat, false); // Update local cache without revalidating
     toast({
         title: "Berhasil",
         description: `Surat nomor ${selectedSurat.nomor} telah ditolak.`,
@@ -183,8 +110,8 @@ export default function DashboardPage() {
 
   const { filteredSurat, dynamicStatCards } = useMemo(() => {
       const surat = (currentUser.unit === 'All') 
-          ? suratData
-          : suratData.filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" );
+          ? suratData || []
+          : (suratData || []).filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan" );
 
       const cards = [
         {
@@ -269,6 +196,24 @@ export default function DashboardPage() {
     }
   ];
 
+  if (error) {
+    return (
+        <AppLayout>
+             <Card className="bg-destructive/10 border-destructive/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                        <AlertTriangle />
+                        Gagal Memuat Data Surat
+                    </CardTitle>
+                    <CardDescription className="text-destructive">
+                        Terjadi kesalahan saat mengambil data surat. Silakan coba muat ulang halaman.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        </AppLayout>
+    )
+  }
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
@@ -290,22 +235,31 @@ export default function DashboardPage() {
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        {dynamicStatCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {card.title}
-              </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {card.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+            <>
+                <DashboardStatCardSkeleton />
+                <DashboardStatCardSkeleton />
+                <DashboardStatCardSkeleton />
+                <DashboardStatCardSkeleton />
+            </>
+        ) : (
+            dynamicStatCards.map((card, index) => (
+            <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                    {card.title}
+                </CardTitle>
+                <card.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{card.value}</div>
+                <p className="text-xs text-muted-foreground">
+                    {card.description}
+                </p>
+                </CardContent>
+            </Card>
+            ))
+        )}
       </div>
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
         <DashboardChart data={filteredSurat} />
@@ -319,10 +273,18 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-             <DataTable 
-                columns={columns} 
-                data={filteredSurat} 
-              />
+             {isLoading ? (
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-1/2" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-8 w-1/3 ml-auto" />
+                </div>
+             ) : (
+                <DataTable 
+                    columns={columns} 
+                    data={filteredSurat} 
+                />
+             )}
           </CardContent>
         </Card>
       </div>

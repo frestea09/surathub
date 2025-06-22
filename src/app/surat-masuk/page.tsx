@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Archive,
   CheckCircle,
@@ -65,59 +65,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
+import { useSurat, type Surat } from "@/hooks/useSurat";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const initialSuratMasukData = [
-    {
-        nomor: "123/A/UM/2024",
-        perihal: "Undangan Rapat Koordinasi",
-        pengirim: "Kementerian Kesehatan",
-        tanggal: "2024-07-25",
-        status: "Baru",
-        disposisi: "Belum"
-    },
-    {
-        nomor: "005/B/FIN/2024",
-        perihal: "Laporan Keuangan Bulanan",
-        pengirim: "Bagian Keuangan Internal",
-        tanggal: "2024-07-24",
-        status: "Didisposisikan",
-        disposisi: "Direktur Utama"
-    },
-    {
-        nomor: "PNW/2024/VI/045",
-        perihal: "Penawaran Kerjasama Alat Medis",
-        pengirim: "PT. Medika Jaya",
-        tanggal: "2024-07-22",
-        status: "Selesai",
-        disposisi: "Bagian Pengadaan"
-    },
-    {
-        nomor: "EXT/VII/2024/001",
-        perihal: "Permohonan Data Pasien",
-        pengirim: "Dinas Kesehatan Kota",
-        tanggal: "2024-07-21",
-        status: "Didisposisikan",
-        disposisi: "Bagian Rekam Medis"
-    },
-    {
-        nomor: "INT/HRD/2024/012",
-        perihal: "Pengajuan Cuti Karyawan",
-        pengirim: "John Doe (Staff)",
-        tanggal: "2024-07-20",
-        status: "Selesai",
-        disposisi: "HRD"
-    },
-     {
-        nomor: "INV/2024/07/998",
-        perihal: "Invoice Pembelian ATK",
-        pengirim: "CV. ATK Bersama",
-        tanggal: "2024-07-26",
-        status: "Baru",
-        disposisi: "Belum"
-    },
-];
-
-type SuratMasuk = typeof initialSuratMasukData[0];
+type SuratMasuk = {
+    nomor: string;
+    perihal: string;
+    pengirim: string;
+    tanggal: string;
+    status: string;
+    disposisi: string;
+};
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
@@ -125,6 +83,8 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Selesai: "default",
   Diarsipkan: "default",
   Ditolak: "destructive",
+  Draft: "secondary",
+  Terkirim: "default",
 };
 
 const allRoles = [
@@ -153,19 +113,27 @@ const allRoles = [
 
 export default function SuratMasukPage() {
   const { toast } = useToast();
-  const [suratList, setSuratList] = useState<SuratMasuk[]>(initialSuratMasukData);
-  const [selectedSurat, setSelectedSurat] = useState<SuratMasuk | null>(null);
+  const { surat: allSurat, isLoading } = useSurat();
+  const [suratList, setSuratList] = useState<Surat[]>([]);
+  const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState<'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus' | null>(null);
   const [disposisiTo, setDisposisiTo] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("semua");
   const [disposisiSearchTerm, setDisposisiSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (allSurat) {
+        const filtered = allSurat.filter(s => s.jenis === 'Surat Masuk');
+        setSuratList(filtered);
+    }
+  }, [allSurat]);
   
   const closeDialog = () => {
     setSelectedSurat(null);
     setDialogAction(null);
   }
 
-  const handleActionClick = (surat: SuratMasuk, action: 'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus') => {
+  const handleActionClick = (surat: Surat, action: 'detail' | 'disposisi' | 'lacak' | 'selesai' | 'arsip' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
     setDialogAction(action);
     if (action === 'disposisi') {
@@ -237,7 +205,7 @@ export default function SuratMasukPage() {
 
     const tujuanJoined = disposisiTo.join(', ');
     setSuratList(prev => 
-      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', disposisi: tujuanJoined } : s)
+      prev.map(s => s.nomor === selectedSurat.nomor ? { ...s, status: 'Didisposisikan', penanggungJawab: tujuanJoined } : s)
     );
      toast({
         title: "Disposisi Berhasil",
@@ -246,30 +214,30 @@ export default function SuratMasukPage() {
     closeDialog();
   };
 
-  const filteredSurat = suratList.filter(surat => {
+  const filteredSurat = useMemo(() => suratList.filter(surat => {
     if (activeTab === "semua") return true;
     if (activeTab === "baru") return surat.status === "Baru";
     if (activeTab === "didisposisikan") return surat.status === "Didisposisikan";
     if (activeTab === "selesai") return surat.status === "Selesai" || surat.status === "Diarsipkan";
     if (activeTab === "ditolak") return surat.status === "Ditolak";
     return true;
-  });
+  }), [suratList, activeTab]);
 
   const filteredRoles = allRoles.filter(role =>
     role.toLowerCase().includes(disposisiSearchTerm.toLowerCase())
   );
   
-  const columns: ColumnDef<SuratMasuk>[] = [
+  const columns: ColumnDef<Surat>[] = [
       {
           accessorKey: "nomor",
           header: "Nomor Surat",
       },
       {
-          accessorKey: "perihal",
+          accessorKey: "judul",
           header: "Perihal",
       },
       {
-          accessorKey: "pengirim",
+          accessorKey: "dariKe",
           header: "Pengirim",
       },
       {
@@ -280,12 +248,12 @@ export default function SuratMasukPage() {
           accessorKey: "status",
           header: "Status",
           cell: ({ row }) => {
-              const status = row.getValue("status") as string;
-              return <Badge variant={statusVariant[status as keyof typeof statusVariant]}>{status}</Badge>
+              const status = row.getValue("status") as keyof typeof statusVariant;
+              return <Badge variant={statusVariant[status]}>{status}</Badge>
           }
       },
       {
-          accessorKey: "disposisi",
+          accessorKey: "penanggungJawab",
           header: "Disposisi",
       },
       {
@@ -310,7 +278,7 @@ export default function SuratMasukPage() {
                               <Share2 className="mr-2 h-4 w-4" />
                               Buat Disposisi
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')} disabled={surat.disposisi === 'Belum'}>
+                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'lacak')} disabled={surat.penanggungJawab === 'Belum'}>
                               <FileSearch className="mr-2 h-4 w-4" />
                               Lacak Disposisi
                           </DropdownMenuItem>
@@ -361,10 +329,18 @@ export default function SuratMasukPage() {
                     <CardDescription>Kelola semua surat yang diterima.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <DataTable
-                      columns={columns}
-                      data={filteredSurat}
-                    />
+                    {isLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-10 w-1/2" />
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-8 w-1/3 ml-auto" />
+                        </div>
+                    ) : (
+                        <DataTable
+                        columns={columns}
+                        data={filteredSurat}
+                        />
+                    )}
                 </CardContent>
                 </Card>
         </TabsContent>
@@ -387,11 +363,11 @@ export default function SuratMasukPage() {
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="perihal" className="text-right">Perihal</Label>
-                <Input id="perihal" value={selectedSurat.perihal} readOnly className="col-span-3" />
+                <Input id="perihal" value={selectedSurat.judul} readOnly className="col-span-3" />
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="pengirim" className="text-right">Pengirim</Label>
-                <Input id="pengirim" value={selectedSurat.pengirim} readOnly className="col-span-3" />
+                <Input id="pengirim" value={selectedSurat.dariKe} readOnly className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="tanggal" className="text-right">Tanggal</Label>
@@ -403,7 +379,7 @@ export default function SuratMasukPage() {
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="disposisi" className="text-right">Disposisi</Label>
-                <Input id="disposisi" value={selectedSurat.disposisi} readOnly className="col-span-3" />
+                <Input id="disposisi" value={selectedSurat.penanggungJawab} readOnly className="col-span-3" />
               </div>
             </div>
           )}
@@ -498,7 +474,7 @@ export default function SuratMasukPage() {
                     <div>
                         <p className="font-semibold">Surat Diterima</p>
                         <p className="text-sm text-muted-foreground">{selectedSurat?.tanggal}</p>
-                        <p className="text-sm">Diterima dari: {selectedSurat?.pengirim}</p>
+                        <p className="text-sm">Diterima dari: {selectedSurat?.dariKe}</p>
                     </div>
                 </li>
                 <li className="flex items-start">
@@ -511,7 +487,7 @@ export default function SuratMasukPage() {
                       <div>
                         <p className="font-semibold">Disposisi</p>
                         <p className="text-sm text-muted-foreground">{selectedSurat?.tanggal}</p>
-                         <p className="text-sm">Oleh: Direktur, Kepada: {selectedSurat?.disposisi}</p>
+                         <p className="text-sm">Oleh: Direktur, Kepada: {selectedSurat?.penanggungJawab}</p>
                       </div>
                 </li>
                   {(selectedSurat?.status === 'Selesai' || selectedSurat?.status === 'Diarsipkan') && (
@@ -522,7 +498,7 @@ export default function SuratMasukPage() {
                         <div className="ml-4">
                           <p className="font-semibold">Selesai Diproses</p>
                           <p className="text-sm text-muted-foreground">2 hari setelah tanggal diterima</p>
-                          <p className="text-sm">Proses telah diselesaikan oleh {selectedSurat?.disposisi}.</p>
+                          <p className="text-sm">Proses telah diselesaikan oleh {selectedSurat?.penanggungJawab}.</p>
                         </div>
                     </li>
                   )}

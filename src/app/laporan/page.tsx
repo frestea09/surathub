@@ -14,6 +14,7 @@ import {
   Send,
   Share2,
   UserCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
@@ -51,6 +52,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppLayout } from "@/components/templates/AppLayout";
+import { useSurat, type Surat as SuratLaporan } from "@/hooks/useSurat";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const mockUsers = [
     { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
@@ -61,74 +64,6 @@ const mockUsers = [
     { id: 'staf', name: 'Staf Umum', role: 'Staf/Pengguna', unit: 'Umum' },
     { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
 ];
-
-const initialSuratMasukData = [
-    {
-        noSurat: "123/A/UM/2024",
-        perihal: "Undangan Rapat Koordinasi",
-        pengirim: "Kementerian Kesehatan",
-        tanggal: "2024-07-25",
-        status: "Didisposisikan",
-        disposisi: "Direktur Utama",
-        unit: "Pimpinan"
-    },
-    {
-        noSurat: "PNW/2024/VI/045",
-        perihal: "Penawaran Kerjasama",
-        pengirim: "PT. Medika Jaya",
-        tanggal: "2024-06-22",
-        status: "Selesai",
-        disposisi: "Bagian Pengadaan",
-        unit: "Pengadaan"
-    },
-    {
-        noSurat: "INV/2024/07/998",
-        perihal: "Invoice Pembelian ATK",
-        pengirim: "CV. ATK Bersama",
-        tanggal: "2024-07-26",
-        status: "Baru",
-        disposisi: "Admin",
-        unit: "Keuangan"
-    },
-    {
-        noSurat: "REJ/2024/07/001",
-        perihal: "Permohonan Kerjasama Ditolak",
-        pengirim: "PT. Farmasi Mundur",
-        tanggal: "2024-07-27",
-        status: "Ditolak",
-        disposisi: "Admin",
-        unit: "Pengadaan"
-    },
-    {
-        noSurat: "REJ/2024/06/001",
-        perihal: "Permohonan Kerjasama Ditolak",
-        pengirim: "PT. Sehat Sejahtera",
-        tanggal: "2024-06-15",
-        status: "Ditolak",
-        disposisi: "Admin",
-        unit: "Pimpinan"
-    },
-];
-
-type SuratLaporan = {
-  noSurat: string;
-  perihal: string;
-  jenis: 'Masuk' | 'Keluar';
-  tanggal: string;
-  dariKe: string;
-  status: string;
-  penanggungJawab: string;
-  unit: string;
-};
-
-const getUnitForSurat = (surat: any): string => {
-    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
-    if (perihal.includes('keuangan')) return 'Keuangan';
-    if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
-    if (perihal.includes('dinas')) return 'Umum';
-    if (surat.tujuan?.toLowerCase().includes('kepala') || surat.tujuan?.toLowerCase().includes('direktur')) return 'Pimpinan';
-    return 'Umum';
-}
 
 const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db", "#FF6961"];
 
@@ -142,9 +77,34 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Ditolak: "destructive",
 };
 
+const StatCardSkeleton = () => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-4" />
+        </CardHeader>
+        <CardContent>
+            <Skeleton className="h-8 w-1/4 mb-2" />
+            <Skeleton className="h-3 w-full" />
+        </CardContent>
+    </Card>
+);
+
+const ChartSkeleton = () => (
+    <Card>
+        <CardHeader>
+            <Skeleton className="h-6 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+            <Skeleton className="h-[300px] w-full" />
+        </CardContent>
+    </Card>
+);
+
 export default function LaporanPage() {
   const { toast } = useToast();
-  const [allSuratData, setAllSuratData] = useState<SuratLaporan[]>([]);
+  const { surat: allSuratData, isLoading, error } = useSurat();
   const [selectedSurat, setSelectedSurat] = useState<SuratLaporan | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
@@ -154,54 +114,6 @@ export default function LaporanPage() {
     to: new Date(new Date().getFullYear(), 11, 31),
   });
 
-  useEffect(() => {
-    const loadAllSuratData = () => {
-        try {
-            if (typeof window === 'undefined') return;
-
-            const mapToLaporanFormat = (item: any, jenis: 'Keluar' | 'Masuk'): SuratLaporan => {
-                const base = jenis === 'Keluar' ? item.formData || item : item;
-                const tanggal = base.tempatTanggal?.split(', ')[1]?.replace(/\//g, '-') || base.tanggal || new Date().toISOString().split('T')[0];
-                return {
-                    noSurat: base.nomor || base.noSurat,
-                    perihal: base.perihal,
-                    jenis,
-                    tanggal,
-                    dariKe: base.penerima || base.pengirim || base.vendorNama || 'Internal',
-                    status: base.status || 'Draft',
-                    penanggungJawab: base.namaPenandaTangan || base.disposisi || 'Admin',
-                    unit: base.unit || getUnitForSurat(base),
-                };
-            };
-
-            const suratPerintahList = JSON.parse(localStorage.getItem('suratPerintahList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
-            const suratPesananList = JSON.parse(localStorage.getItem('suratPesananList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
-            const suratPesananFinalList = JSON.parse(localStorage.getItem('suratPesananFinalList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
-            const beritaAcaraList = JSON.parse(localStorage.getItem('beritaAcaraList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
-            const bastbList = JSON.parse(localStorage.getItem('bastbList') || '[]').map((s:any) => mapToLaporanFormat(s, 'Keluar'));
-            const suratMasukList = initialSuratMasukData.map(s => mapToLaporanFormat(s, 'Masuk'));
-
-            const allSurat = [
-                ...suratMasukList,
-                ...suratPerintahList, 
-                ...suratPesananList, 
-                ...suratPesananFinalList, 
-                ...beritaAcaraList, 
-                ...bastbList
-            ];
-            
-            const uniqueSurat = allSurat.filter((surat, index, self) =>
-                index === self.findIndex((s) => s.noSurat === surat.noSurat)
-            );
-
-            setAllSuratData(uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()));
-        } catch (e) {
-            console.error("Failed to load surat from localStorage", e);
-            setAllSuratData([]);
-        }
-    };
-    loadAllSuratData();
-  }, []);
 
   const handleRoleChange = (userId: string) => {
       const user = mockUsers.find(u => u.id === userId);
@@ -212,8 +124,8 @@ export default function LaporanPage() {
 
   const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
     let dataByUnit = (currentUser.unit === 'All')
-      ? allSuratData
-      : allSuratData.filter(s => s.unit === currentUser.unit);
+      ? allSuratData || []
+      : (allSuratData || []).filter(s => s.unit === currentUser.unit);
       
     const dataByDate = date?.from
       ? dataByUnit.filter(surat => {
@@ -285,8 +197,8 @@ export default function LaporanPage() {
         headers.join(','),
         ...filteredData.map(row => 
             [
-                `"${row.noSurat}"`,
-                `"${row.perihal.replace(/"/g, '""')}"`,
+                `"${row.nomor}"`,
+                `"${row.judul.replace(/"/g, '""')}"`,
                 `"${row.jenis}"`,
                 `"${row.tanggal}"`,
                 `"${row.dariKe}"`,
@@ -329,11 +241,11 @@ export default function LaporanPage() {
 
   const columns: ColumnDef<SuratLaporan>[] = [
       {
-          accessorKey: "noSurat",
+          accessorKey: "nomor",
           header: "Nomor Surat",
       },
       {
-          accessorKey: "perihal",
+          accessorKey: "judul",
           header: "Perihal",
       },
       {
@@ -341,7 +253,7 @@ export default function LaporanPage() {
           header: "Jenis",
           cell: ({ row }) => {
               const jenis = row.original.jenis;
-              return <Badge variant={jenis === 'Masuk' ? 'secondary' : 'outline'}>{jenis}</Badge>
+              return <Badge variant={jenis === 'Surat Masuk' ? 'secondary' : 'outline'}>{jenis}</Badge>
           }
       },
       {
@@ -387,6 +299,24 @@ export default function LaporanPage() {
       }
   ];
 
+  if (error) {
+    return (
+        <AppLayout>
+             <Card className="bg-destructive/10 border-destructive/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                        <AlertTriangle />
+                        Gagal Memuat Data Laporan
+                    </CardTitle>
+                    <CardDescription className="text-destructive">
+                        Terjadi kesalahan saat mengambil data surat untuk laporan. Silakan coba muat ulang halaman.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        </AppLayout>
+    )
+  }
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
@@ -408,57 +338,75 @@ export default function LaporanPage() {
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        {dynamicStatCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">{card.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+            <>
+                <StatCardSkeleton/>
+                <StatCardSkeleton/>
+                <StatCardSkeleton/>
+                <StatCardSkeleton/>
+            </>
+        ) : (
+            dynamicStatCards.map((card, index) => (
+            <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                <card.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{card.value}</div>
+                <p className="text-xs text-muted-foreground">{card.description}</p>
+                </CardContent>
+            </Card>
+            ))
+        )}
       </div>
 
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Volume Surat per Bulan</CardTitle>
-            <CardDescription>Jumlah total surat masuk dan keluar yang tercatat setiap bulan.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={suratVolumeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="total" fill="#77B5FE" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-          <Card>
-          <CardHeader>
-            <CardTitle>Distribusi Status Surat</CardTitle>
-            <CardDescription>Proporsi surat berdasarkan statusnya saat ini.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={statusDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                    {statusDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+            <>
+                <ChartSkeleton />
+                <ChartSkeleton />
+            </>
+        ) : (
+            <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Volume Surat per Bulan</CardTitle>
+                <CardDescription>Jumlah total surat masuk dan keluar yang tercatat setiap bulan.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={suratVolumeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="total" fill="#77B5FE" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+              <Card>
+              <CardHeader>
+                <CardTitle>Distribusi Status Surat</CardTitle>
+                <CardDescription>Proporsi surat berdasarkan statusnya saat ini.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie data={statusDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                        {statusDistributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            </>
+        )}
       </div>
       
       <Card>
@@ -469,17 +417,25 @@ export default function LaporanPage() {
           </div>
           <div className="flex items-center gap-2">
               <DateRangePicker date={date} setDate={setDate} />
-              <Button onClick={handleExport}>
+              <Button onClick={handleExport} disabled={isLoading}>
                 <Download className="mr-2 h-4 w-4" />
                 Ekspor
               </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={filteredData}
-          />
+            {isLoading ? (
+                 <div className="space-y-4">
+                    <Skeleton className="h-10 w-1/2" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-8 w-1/3 ml-auto" />
+                </div>
+            ) : (
+                <DataTable
+                    columns={columns}
+                    data={filteredData}
+                />
+            )}
         </CardContent>
       </Card>
 
@@ -496,11 +452,11 @@ export default function LaporanPage() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="nomor" className="text-right">Nomor</Label>
-                <Input id="nomor" value={selectedSurat.noSurat} readOnly className="col-span-3" />
+                <Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" />
               </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="perihal" className="text-right">Perihal</Label>
-                <Input id="perihal" value={selectedSurat.perihal} readOnly className="col-span-3" />
+                <Input id="perihal" value={selectedSurat.judul} readOnly className="col-span-3" />
               </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="jenis" className="text-right">Jenis</Label>
@@ -538,11 +494,11 @@ export default function LaporanPage() {
           <DialogHeader>
             <DialogTitle>Alur Lengkap Surat</DialogTitle>
             <DialogDescription>
-              Linimasa perjalanan surat nomor <span className="font-semibold">{selectedSurat?.noSurat}</span>.
+              Linimasa perjalanan surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {selectedSurat?.jenis === 'Masuk' ? (
+            {selectedSurat?.jenis === 'Surat Masuk' ? (
               <ul className="space-y-4">
                   <li className="flex items-start">
                       <div className="flex flex-col items-center mr-4">

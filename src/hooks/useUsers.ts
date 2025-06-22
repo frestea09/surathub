@@ -6,8 +6,18 @@ import { fetchUsers, fetchUserById, User } from '@/data/users';
 
 const USERS_KEY = '/api/users';
 
+const userFetcher = async () => {
+    return fetchUsers();
+};
+
+const userByIdFetcher = async (url: string) => {
+    const id = url.split('/').pop();
+    if (!id) return undefined;
+    return fetchUserById(id);
+};
+
 export function useUsers() {
-  const { data, error, isLoading, mutate } = useSWR<User[]>(USERS_KEY, fetchUsers);
+  const { data, error, isLoading, mutate } = useSWR<User[]>(USERS_KEY, userFetcher);
 
   return {
     users: data,
@@ -20,7 +30,7 @@ export function useUsers() {
 export function useUser(id: string | null) {
     const { data, error, isLoading, mutate } = useSWR<User | undefined>(
         id ? `${USERS_KEY}/${id}` : null, 
-        () => id ? fetchUserById(id) : undefined
+        userByIdFetcher
     );
 
     return {
