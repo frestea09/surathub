@@ -13,8 +13,9 @@ import {
   XCircle,
   Search,
   Trash2,
+  FileArchive,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
@@ -110,6 +111,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export default function SuratKeluarPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab');
   const { surat, isLoading, fetchAllSurat, updateSurat, deleteSurat } = useSuratStore();
@@ -255,6 +257,13 @@ export default function SuratKeluarPage() {
                               Lacak Alur
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                            onClick={() => router.push(`/cetak-bundle?nomor=${surat.nomor}&tipe=${surat.tipe}`)}
+                            disabled={!['SPP', 'SP', 'SP-Vendor', 'BA', 'BASTB'].includes(surat.tipe)}
+                            >
+                                <FileArchive className="mr-2 h-4 w-4" />
+                                Cetak Bundle
+                            </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'arsip')} disabled={surat.status === 'Diarsipkan'}>
                               <Archive className="mr-2 h-4 w-4" />
                               Arsipkan
