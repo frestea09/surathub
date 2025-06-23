@@ -12,7 +12,8 @@ const mockUsers = [
     { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem' },
     { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur' },
     { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen' },
-    { id: 'staf', name: 'Staf Umum', role: 'Staf/Pengguna' },
+    { id: 'ppbj', name: 'Deti Hapitri, A.Md.Gz', role: 'Pejabat Pengadaan Barang Jasa' },
+    { id: 'staf', name: 'Staf Umum / Pengguna', role: 'Staf/Pengguna' },
 ];
 
 type HelpContent = {
@@ -41,30 +42,41 @@ const helpContent: Record<string, HelpContent> = {
         ],
         guide: [
             { title: "Menggunakan Dashboard Interaktif", steps: ["Saat pertama kali masuk, Dashboard menampilkan ringkasan data untuk semua unit.", "Gunakan dropdown 'Tampilan Sebagai' untuk memfilter data berdasarkan unit atau peran tertentu.", "Periksa kartu statistik untuk gambaran cepat dan analisis tren melalui grafik."] },
-            { title: "Merespon & Mendelegasikan Surat", steps: ["Buka 'Surat Masuk' untuk melihat surat yang memerlukan tindakan.", "Gunakan 'Buat Disposisi' untuk meneruskan surat dengan instruksi ke staf/unit terkait.", "Gunakan opsi 'Tolak' atau 'Setujui' untuk merespon surat dengan cepat."] },
+            { title: "Merespon & Mendelegasikan Surat", steps: ["Buka 'Surat Masuk' untuk melihat surat yang memerlukan tindakan.", "Gunakan 'Buat Disposisi' untuk meneruskan surat dengan instruksi ke staf/unit terkait.", "Gunakan opsi 'Tolak' atau 'Setujui' pada surat keluar untuk merespon permintaan dari tim Anda."] },
             { title: "Menganalisis & Mengekspor Laporan", steps: ["Buka menu 'Laporan'.", "Pilih rentang tanggal yang diinginkan.", "Grafik dan tabel akan otomatis diperbarui.", "Klik 'Ekspor' untuk mengunduh data dalam format CSV untuk analisis lebih lanjut."] }
         ]
     },
     ppk: {
         faq: [
-            { q: "Bagaimana cara membuat rangkaian surat pengadaan dari awal sampai akhir?", a: "Alurnya adalah: Surat Perintah -> Surat Pesanan (Internal) -> Surat Pesanan (Vendor) -> Berita Acara Pemeriksaan -> Berita Acara Serah Terima. Anda bisa memulai dengan klik 'Buat Surat'." },
-            { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya (misal, membuat Surat Pesanan dari Surat Perintah), klik 'Ambil Data' untuk otomatis mengisi informasi yang relevan dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." },
-            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'." },
-            { q: "Tanggal yang saya pilih ternyata hari libur, apakah bermasalah?", a: "Tidak masalah. Sistem akan memberi Anda peringatan jika tanggal yang dipilih adalah hari libur nasional, namun Anda tetap dapat melanjutkannya jika memang diperlukan. Ini hanya sebagai pengingat." }
+            { q: "Bagaimana alur lengkap pengadaan barang dari awal sampai akhir?", a: "Alur lengkapnya ada 5 tahap: 1. Surat Perintah, 2. Surat Pesanan (Internal), 3. Surat Pesanan (Vendor), 4. Berita Acara Pemeriksaan, dan 5. Berita Acara Serah Terima. Anda akan lebih banyak terlibat di tahap 1, 3, 4, dan 5." },
+            { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya (misal, membuat Surat Pesanan Vendor dari Surat Pesanan Internal), klik 'Ambil Data' untuk otomatis mengisi informasi dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." },
+            { q: "Bagaimana cara mencetak dokumen?", a: "Di setiap halaman pembuatan surat, ada tombol 'Cetak' di pojok kanan atas. Ini akan membuka pratinjau cetak browser Anda untuk dokumen yang sedang Anda lihat." },
+            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'." }
         ],
         guide: [
-            { title: "Membuat Alur Surat Pengadaan", steps: ["Klik 'Buat Surat', lalu pilih 'Surat Perintah' dan isi detailnya. Simpan sebagai draf.", "Selanjutnya, buat 'Surat Pesanan (Internal)'. Gunakan fitur 'Ambil Data' untuk menarik detail dari Surat Perintah yang tadi dibuat.", "Lanjutkan alur yang sama untuk 'Surat Pesanan (Vendor)', 'Berita Acara Pemeriksaan', hingga 'Berita Acara Serah Terima'. Selalu gunakan 'Ambil Data' untuk menyambungkan alur."] },
-            { title: "Melacak Status & Menyimpan Draf", steps: ["Buka halaman 'Surat Keluar' untuk melihat status semua surat yang Anda buat.", "Gunakan tab (Semua, Draft, Terkirim) untuk memfilter.", "Setelah menyimpan draf, Anda akan otomatis diarahkan ke tab 'Draft' di halaman 'Surat Keluar'."] }
+            { title: "Memulai Alur Surat Pengadaan (Surat Perintah)", steps: ["Klik 'Buat Surat', lalu pilih 'Surat Perintah' dan isi detailnya.", "Surat ini ditujukan untuk Pejabat Pengadaan (PPBJ) sebagai dasar untuk proses selanjutnya.", "Simpan sebagai draf atau langsung kirim."] },
+            { title: "Membuat Surat Pesanan ke Vendor", steps: ["Setelah PPBJ membuat Surat Pesanan Internal, Anda bisa melanjutkan dengan membuat 'Surat Pesanan (Vendor)'.", "Gunakan fitur 'Ambil Data' untuk menarik detail dari Surat Pesanan Internal yang dibuat PPBJ.", "Lengkapi detail vendor dan informasi lain yang diperlukan, lalu kirim."] },
+            { title: "Membuat Berita Acara", steps: ["Setelah barang diterima, buat 'Berita Acara Pemeriksaan'. Ambil data dari 'Surat Pesanan (Vendor)' untuk konsistensi.", "Lanjutkan dengan 'Berita Acara Serah Terima' untuk menyelesaikan proses. Gunakan 'Ambil Data' dari Berita Acara Pemeriksaan."] }
+        ]
+    },
+    ppbj: {
+        faq: [
+            { q: "Apa tugas utama saya dalam alur pengadaan?", a: "Tugas utama Anda adalah membuat 'Surat Pesanan (Internal)' setelah menerima 'Surat Perintah' dari Pejabat Pembuat Komitmen (PPK)." },
+            { q: "Bagaimana cara memulai pembuatan Surat Pesanan Internal?", a: "Buka halaman 'Buat Surat', pilih 'Surat Pesanan (Internal)'. Gunakan tombol 'Ambil Data' untuk mengimpor detail dari Surat Perintah yang relevan." },
+            { q: "Di mana saya bisa melihat Surat Perintah yang masuk?", a: "Surat Perintah yang ditujukan kepada Anda akan muncul di halaman 'Surat Masuk'." }
+        ],
+        guide: [
+            { title: "Menindaklanjuti Surat Perintah", steps: ["Buka 'Surat Masuk' untuk melihat Surat Perintah baru dari PPK.", "Buka halaman 'Buat Surat', pilih 'Surat Pesanan (Internal)'.", "Gunakan tombol 'Ambil Data' dan pilih Surat Perintah yang sesuai. Sebagian besar formulir akan terisi otomatis.", "Lengkapi detail barang, harga, dan informasi lainnya. Kirim surat ini kembali ke PPK."] }
         ]
     },
     staf: {
         faq: [
-            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar yang tersedia." },
+            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar yang tersedia. Jika Anda bagian dari tim pengadaan, pastikan mengikuti alur yang benar." },
             { q: "Di mana saya bisa menemukan draf yang belum selesai?", a: "Semua draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'. Anda bisa melanjutkannya dari sana." },
             { q: "Bagaimana saya tahu jika ada surat atau tugas baru untuk saya?", a: "Periksa halaman 'Surat Masuk' dan menu 'Notifikasi' (ikon lonceng) secara berkala. Surat yang didisposisikan kepada Anda akan muncul di sana." }
         ],
         guide: [
-            { title: "Membuat Surat Umum", steps: ["Klik 'Buat Surat', lalu pilih template yang sesuai (misal: Surat Perintah).", "Isi semua detail yang diperlukan pada formulir.", "Gunakan panel 'Preview' di sebelah kanan untuk memastikan format surat sudah benar sebelum 'Simpan' atau 'Cetak'."] },
+            { title: "Membuat Surat Umum", steps: ["Klik 'Buat Surat', lalu pilih template yang sesuai (misal: Surat Perintah jika Anda memiliki wewenang).", "Isi semua detail yang diperlukan pada formulir.", "Gunakan panel 'Preview' di sebelah kanan untuk memastikan format surat sudah benar sebelum 'Simpan' atau 'Cetak'."] },
             { title: "Menindaklanjuti Disposisi", steps: ["Buka 'Surat Masuk', cari surat yang statusnya 'Didisposisikan' kepada Anda.", "Baca instruksi pada disposisi.", "Setelah tindakan selesai, gunakan menu aksi (tiga titik) dan pilih 'Selesaikan Proses' untuk mengubah statusnya menjadi 'Selesai'."] }
         ]
     }

@@ -59,6 +59,14 @@ const initialUsersData = [
     status: "Aktif",
     password: "password-yanmed",
   },
+  {
+    id: "staf-01",
+    nip: "199501012020121001",
+    nama: "Andi Wijaya",
+    jabatan: "Tim Kerja Bidang Umum & Kepegawaian",
+    status: "Aktif",
+    password: "password-staf",
+  },
 ];
 
 async function main() {
