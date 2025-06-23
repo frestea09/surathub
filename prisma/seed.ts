@@ -4,7 +4,6 @@ const prisma = new PrismaClient()
 
 const initialUsersData = [
   {
-    id: "dir-01",
     nip: "196711022002121001",
     nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
     jabatan: "Direktur",
@@ -12,7 +11,6 @@ const initialUsersData = [
     password: "password-direktur",
   },
   {
-    id: "ppk-01",
     nip: "198408272008011005",
     nama: "Saep Trian Prasetia.S.Si.Apt",
     jabatan: "Pejabat Pembuat Komitmen",
@@ -20,7 +18,6 @@ const initialUsersData = [
     password: "password-ppk",
   },
   {
-    id: "ppbj-01",
     nip: "197711042005042013",
     nama: "Deti Hapitri, A.Md.Gz",
     jabatan: "Pejabat Pengadaan Barang Jasa",
@@ -28,7 +25,6 @@ const initialUsersData = [
     password: "password-ppbj",
   },
   {
-    id: "admin-01",
     nip: "admin",
     nama: "Admin Utama",
     jabatan: "Administrator Sistem",
@@ -36,7 +32,6 @@ const initialUsersData = [
     password: "password-admin",
   },
   {
-    id: "keu-01",
     nip: "198001012005012002",
     nama: "Jane Doe",
     jabatan: "Kepala Bagian Keuangan",
@@ -44,7 +39,6 @@ const initialUsersData = [
     password: "password-keuangan",
   },
   {
-    id: "umum-01",
     nip: "198203152006041001",
     nama: "Budi Darmawan",
     jabatan: "Kepala Bagian Umum",
@@ -52,7 +46,6 @@ const initialUsersData = [
     password: "password-umum",
   },
    {
-    id: "yanmed-01",
     nip: "197505202003122001",
     nama: "Dr. Anisa Fitriani, Sp.A",
     jabatan: "Kepala Bidang Pelayanan Medik",
@@ -60,7 +53,6 @@ const initialUsersData = [
     password: "password-yanmed",
   },
   {
-    id: "staf-01",
     nip: "199501012020121001",
     nama: "Andi Wijaya",
     jabatan: "Tim Kerja Bidang Umum & Kepegawaian",

@@ -12,12 +12,54 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  nip       String   @unique
-  nama      String
-  jabatan   String
-  status    String   @default("Aktif")
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String  @id @default(cuid())
+  nip           String  @unique
+  nama          String
+  jabatan       String
+  status        String
+  password      String
+  suratDibuat   Surat[] @relation("PembuatSurat")
+  suratDiterima Surat[] @relation("PenerimaSurat")
+}
+
+model Surat {
+  id                 String       @id @default(cuid())
+  nomor              String       @unique
+  perihal            String
+  tanggal            DateTime
+  jenis              SuratJenis
+  status             SuratStatus
+  formDataJson       Json
+  itemsJson          Json?
+  pembuat            User         @relation("PembuatSurat", fields: [pembuatId], references: [id])
+  pembuatId          String
+  penerima           User?        @relation("PenerimaSurat", fields: [penerimaId], references: [id])
+  penerimaId         String?
+  penerimaEksternal  String?
+  referensiSurat     Surat?       @relation("Referensi", fields: [referensiSuratId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referensiSuratId   String?      @unique
+  direferensikanOleh Surat?       @relation("Referensi")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+enum SuratJenis {
+  PERINTAH
+  PESANAN_INTERNAL
+  PESANAN_VENDOR
+  PEMERIKSAAN
+  SERAH_TERIMA
+  MASUK
+  KELUAR_UMUM
+}
+
+enum SuratStatus {
+  DRAFT
+  TERKIRIM
+  DISETUJUI
+  DITOLAK
+  DIARSIPKAN
+  SELESAI
+  BARU
+  DIDISPOSISIKAN
 }
