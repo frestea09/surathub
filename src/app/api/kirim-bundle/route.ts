@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import VendorBundleEmail from '@/emails/vendor-bundle';
+import * as React from 'react';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,11 +25,11 @@ export async function POST(req: NextRequest) {
       from: 'SuratHub RSUD Otista <onboarding@resend.dev>',
       to: [to],
       subject: `Dokumen Pengadaan dari RSUD Oto Iskandar Di Nata`,
-      react: VendorBundleEmail({
-        vendorName,
-        bundleUrl,
-        documentCount,
-      })
+      react: <VendorBundleEmail
+        vendorName={vendorName}
+        bundleUrl={bundleUrl}
+        documentCount={documentCount}
+      />
     });
 
     if (error) {
