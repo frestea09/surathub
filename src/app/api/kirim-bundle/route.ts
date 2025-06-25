@@ -25,17 +25,15 @@ export async function POST(req: NextRequest) {
       from: 'SuratHub RSUD Otista <onboarding@resend.dev>',
       to: [to],
       subject: `Dokumen Pengadaan dari RSUD Oto Iskandar Di Nata`,
-      react: <VendorBundleEmail
-        vendorName={vendorName}
-        bundleUrl={bundleUrl}
-        documentCount={documentCount}
-      />
+      react: <VendorBundleEmail vendorName={vendorName} bundleUrl={bundleUrl} documentCount={documentCount} />,
     });
 
     if (error) {
       console.error("Resend API Error:", error);
+      // The 'from address is not verified' error is a common issue with Resend's sandbox.
+      // We'll provide a very specific error message to guide the user.
       const errorMessage = error.message.includes('from address is not verified') 
-          ? 'Alamat email pengirim (onboarding@resend.dev) belum diverifikasi di akun Resend Anda.'
+          ? 'Gagal: Alamat email pengirim (onboarding@resend.dev) belum diverifikasi di akun Resend Anda. Untuk mengirim email, Anda perlu memverifikasi domain Anda terlebih dahulu di dashboard Resend.'
           : error.message;
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
