@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Printer, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -13,6 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 type BundleItem = {
     tipe: 'SPP' | 'SP' | 'SP-Vendor' | 'BA' | 'BASTB';
@@ -299,8 +303,12 @@ const RenderBASTB = ({ data }: { data: any }) => {
 export default function CetakBundlePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const [bundle, setBundle] = useState<BundleItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+    const [vendorEmail, setVendorEmail] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     useEffect(() => {
         const startNomor = searchParams.get('nomor');
@@ -380,6 +388,43 @@ export default function CetakBundlePage() {
 
     }, [searchParams]);
 
+    const handleSendEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!vendorEmail) {
+            toast({ variant: "destructive", title: "Email tidak valid", description: "Harap masukkan alamat email vendor." });
+            return;
+        }
+        setIsSending(true);
+
+        const vendorSurat = bundle.find(item => item.tipe === 'SP-Vendor');
+        const vendorName = vendorSurat?.data?.formData?.penerima || 'Vendor';
+
+        try {
+            const response = await fetch('/api/kirim-bundle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: vendorEmail,
+                    vendorName: vendorName,
+                    bundleUrl: window.location.href, // Send a link to the current page
+                    documentCount: bundle.length
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Gagal mengirim email.');
+            }
+            
+            toast({ title: "Email Terkirim", description: `Bundle dokumen berhasil dikirim ke ${vendorEmail}.` });
+            setIsEmailDialogOpen(false);
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Gagal Mengirim Email", description: error.message });
+        } finally {
+            setIsSending(false);
+        }
+    };
+
     const renderComponent = (item: BundleItem) => {
         switch (item.tipe) {
             case 'SPP': return <RenderSuratPerintah data={item.data} />;
@@ -409,68 +454,106 @@ export default function CetakBundlePage() {
     }
 
     return (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2 print:hidden">
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back</span>
-                </Button>
-                <h1 className="text-xl font-semibold">Cetak Bundle Dokumen</h1>
-                <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={() => window.print()}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Cetak Semua
+        <>
+            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2 print:hidden">
+                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
                     </Button>
-                </div>
-            </header>
-            <main>
-                {bundle.length > 0 ? (
-                    bundle.map((item, index) => (
-                        <Card key={index} className="my-4 mx-auto w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0 print:w-full">
-                            <CardContent className="p-0">
-                                {renderComponent(item)}
-                            </CardContent>
-                        </Card>
-                    ))
-                ) : (
-                    <div className="text-center py-10">
-                        <p>Tidak ada dokumen terkait yang ditemukan untuk surat dengan nomor {searchParams.get('nomor')}.</p>
-                        <Button variant="link" asChild><Link href="/surat-keluar">Kembali ke Surat Keluar</Link></Button>
+                    <h1 className="text-xl font-semibold">Cetak Bundle Dokumen</h1>
+                    <div className="ml-auto flex items-center gap-2">
+                        <Button variant="outline" onClick={() => setIsEmailDialogOpen(true)}>
+                            <Send className="mr-2 h-4 w-4" />
+                            Kirim ke Vendor
+                        </Button>
+                        <Button onClick={() => window.print()}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Cetak Semua
+                        </Button>
                     </div>
-                )}
-            </main>
-             <style jsx global>{`
-                @media print {
-                  body {
-                    background-color: white;
-                  }
-                  .print\\:hidden {
-                    display: none;
-                  }
-                   .print\\:shadow-none {
-                    box-shadow: none;
-                  }
-                  .print\\:border-none {
-                    border: none;
-                  }
-                   .print\\:m-0 {
-                    margin: 0;
-                  }
-                  .print\\:w-full {
-                    width: 100%;
-                  }
-                  .page-break {
-                      page-break-after: always;
-                  }
-                  .page-break:last-child {
-                      page-break-after: avoid;
-                  }
-                }
-                @page {
-                  size: A4;
-                  margin: 2cm;
-                }
-            `}</style>
-        </div>
+                </header>
+                <main>
+                    {bundle.length > 0 ? (
+                        bundle.map((item, index) => (
+                            <Card key={index} className="my-4 mx-auto w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0 print:w-full">
+                                <CardContent className="p-0">
+                                    {renderComponent(item)}
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : (
+                        <div className="text-center py-10">
+                            <p>Tidak ada dokumen terkait yang ditemukan untuk surat dengan nomor {searchParams.get('nomor')}.</p>
+                            <Button variant="link" asChild><Link href="/surat-keluar">Kembali ke Surat Keluar</Link></Button>
+                        </div>
+                    )}
+                </main>
+                 <style jsx global>{`
+                    @media print {
+                      body {
+                        background-color: white;
+                      }
+                      .print\\:hidden {
+                        display: none;
+                      }
+                       .print\\:shadow-none {
+                        box-shadow: none;
+                      }
+                      .print\\:border-none {
+                        border: none;
+                      }
+                       .print\\:m-0 {
+                        margin: 0;
+                      }
+                      .print\\:w-full {
+                        width: 100%;
+                      }
+                      .page-break {
+                          page-break-after: always;
+                      }
+                      .page-break:last-child {
+                          page-break-after: avoid;
+                      }
+                    }
+                    @page {
+                      size: A4;
+                      margin: 2cm;
+                    }
+                `}</style>
+            </div>
+
+            <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+                <DialogContent>
+                    <form onSubmit={handleSendEmail}>
+                        <DialogHeader>
+                            <DialogTitle>Kirim Bundle Dokumen ke Vendor</DialogTitle>
+                            <DialogDescription>
+                                Masukkan alamat email vendor untuk mengirim tautan ke bundle dokumen ini.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <Label htmlFor="vendor-email">Email Vendor</Label>
+                            <Input
+                                id="vendor-email"
+                                type="email"
+                                placeholder="contoh@vendor.com"
+                                value={vendorEmail}
+                                onChange={(e) => setVendorEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Batal</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={isSending}>
+                                {isSending ? 'Mengirim...' : 'Kirim Email'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

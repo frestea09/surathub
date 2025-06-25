@@ -24,6 +24,9 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['resend'],
+  },
 };
 
 export default nextConfig;
