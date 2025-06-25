@@ -21,13 +21,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Data tidak lengkap.' }, { status: 400 });
     }
 
-    const emailComponent = (
-      <VendorBundleEmail
-        vendorName={vendorName}
-        bundleUrl={bundleUrl}
-        documentCount={documentCount}
-      />
-    );
+    const emailComponent = React.createElement(VendorBundleEmail, {
+      vendorName,
+      bundleUrl,
+      documentCount,
+    });
 
     const { data, error } = await resend.emails.send({
       from: 'SuratHub RSUD Otista <onboarding@resend.dev>',
