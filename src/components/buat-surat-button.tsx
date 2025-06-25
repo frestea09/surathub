@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -11,30 +12,31 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "./ui/input"
+import { BUAT_SURAT_POPOVER } from "@/lib/constants"
 
 const suratTypes = [
   {
-    label: "Surat Perintah",
+    label: BUAT_SURAT_POPOVER.SURAT_PERINTAH,
     href: "/buat-surat",
     icon: FileText,
   },
   {
-    label: "Surat Pesanan (Internal)",
+    label: BUAT_SURAT_POPOVER.SURAT_PESANAN_INTERNAL,
     href: "/buat-surat-pesanan",
     icon: FileText,
   },
   {
-    label: "Surat Pesanan (Vendor)",
+    label: BUAT_SURAT_POPOVER.SURAT_PESANAN_VENDOR,
     href: "/buat-surat-pesanan-final",
     icon: FileText,
   },
   {
-    label: "Berita Acara Pemeriksaan",
+    label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN,
     href: "/buat-berita-acara",
     icon: FileSignature,
   },
   {
-    label: "Berita Acara Serah Terima",
+    label: BUAT_SURAT_POPOVER.BERITA_ACARA_SERAH_TERIMA,
     href: "/buat-bastb",
     icon: FileSignature,
   },
@@ -59,13 +61,13 @@ export function BuatSuratButton() {
       <PopoverTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Buat Surat
+          {BUAT_SURAT_POPOVER.BUTTON_LABEL}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[250px] p-0">
         <div className="p-2">
             <Input 
-                placeholder="Cari jenis surat..."
+                placeholder={BUAT_SURAT_POPOVER.SEARCH_PLACEHOLDER}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-9"
@@ -86,7 +88,7 @@ export function BuatSuratButton() {
                 ))
             ) : (
                 <p className="p-4 text-center text-sm text-muted-foreground">
-                    Jenis surat tidak ditemukan.
+                    {BUAT_SURAT_POPOVER.NOT_FOUND}
                 </p>
             )}
         </div>

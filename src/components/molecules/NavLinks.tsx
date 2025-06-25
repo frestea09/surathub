@@ -15,19 +15,20 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NAV_LINKS } from "@/lib/constants";
 
 const mainNavItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/surat-masuk", label: "Surat Masuk", icon: FileText },
-  { href: "/surat-keluar", label: "Surat Keluar", icon: Package },
-  { href: "/laporan", label: "Laporan", icon: LineChart },
-  { href: "/notifikasi", label: "Notifikasi", icon: Bell },
-  { href: "/admin", label: "Admin", icon: UserCog },
-  { href: "/log-aktivitas", label: "Log Aktivitas", icon: History },
-  { href: "/bantuan", label: "Bantuan", icon: HelpCircle },
+  { href: "/dashboard", label: NAV_LINKS.DASHBOARD, icon: Home },
+  { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK, icon: FileText },
+  { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR, icon: Package },
+  { href: "/laporan", label: NAV_LINKS.LAPORAN, icon: LineChart },
+  { href: "/notifikasi", label: NAV_LINKS.NOTIFIKASI, icon: Bell },
+  { href: "/admin", label: NAV_LINKS.ADMIN, icon: UserCog },
+  { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
+  { href: "/bantuan", label: NAV_LINKS.BANTUAN, icon: HelpCircle },
 ];
 
-const secondaryNavItem = { href: "/pengaturan", label: "Pengaturan", icon: Settings };
+const secondaryNavItem = { href: "/pengaturan", label: NAV_LINKS.PENGATURAN, icon: Settings };
 
 type NavLinksProps = {
   isMobile?: boolean;

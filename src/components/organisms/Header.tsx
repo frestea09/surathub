@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { BuatSuratButton } from "@/components/buat-surat-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavLinks } from "../molecules/NavLinks";
+import { HEADER_SR, USER_MENU, NOTIFICATION_MENU } from "@/lib/constants";
 
 type Notification = {
   title: string;
@@ -50,7 +51,7 @@ export function Header({ notifications, user }: HeaderProps) {
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 md:hidden">
             <PanelLeft className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
+            <span className="sr-only">{HEADER_SR.TOGGLE_NAV}</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col">
@@ -63,7 +64,7 @@ export function Header({ notifications, user }: HeaderProps) {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Cari surat..."
+              placeholder={HEADER_SR.SEARCH_PLACEHOLDER}
               className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
             />
           </div>
@@ -86,11 +87,11 @@ export function Header({ notifications, user }: HeaderProps) {
               </Badge>
             )}
             <Bell className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
+            <span className="sr-only">{HEADER_SR.TOGGLE_NOTIF}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
-          <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
+          <DropdownMenuLabel>{NOTIFICATION_MENU.LABEL}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {notifications.map((notif, index) => (
             <DropdownMenuItem
@@ -108,7 +109,7 @@ export function Header({ notifications, user }: HeaderProps) {
             className="justify-center text-sm text-primary"
             onClick={() => router.push("/notifikasi")}
           >
-            Lihat semua notifikasi
+            {NOTIFICATION_MENU.VIEW_ALL}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -124,21 +125,21 @@ export function Header({ notifications, user }: HeaderProps) {
               />
               <AvatarFallback>{user.initials}</AvatarFallback>
             </Avatar>
-            <span className="sr-only">Toggle user menu</span>
+            <span className="sr-only">{HEADER_SR.TOGGLE_USER_MENU}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push("/profil")}>
-            Profil
+            {USER_MENU.PROFIL}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/pengaturan")}>
-            Pengaturan
+            {USER_MENU.PENGATURAN}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push("/")}>
-            Keluar
+            {USER_MENU.KELUAR}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

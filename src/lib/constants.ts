@@ -100,3 +100,47 @@ export const DELETE_CONFIRM_DESCRIPTION_PREFIX = "Apakah Anda yakin ingin mengha
 export const DELETE_CONFIRM_DESCRIPTION_SUFFIX = "? Tindakan ini tidak dapat dibatalkan.";
 export const CANCEL_BUTTON_LABEL = "Batal";
 export const CONFIRM_DELETE_BUTTON_LABEL = "Ya, Hapus";
+
+// Navigation
+export const NAV_LINKS = {
+  DASHBOARD: "Dashboard",
+  SURAT_MASUK: "Surat Masuk",
+  SURAT_KELUAR: "Surat Keluar",
+  LAPORAN: "Laporan",
+  NOTIFIKASI: "Notifikasi",
+  ADMIN: "Admin",
+  LOG_AKTIVITAS: "Log Aktivitas",
+  BANTUAN: "Bantuan",
+  PENGATURAN: "Pengaturan",
+};
+
+// Header & User Menu
+export const HEADER_SR = {
+  TOGGLE_NAV: "Toggle navigation menu",
+  TOGGLE_NOTIF: "Toggle notifications",
+  TOGGLE_USER_MENU: "Toggle user menu",
+  SEARCH_PLACEHOLDER: "Cari surat...",
+};
+
+export const USER_MENU = {
+  PROFIL: "Profil",
+  PENGATURAN: "Pengaturan",
+  KELUAR: "Keluar",
+};
+
+export const NOTIFICATION_MENU = {
+  LABEL: "Notifikasi",
+  VIEW_ALL: "Lihat semua notifikasi",
+};
+
+// Buat Surat Button & Popover
+export const BUAT_SURAT_POPOVER = {
+  BUTTON_LABEL: "Buat Surat",
+  SEARCH_PLACEHOLDER: "Cari jenis surat...",
+  NOT_FOUND: "Jenis surat tidak ditemukan.",
+  SURAT_PERINTAH: "Surat Perintah",
+  SURAT_PESANAN_INTERNAL: "Surat Pesanan (Internal)",
+  SURAT_PESANAN_VENDOR: "Surat Pesanan (Vendor)",
+  BERITA_ACARA_PEMERIKSAAN: "Berita Acara Pemeriksaan",
+  BERITA_ACARA_SERAH_TERIMA: "Berita Acara Serah Terima",
+};
