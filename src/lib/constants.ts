@@ -100,4 +100,3 @@ export const DELETE_CONFIRM_DESCRIPTION_PREFIX = "Apakah Anda yakin ingin mengha
 export const DELETE_CONFIRM_DESCRIPTION_SUFFIX = "? Tindakan ini tidak dapat dibatalkan.";
 export const CANCEL_BUTTON_LABEL = "Batal";
 export const CONFIRM_DELETE_BUTTON_LABEL = "Ya, Hapus";
-
