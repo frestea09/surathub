@@ -88,9 +88,136 @@ const suratTipeMap: { [key: string]: string } = {
     'bastbList': 'BASTB'
 };
 
+
+// --- DEMO DATA SEEDING ---
+const itemsData = [
+  { id: 1, nama: "ALKOHOL 70% 1 LT", satuan: "BOTOL", merk: "ONEMED", jumlah: 24, hargaSatuan: 23800, diskon: 0 },
+  { id: 2, nama: "ALKOHOL SWAB ONEMED 100 LBR", satuan: "BUAH", merk: "ONEMED", jumlah: 10000, hargaSatuan: 80, diskon: 0 },
+  { id: 3, nama: "APRON ONE BOX 50'S", satuan: "BUAH", merk: "ONEMED", jumlah: 1500, hargaSatuan: 1656, diskon: 0 },
+  { id: 4, nama: "CONDOM CATH L ONEMED", satuan: "BUAH", merk: "ONEMED", jumlah: 5, hargaSatuan: 5300, diskon: 0 },
+  { id: 5, nama: "CONDOM CATH M ONEMED", satuan: "BUAH", merk: "ONEMED", jumlah: 5, hargaSatuan: 5300, diskon: 0 },
+];
+const itemsWithKeterangan = itemsData.map(item => ({...item, keterangan: "Baik sesuai dengan SP"}));
+
+const seedInitialData = () => {
+    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v2')) {
+        return;
+    }
+    
+    // 1. Surat Perintah
+    const suratPerintah = [{
+        nomor: "000.3/PPK-RSUD OTISTA/IV/2025",
+        status: "Terkirim",
+        lampiran: "-",
+        perihal: "Perintah Pengadaan Barang Farmasi",
+        tempat: "Soreang",
+        tanggalSurat: new Date("2025-04-08T00:00:00"),
+        penerima: "Pejabat Pengadaan Barang Jasa",
+        penerimaTempat: "Tempat",
+        isiSurat: "Berdasarkan Surat Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 002/FAR-RSUD/IV/2025 , perihal pengadaan obat dan BMHP pada Farmasi, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segara persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku dan memperhatikan ketersedian stok Obat dan BMHP.",
+        penutup: "Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih",
+        jabatanPenandaTangan: "Pejabat Pembuat Komitmen",
+        namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt",
+        nipPenandaTangan: "NIP. 198408272008011005",
+    }];
+    localStorage.setItem('suratPerintahList', JSON.stringify(suratPerintah));
+
+    // 2. Surat Pesanan Internal
+    const suratPesanan = [{
+        formData: {
+            nomor: "000.3/PPBJ-RSUD OTISTA/IV/2025",
+            perihal: "Penerbitan Surat Pesanan",
+            tempat: "Soreang",
+            tanggalSurat: new Date("2025-04-09T00:00:00"),
+            penerima: "PEJABAT PEMBUAT KOMITMEN",
+            penerimaTempat: "Tempat",
+            nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025",
+            tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
+            terbilang: "Delapan Ratus Ribu Rupiah",
+            jabatanPenandaTangan: "Pejabat Pengadaan Barang Jasa",
+            namaPenandaTangan: "Deti Hapitri, A.Md.Gz",
+            nipPenandaTangan: "NIP. 197711042005042013",
+            ppn: 11,
+            status: "Terkirim",
+        },
+        items: itemsData,
+    }];
+    localStorage.setItem('suratPesananList', JSON.stringify(suratPesanan));
+
+    // 3. Surat Pesanan Vendor
+    const suratPesananFinal = [{
+        formData: {
+            nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
+            perihal: "Pesanan Barang Farmasi",
+            tempat: "Soreang",
+            tanggalSurat: new Date("2025-04-10T00:00:00"),
+            penerima: "PT Intisumber Hasil Sempurna Global",
+            penerimaTempat: "Tempat",
+            nomorSuratReferensi: "000.3/PPBJ-RSUD OTISTA/IV/2025",
+            tanggalSuratReferensi: new Date("2025-04-09T00:00:00"),
+            terbilang: "Delapan Ratus Ribu Rupiah",
+            jabatanPenandaTangan: "Pejabat Pembuat Komitmen",
+            namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt",
+            nipPenandaTangan: "198408272008011005",
+            ppn: 11,
+            status: "Terkirim",
+        },
+        items: itemsData,
+    }];
+    localStorage.setItem('suratPesananFinalList', JSON.stringify(suratPesananFinal));
+    
+    // 4. Berita Acara Pemeriksaan
+    const beritaAcara = [{
+        formData: {
+            nomor: "06/PPK-FAR/RSUDO/IV/2025",
+            narasiPembuka: "Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini Pejabat Pembuat Komitmen RSUD Oto Iskandar Di Nata Tahun Anggaran 2025, dengan ini menyatakan dengan sebenarnya telah melaksanakan pemeriksaan barang dan jasa.",
+            vendorNama: "PT Intisumber Hasil Sempurna Global",
+            vendorAlamat: "Jl. Raya Sapan Kawasan DE PRIMA TERRA Blok B-3 No 5 Bojongsoang Bandung",
+            nomorSuratReferensi: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
+            tanggalSuratReferensi: new Date("2025-04-10T00:00:00"),
+            narasiPenutup: "Demikian Berita Acara Pemeriksaan Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.",
+            penyediaNama: "PT Intisumber Hasil Sempurna Global",
+            pejabatNama: "Saep Trian Prasetia.S.Si.Apt",
+            pejabatNip: "NIP. 198408272008011005",
+            status: "Selesai",
+        },
+        items: itemsWithKeterangan
+    }];
+    localStorage.setItem('beritaAcaraList', JSON.stringify(beritaAcara));
+    
+    // 5. Berita Acara Serah Terima
+    const bastb = [{
+        formData: {
+            nomor: 'BASTB/06/FAR/IV/2025',
+            narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.',
+            pihak1Nama: 'Saep Trian Prasetia.S.Si. Apt',
+            pihak1Nip: '198408272008011005',
+            pihak1Jabatan: 'Pejabat Pembuat Komitmen RSUD Oto Iskandar Di Nata',
+            pihak1Alamat: 'Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung',
+            pihak2Nama: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes',
+            pihak2Nip: '196711022002121001',
+            pihak2Jabatan: 'Kuasa Pengguna Anggaran RSUD Oto Iskandar Di Nata',
+            pihak2Alamat: 'Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung',
+            nomorSuratPesanan: '000.3/06-FAR/PPK-RSUD OTISTA/IV/2025',
+            tanggalSuratPesanan: new Date('2025-04-10T00:00:00'),
+            nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025',
+            tanggalBeritaAcara: new Date('2025-04-30T00:00:00'),
+            narasiPenutup: 'Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.',
+            status: 'Selesai'
+        }
+    }];
+    localStorage.setItem('bastbList', JSON.stringify(bastb));
+    
+    localStorage.setItem('surat_data_seeded_v2', 'true');
+    console.log("Demo surat data seeded into localStorage.");
+};
+
+
 const fetchSuratFromStorage = (): Surat[] => {
     try {
         if (typeof window === 'undefined') return [];
+
+        seedInitialData();
 
         let allSurat: Surat[] = [];
 
