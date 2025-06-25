@@ -3,10 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import VendorBundleEmail from '@/emails/vendor-bundle';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'Kunci API Resend (RESEND_API_KEY) tidak diatur di environment variables.' },
+        { status: 500 }
+      );
+    }
+    const resend = new Resend(apiKey);
+
     const { to, vendorName, bundleUrl, documentCount } = await req.json();
 
     if (!to || !vendorName || !bundleUrl || !documentCount) {
@@ -26,7 +33,10 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Resend API Error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      const errorMessage = error.message.includes('from address is not verified') 
+          ? 'Alamat email pengirim (onboarding@resend.dev) belum diverifikasi di akun Resend Anda.'
+          : error.message;
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Email berhasil dikirim!', data }, { status: 200 });
