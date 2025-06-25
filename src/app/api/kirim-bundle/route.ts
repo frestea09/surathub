@@ -21,11 +21,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Data tidak lengkap.' }, { status: 400 });
     }
 
+    const emailComponent = (
+      <VendorBundleEmail
+        vendorName={vendorName}
+        bundleUrl={bundleUrl}
+        documentCount={documentCount}
+      />
+    );
+
     const { data, error } = await resend.emails.send({
       from: 'SuratHub RSUD Otista <onboarding@resend.dev>',
       to: [to],
       subject: `Dokumen Pengadaan dari RSUD Oto Iskandar Di Nata`,
-      react: <VendorBundleEmail vendorName={vendorName} bundleUrl={bundleUrl} documentCount={documentCount} />,
+      react: emailComponent,
     });
 
     if (error) {
