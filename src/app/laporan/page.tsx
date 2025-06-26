@@ -15,6 +15,7 @@ import {
   Share2,
   UserCheck,
   AlertTriangle,
+  FileSearch,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Cell } from "recharts";
@@ -56,16 +57,16 @@ import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const mockUsers = [
-    { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
     { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur', unit: 'All' },
     { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
     { id: 'ppbj', name: 'Deti Hapitri, A.Md.Gz', role: 'Pejabat Pengadaan Barang Jasa', unit: 'Pengadaan' },
     { id: 'keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
     { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
     { id: 'staf', name: 'Staf Umum', role: 'Staf/Pengguna', unit: 'Umum' },
+    { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
 ];
 
-const COLORS = ["#FFB347", "#77B5FE", "#82ca9d", "#d1d5db", "#FF6961"];
+const COLORS = ["hsl(var(--chart-2))", "hsl(var(--chart-1))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Baru: "secondary",
@@ -73,6 +74,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Didisposisikan: "outline",
   Terkirim: "default",
   Selesai: "default",
+  Disetujui: "default",
   Diarsipkan: "outline",
   Ditolak: "destructive",
 };
@@ -129,7 +131,7 @@ export default function LaporanPage() {
   const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
     let dataByUnit = (currentUser.unit === 'All')
       ? surat || []
-      : (surat || []).filter(s => s.unit === currentUser.unit);
+      : (surat || []).filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan");
       
     const dataByDate = date?.from
       ? dataByUnit.filter(s => {
@@ -142,28 +144,28 @@ export default function LaporanPage() {
 
     const cards = [
       {
-        title: "Waktu Proses Rata-Rata",
-        value: "1.2 Hari",
-        description: "Turun 0.2 hari dari bulan lalu",
-        icon: Clock,
+        title: "Total Surat Keluar",
+        value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(),
+        description: "Surat yang dibuat internal",
+        icon: Send,
       },
       {
-        title: "Surat Ditolak",
-        value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(),
-        description: "Total surat yang ditolak",
-        icon: XCircle,
+        title: "Total Surat Masuk",
+        value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(),
+        description: "Surat yang diterima dari eksternal",
+        icon: Mailbox,
       },
       {
-        title: "Selesai Bulan Ini",
-        value: dataByDate.filter(s => s.status === 'Selesai').length.toString(),
-        description: "+20.1% dari bulan lalu",
+        title: "Surat Selesai",
+        value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(),
+        description: "Surat yang prosesnya telah rampung",
         icon: CheckCircle,
       },
       {
-        title: "Total Surat Dibuat",
-        value: dataByDate.length.toString(),
-        description: "Total semua surat masuk & keluar",
-        icon: FileText,
+        title: "Total Surat Ditolak",
+        value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(),
+        description: "Surat yang pengajuannya ditolak",
+        icon: XCircle,
       },
     ];
     
@@ -174,10 +176,8 @@ export default function LaporanPage() {
     }));
     
     const statusData = [
-      { name: "Baru / Draft", value: dataByDate.filter(s => s.status === 'Baru' || s.status === 'Draft').length },
-      { name: "Diproses / Terkirim", value: dataByDate.filter(s => s.status === 'Didisposisikan' || s.status === 'Terkirim').length },
-      { name: "Selesai", value: dataByDate.filter(s => s.status === 'Selesai').length },
-      { name: "Diarsipkan", value: dataByDate.filter(s => s.status === 'Diarsipkan').length },
+      { name: "Proses", value: dataByDate.filter(s => ['Draft', 'Baru', 'Didisposisikan', 'Terkirim'].includes(s.status)).length },
+      { name: "Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length },
       { name: "Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak').length },
     ].filter(item => item.value > 0);
 
@@ -195,7 +195,7 @@ export default function LaporanPage() {
         return;
     }
     
-    const headers = ["Nomor Surat", "Perihal", "Jenis", "Tanggal", "Dari/Ke", "Status Saat Ini", "Penanggung Jawab", "Unit"];
+    const headers = ["Nomor Surat", "Judul", "Jenis", "Tipe", "Tanggal", "Dari/Ke", "Status Saat Ini", "Penanggung Jawab", "Unit"];
     
     const csvRows = [
         headers.join(','),
@@ -204,10 +204,11 @@ export default function LaporanPage() {
                 `"${row.nomor}"`,
                 `"${row.judul.replace(/"/g, '""')}"`,
                 `"${row.jenis}"`,
+                `"${row.tipe}"`,
                 `"${row.tanggal}"`,
-                `"${row.dariKe}"`,
+                `"${row.dariKe.replace(/"/g, '""')}"`,
                 `"${row.status}"`,
-                `"${row.penanggungJawab}"`,
+                `"${row.penanggungJawab.replace(/"/g, '""')}"`,
                 `"${row.unit}"`
             ].join(',')
         )
@@ -215,7 +216,7 @@ export default function LaporanPage() {
     
     const csvString = csvRows.join('\n');
     
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
@@ -244,62 +245,33 @@ export default function LaporanPage() {
   };
 
   const columns: ColumnDef<Surat>[] = [
+      { accessorKey: "nomor", header: "Nomor Surat" },
+      { accessorKey: "judul", header: "Judul" },
       {
-          accessorKey: "nomor",
-          header: "Nomor Surat",
+          accessorKey: "jenis", header: "Jenis",
+          cell: ({ row }) => <Badge variant={row.original.jenis === 'Surat Masuk' ? 'secondary' : 'outline'}>{row.original.jenis}</Badge>
       },
+      { accessorKey: "tanggal", header: "Tanggal" },
+      { accessorKey: "dariKe", header: "Dari/Ke" },
       {
-          accessorKey: "judul",
-          header: "Perihal",
+          accessorKey: "status", header: "Status",
+           cell: ({ row }) => <Badge variant={statusVariant[row.original.status as keyof typeof statusVariant]}>{row.original.status}</Badge>
       },
-      {
-          accessorKey: "jenis",
-          header: "Jenis",
-          cell: ({ row }) => {
-              const jenis = row.original.jenis;
-              return <Badge variant={jenis === 'Surat Masuk' ? 'secondary' : 'outline'}>{jenis}</Badge>
-          }
-      },
-      {
-          accessorKey: "tanggal",
-          header: "Tanggal",
-      },
-      {
-          accessorKey: "dariKe",
-          header: "Dari/Ke",
-      },
-      {
-          accessorKey: "status",
-          header: "Status Saat Ini",
-           cell: ({ row }) => {
-              const status = row.original.status;
-              return <Badge variant={statusVariant[status as keyof typeof statusVariant]}>{status}</Badge>
-          }
-      },
-      {
-          accessorKey: "penanggungJawab",
-          header: "Penanggung Jawab",
-      },
+      { accessorKey: "penanggungJawab", header: "P. Jawab" },
       {
           id: "actions",
-          cell: ({ row }) => {
-              const surat = row.original;
-              return (
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>Lihat Detail Surat</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleActionClick(surat, 'alur')}>Lihat Alur Lengkap</DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
-              )
-          }
+          cell: ({ row }) => (
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleActionClick(row.original, 'detail')}><FileSearch className="mr-2 h-4 w-4" />Lihat Detail Surat</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleActionClick(row.original, 'alur')}><FileSearch className="mr-2 h-4 w-4" />Lihat Alur Lengkap</DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+          )
       }
   ];
 
@@ -308,13 +280,8 @@ export default function LaporanPage() {
         <AppLayout>
              <Card className="bg-destructive/10 border-destructive/50">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle />
-                        Gagal Memuat Data Laporan
-                    </CardTitle>
-                    <CardDescription className="text-destructive">
-                        Terjadi kesalahan saat mengambil data surat untuk laporan: {error}
-                    </CardDescription>
+                    <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle />Gagal Memuat Data Laporan</CardTitle>
+                    <CardDescription className="text-destructive">Terjadi kesalahan saat mengambil data surat untuk laporan: {error}</CardDescription>
                 </CardHeader>
             </Card>
         </AppLayout>
@@ -328,28 +295,15 @@ export default function LaporanPage() {
           <div className="w-64">
             <Label htmlFor="role-switcher-laporan">Tampilan Sebagai:</Label>
             <Select value={currentUser.id} onValueChange={handleRoleChange}>
-                <SelectTrigger id="role-switcher-laporan">
-                    <SelectValue placeholder="Pilih Peran" />
-                </SelectTrigger>
+                <SelectTrigger id="role-switcher-laporan"><SelectValue placeholder="Pilih Peran" /></SelectTrigger>
                 <SelectContent>
-                    {mockUsers.map(user => (
-                        <SelectItem key={user.id} value={user.id}>
-                            {user.name} ({user.role})
-                        </SelectItem>
-                    ))}
+                    {mockUsers.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>)}
                 </SelectContent>
             </Select>
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        {isLoading ? (
-            <>
-                <StatCardSkeleton/>
-                <StatCardSkeleton/>
-                <StatCardSkeleton/>
-                <StatCardSkeleton/>
-            </>
-        ) : (
+        {isLoading ? Array.from({length: 4}).map((_, i) => <StatCardSkeleton key={i} />) : (
             dynamicStatCards.map((card, index) => (
             <Card key={index}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -366,12 +320,7 @@ export default function LaporanPage() {
       </div>
 
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
-        {isLoading ? (
-            <>
-                <ChartSkeleton />
-                <ChartSkeleton />
-            </>
-        ) : (
+        {isLoading ? (<><ChartSkeleton /><ChartSkeleton /></>) : (
             <>
             <Card>
               <CardHeader>
@@ -385,7 +334,7 @@ export default function LaporanPage() {
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                     <Tooltip />
-                    <Bar dataKey="total" fill="#77B5FE" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="total" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -399,9 +348,7 @@ export default function LaporanPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={statusDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                        {statusDistributionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                        {statusDistributionData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                     <Legend />
@@ -421,162 +368,77 @@ export default function LaporanPage() {
           </div>
           <div className="flex items-center gap-2">
               <DateRangePicker date={date} setDate={setDate} />
-              <Button onClick={handleExport} disabled={isLoading}>
-                <Download className="mr-2 h-4 w-4" />
-                Ekspor
-              </Button>
+              <Button onClick={handleExport} disabled={isLoading}><Download className="mr-2 h-4 w-4" />Ekspor</Button>
           </div>
         </CardHeader>
         <CardContent>
             {isLoading ? (
-                 <div className="space-y-4">
-                    <Skeleton className="h-10 w-1/2" />
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-8 w-1/3 ml-auto" />
-                </div>
+                 <div className="space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-48 w-full" /><Skeleton className="h-8 w-1/3 ml-auto" /></div>
             ) : (
-                <DataTable
-                    columns={columns}
-                    data={filteredData}
-                />
+                <DataTable columns={columns} data={filteredData} />
             )}
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detail Surat</DialogTitle>
-            <DialogDescription>
-              Detail lengkap dari surat yang dipilih.
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Detail Surat</DialogTitle><DialogDescription>Detail lengkap dari surat yang dipilih.</DialogDescription></DialogHeader>
           {selectedSurat && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="nomor" className="text-right">Nomor</Label>
-                <Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" />
-              </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="perihal" className="text-right">Perihal</Label>
-                <Input id="perihal" value={selectedSurat.judul} readOnly className="col-span-3" />
-              </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="jenis" className="text-right">Jenis</Label>
-                <Input id="jenis" value={selectedSurat.jenis} readOnly className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tanggal" className="text-right">Tanggal</Label>
-                <Input id="tanggal" value={selectedSurat.tanggal} readOnly className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="dariKe" className="text-right">Dari/Ke</Label>
-                <Input id="dariKe" value={selectedSurat.dariKe} readOnly className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">Status</Label>
-                <Input id="status" value={selectedSurat.status} readOnly className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="penanggungJawab" className="text-right">P. Jawab</Label>
-                <Input id="penanggungJawab" value={selectedSurat.penanggungJawab} readOnly className="col-span-3" />
-              </div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="nomor" className="text-right">Nomor</Label><Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="judul" className="text-right">Judul</Label><Input id="judul" value={selectedSurat.judul} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="jenis" className="text-right">Jenis</Label><Input id="jenis" value={selectedSurat.jenis} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="tanggal" className="text-right">Tanggal</Label><Input id="tanggal" value={selectedSurat.tanggal} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="dariKe" className="text-right">Dari/Ke</Label><Input id="dariKe" value={selectedSurat.dariKe} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="status" className="text-right">Status</Label><Input id="status" value={selectedSurat.status} readOnly className="col-span-3" /></div>
+              <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="penanggungJawab" className="text-right">P. Jawab</Label><Input id="penanggungJawab" value={selectedSurat.penanggungJawab} readOnly className="col-span-3" /></div>
             </div>
           )}
-          <DialogFooter>
-            <DialogClose asChild>
-                <Button type="button" variant="secondary">Tutup</Button>
-            </DialogClose>
-          </DialogFooter>
+          <DialogFooter><DialogClose asChild><Button type="button" variant="secondary">Tutup</Button></DialogClose></DialogFooter>
         </DialogContent>
       </Dialog>
       
-      {/* Alur Dialog */}
       <Dialog open={isAlurOpen} onOpenChange={setIsAlurOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Alur Lengkap Surat</DialogTitle>
-            <DialogDescription>
-              Linimasa perjalanan surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Alur Lengkap Surat</DialogTitle><DialogDescription>Linimasa perjalanan surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.</DialogDescription></DialogHeader>
           <div className="py-4">
             {selectedSurat?.jenis === 'Surat Masuk' ? (
               <ul className="space-y-4">
                   <li className="flex items-start">
-                      <div className="flex flex-col items-center mr-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Mailbox className="h-4 w-4" /></div>
-                          <div className="w-px h-16 bg-border"></div>
-                      </div>
-                      <div>
-                          <p className="font-semibold">Surat Diterima</p>
-                          <p className="text-sm text-muted-foreground">Oleh: Admin, Pada: {selectedSurat.tanggal}</p>
-                          <p className="text-sm">Surat diterima dari {selectedSurat.dariKe}.</p>
-                      </div>
+                      <div className="flex flex-col items-center mr-4"><div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Mailbox className="h-4 w-4" /></div><div className="w-px h-16 bg-border"></div></div>
+                      <div><p className="font-semibold">Surat Diterima</p><p className="text-sm text-muted-foreground">Oleh: Admin, Pada: {selectedSurat.tanggal}</p><p className="text-sm">Surat diterima dari {selectedSurat.dariKe}.</p></div>
                   </li>
                   <li className="flex items-start">
-                        <div className="flex flex-col items-center mr-4">
-                            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Share2 className="h-4 w-4" /></div>
-                            <div className="w-px h-16 bg-border"></div>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Disposisi</p>
-                          <p className="text-sm text-muted-foreground">Oleh: Admin, Kepada: {selectedSurat.penanggungJawab}</p>
-                          <p className="text-sm">Surat diteruskan untuk ditindaklanjuti.</p>
-                        </div>
+                        <div className="flex flex-col items-center mr-4"><div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><Share2 className="h-4 w-4" /></div><div className="w-px h-16 bg-border"></div></div>
+                        <div><p className="font-semibold">Disposisi</p><p className="text-sm text-muted-foreground">Oleh: Admin, Kepada: {selectedSurat.penanggungJawab}</p><p className="text-sm">Surat diteruskan untuk ditindaklanjuti.</p></div>
                   </li>
                     <li className="flex items-start">
                         <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white"><CheckCircle className="h-4 w-4" /></div>
-                        <div className="ml-4">
-                          <p className="font-semibold">Proses Selesai</p>
-                          <p className="text-sm text-muted-foreground">Oleh: {selectedSurat.penanggungJawab}</p>
-                          <p className="text-sm">{selectedSurat.status === 'Selesai' || selectedSurat.status === 'Diarsipkan' ? 'Tindakan yang diperlukan telah selesai.' : 'Surat masih dalam proses.'}</p>
-                        </div>
+                        <div className="ml-4"><p className="font-semibold">Proses Selesai</p><p className="text-sm text-muted-foreground">Oleh: {selectedSurat.penanggungJawab}</p><p className="text-sm">{['Selesai', 'Diarsipkan', 'Disetujui'].includes(selectedSurat.status) ? 'Tindakan yang diperlukan telah selesai.' : 'Surat masih dalam proses.'}</p></div>
                     </li>
               </ul>
             ) : (
                 <ul className="space-y-4">
                   <li className="flex items-start">
-                      <div className="flex flex-col items-center mr-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><FilePenLine className="h-4 w-4" /></div>
-                          <div className="w-px h-16 bg-border"></div>
-                      </div>
-                      <div>
-                          <p className="font-semibold">Draft Dibuat</p>
-                          <p className="text-sm text-muted-foreground">Oleh: {selectedSurat?.penanggungJawab}, Pada: {selectedSurat?.tanggal}</p>
-                          <p className="text-sm">Surat sedang dalam proses pembuatan.</p>
-                      </div>
+                      <div className="flex flex-col items-center mr-4"><div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><FilePenLine className="h-4 w-4" /></div><div className="w-px h-16 bg-border"></div></div>
+                      <div><p className="font-semibold">Draft Dibuat</p><p className="text-sm text-muted-foreground">Oleh: {selectedSurat?.penanggungJawab}, Pada: {selectedSurat?.tanggal}</p><p className="text-sm">Surat sedang dalam proses pembuatan.</p></div>
                   </li>
                     <li className="flex items-start">
-                      <div className="flex flex-col items-center mr-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><UserCheck className="h-4 w-4" /></div>
-                          <div className="w-px h-16 bg-border"></div>
-                      </div>
-                      <div>
-                        <p className="font-semibold">Disetujui</p>
-                        <p className="text-sm text-muted-foreground">{selectedSurat?.status !== 'Draft' ? 'Oleh: Atasan Terkait' : 'Menunggu persetujuan'}</p>
-                        <p className="text-sm">Persetujuan internal untuk pengiriman.</p>
-                      </div>
+                      <div className="flex flex-col items-center mr-4"><div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full text-white"><UserCheck className="h-4 w-4" /></div><div className="w-px h-16 bg-border"></div></div>
+                      <div><p className="font-semibold">Disetujui</p><p className="text-sm text-muted-foreground">{selectedSurat?.status !== 'Draft' ? 'Oleh: Atasan Terkait' : 'Menunggu persetujuan'}</p><p className="text-sm">Persetujuan internal untuk pengiriman.</p></div>
                   </li>
                   <li className="flex items-start">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-white"><Send className="h-4 w-4" /></div>
-                        <div className="ml-4">
-                        <p className="font-semibold">Surat Terkirim</p>
-                        <p className="text-sm text-muted-foreground">{selectedSurat?.status === 'Terkirim' ? `Kepada: ${selectedSurat?.dariKe}` : 'Surat belum dikirim'}</p>
-                        <p className="text-sm">Surat telah dikirimkan ke tujuan.</p>
-                      </div>
+                        <div className="ml-4"><p className="font-semibold">Surat Terkirim</p><p className="text-sm text-muted-foreground">{selectedSurat?.status === 'Terkirim' ? `Kepada: ${selectedSurat?.dariKe}` : 'Surat belum dikirim'}</p><p className="text-sm">Surat telah dikirimkan ke tujuan.</p></div>
                   </li>
               </ul>
             )}
           </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="secondary">Tutup</Button>
-            </DialogClose>
-          </DialogFooter>
+          <DialogFooter><DialogClose asChild><Button variant="secondary">Tutup</Button></DialogClose></DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
   );
 }
+
+    

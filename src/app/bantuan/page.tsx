@@ -50,13 +50,14 @@ const helpContent: Record<string, HelpContent> = {
         faq: [
             { q: "Bagaimana alur lengkap pengadaan barang dari awal sampai akhir?", a: "Alur lengkapnya ada 5 tahap: 1. Surat Perintah, 2. Surat Pesanan (Internal), 3. Surat Pesanan (Vendor), 4. Berita Acara Pemeriksaan, dan 5. Berita Acara Serah Terima. Anda akan lebih banyak terlibat di tahap 1, 3, 4, dan 5." },
             { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya (misal, membuat Surat Pesanan Vendor dari Surat Pesanan Internal), klik 'Ambil Data' untuk otomatis mengisi informasi dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." },
-            { q: "Bagaimana cara mencetak dokumen?", a: "Di setiap halaman pembuatan surat, ada tombol 'Cetak' di pojok kanan atas. Ini akan membuka pratinjau cetak browser Anda untuk dokumen yang sedang Anda lihat." },
-            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'." }
+            { q: "Bagaimana cara mengirim dokumen ke vendor?", a: "Di halaman Surat Keluar, temukan Surat Pesanan (Vendor) yang sudah jadi. Klik menu aksi (tiga titik) dan pilih 'Cetak Bundle'. Di halaman bundle, klik tombol 'Kirim ke Vendor', masukkan email, dan sistem akan mengirimkannya." },
+            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan dan mengeditnya?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'. Gunakan menu aksi (tiga titik) dan pilih 'Edit Draf' untuk melanjutkan pekerjaan Anda." }
         ],
         guide: [
             { title: "Memulai Alur Surat Pengadaan (Surat Perintah)", steps: ["Klik 'Buat Surat', lalu pilih 'Surat Perintah' dan isi detailnya.", "Surat ini ditujukan untuk Pejabat Pengadaan (PPBJ) sebagai dasar untuk proses selanjutnya.", "Simpan sebagai draf atau langsung kirim."] },
             { title: "Membuat Surat Pesanan ke Vendor", steps: ["Setelah PPBJ membuat Surat Pesanan Internal, Anda bisa melanjutkan dengan membuat 'Surat Pesanan (Vendor)'.", "Gunakan fitur 'Ambil Data' untuk menarik detail dari Surat Pesanan Internal yang dibuat PPBJ.", "Lengkapi detail vendor dan informasi lain yang diperlukan, lalu kirim."] },
-            { title: "Membuat Berita Acara", steps: ["Setelah barang diterima, buat 'Berita Acara Pemeriksaan'. Ambil data dari 'Surat Pesanan (Vendor)' untuk konsistensi.", "Lanjutkan dengan 'Berita Acara Serah Terima' untuk menyelesaikan proses. Gunakan 'Ambil Data' dari Berita Acara Pemeriksaan."] }
+            { title: "Membuat Berita Acara", steps: ["Setelah barang diterima, buat 'Berita Acara Pemeriksaan'. Ambil data dari 'Surat Pesanan (Vendor)' untuk konsistensi.", "Lanjutkan dengan 'Berita Acara Serah Terima' untuk menyelesaikan proses. Gunakan 'Ambil Data' dari Berita Acara Pemeriksaan."] },
+            { title: "Menyelesaikan & Mengirim Bundle", steps: ["Setelah semua 5 dokumen selesai, buka 'Surat Keluar'.", "Cari salah satu dokumen dari alur tersebut, lalu klik menu aksi dan pilih 'Cetak Bundle'.", "Di halaman Bundle, Anda bisa mencetak semua dokumen sekaligus atau mengirimkannya via email ke vendor."] }
         ]
     },
     ppbj: {
@@ -83,9 +84,9 @@ const helpContent: Record<string, HelpContent> = {
 };
 
 export default function BantuanPage() {
-    const [selectedRole, setSelectedRole] = useState('staf');
+    const [selectedRole, setSelectedRole] = useState('ppk');
     const content = helpContent[selectedRole] || helpContent.staf;
-    const currentUser = mockUsers.find(u => u.id === selectedRole) || mockUsers[3];
+    const currentUser = mockUsers.find(u => u.id === selectedRole) || mockUsers[2];
 
     return (
         <AppLayout>
@@ -153,3 +154,5 @@ export default function BantuanPage() {
         </AppLayout>
     );
 }
+
+    
