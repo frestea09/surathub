@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -28,7 +28,14 @@ type BeritaAcara = {
 export default function BuatBastbPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const addSurat = useSuratStore(state => state.addSurat);
+  const searchParams = useSearchParams();
+  const { addSurat, surat: allSurat } = useSuratStore(state => ({
+    addSurat: state.addSurat,
+    surat: state.surat,
+  }));
+
+  const editNomor = searchParams.get('edit');
+  const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
     nomor: 'BASTB/06/FAR/IV/2025',
@@ -49,6 +56,20 @@ export default function BuatBastbPage() {
   });
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [availableSurat, setAvailableSurat] = useState<BeritaAcara[]>([]);
+
+  useEffect(() => {
+    if (isEditMode && allSurat.length > 0) {
+      const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'BASTB');
+      if (suratToEdit) {
+        const { formData: dataToLoad } = suratToEdit.data;
+        setFormData({
+            ...dataToLoad,
+            tanggalSuratPesanan: dataToLoad.tanggalSuratPesanan ? new Date(dataToLoad.tanggalSuratPesanan) : new Date(),
+            tanggalBeritaAcara: dataToLoad.tanggalBeritaAcara ? new Date(dataToLoad.tanggalBeritaAcara) : new Date(),
+        });
+      }
+    }
+  }, [editNomor, allSurat, isEditMode]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -109,7 +130,10 @@ export default function BuatBastbPage() {
     try {
       const dataToSave = { formData: { ...formData, status: 'Draft' } };
       addSurat('bastbList', dataToSave);
-      toast({ title: "Berhasil", description: "Data BASTB berhasil disimpan sebagai draft." });
+      toast({ 
+        title: "Berhasil", 
+        description: isEditMode ? "Draf BASTB berhasil diperbarui." : "Data BASTB berhasil disimpan sebagai draft." 
+      });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -126,7 +150,7 @@ export default function BuatBastbPage() {
             <span className="sr-only">Back</span>
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold">Buat Berita Acara Serah Terima</h1>
+        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Berita Acara Serah Terima</h1>
         <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" onClick={handleOpenImportDialog}>
               <Download className="mr-2 h-4 w-4" />
@@ -134,7 +158,7 @@ export default function BuatBastbPage() {
             </Button>
             <Button variant="outline" onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
-              Simpan
+              {isEditMode ? 'Update Draf' : 'Simpan'}
             </Button>
             <Button onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />

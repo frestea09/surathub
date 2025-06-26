@@ -14,6 +14,7 @@ import {
   Search,
   Trash2,
   FileArchive,
+  Pencil,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
@@ -136,6 +137,35 @@ export default function SuratKeluarPage() {
         setKirimSearchTerm("");
     }
   };
+
+  const handleEditClick = (surat: Surat) => {
+    let path = '';
+    switch (surat.tipe) {
+        case 'SPP':
+            path = '/buat-surat';
+            break;
+        case 'SP':
+            path = '/buat-surat-pesanan';
+            break;
+        case 'SP-Vendor':
+            path = '/buat-surat-pesanan-final';
+            break;
+        case 'BA':
+            path = '/buat-berita-acara';
+            break;
+        case 'BASTB':
+            path = '/buat-bastb';
+            break;
+        default:
+            toast({
+                variant: 'destructive',
+                title: 'Gagal',
+                description: 'Tipe surat tidak dikenali untuk diedit.',
+            });
+            return;
+    }
+    router.push(`${path}?edit=${encodeURIComponent(surat.nomor)}`);
+  };
   
   const closeDialog = () => {
     setSelectedSurat(null);
@@ -247,6 +277,10 @@ export default function SuratKeluarPage() {
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'detail')}>
                               <FileSearch className="mr-2 h-4 w-4" />
                               Lihat Detail
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditClick(surat)} disabled={surat.status !== 'Draft'}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit Draf
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'kirim')} disabled={surat.status !== 'Draft'}>
                               <Send className="mr-2 h-4 w-4" />

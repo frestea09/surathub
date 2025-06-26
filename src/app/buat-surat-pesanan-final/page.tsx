@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +41,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
@@ -73,210 +73,19 @@ const initialItems: Item[] = [
     hargaSatuan: 23800,
     diskon: 0,
   },
-  {
-    id: 2,
-    nama: "ALKOHOL SWAB ONEMED 100 LBR",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 10000,
-    hargaSatuan: 80,
-    diskon: 0,
-  },
-  {
-    id: 3,
-    nama: "APRON ONE BOX 50'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 1500,
-    hargaSatuan: 1656,
-    diskon: 0,
-  },
-  {
-    id: 4,
-    nama: "CONDOM CATH L ONEMED",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 5,
-    hargaSatuan: 5300,
-    diskon: 0,
-  },
-  {
-    id: 5,
-    nama: "CONDOM CATH M ONEMED",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 5,
-    hargaSatuan: 5300,
-    diskon: 0,
-  },
-  {
-    id: 6,
-    nama: "DERFAMIX TULLE 10 X 10 CM BOX 10'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 80,
-    hargaSatuan: 2800,
-    diskon: 0,
-  },
-  {
-    id: 7,
-    nama: "DERFAMIX TULLE 10 X 25 TYPE A BOX 10'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 250,
-    hargaSatuan: 9800,
-    diskon: 0,
-  },
-  {
-    id: 8,
-    nama: "DR.J PAD 60 X 90 KARTON 100",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 1000,
-    hargaSatuan: 2497,
-    diskon: 0,
-  },
-  {
-    id: 9,
-    nama: "MEDIGLOVE SURGICAL STERILE PF 7 BOX 50 PSG",
-    satuan: "PASANG",
-    merk: "ONEMED",
-    jumlah: 1000,
-    hargaSatuan: 4960,
-    diskon: 0,
-  },
-  {
-    id: 10,
-    nama: "MEDIGLOVE SURGICAL STERILE PF 7.5 BOX 50 PSG",
-    satuan: "PASANG",
-    merk: "ONEMED",
-    jumlah: 700,
-    hargaSatuan: 4960,
-    diskon: 0,
-  },
-  {
-    id: 11,
-    nama: "NURSE CAP GREEN OM BOX 100'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 2000,
-    hargaSatuan: 298,
-    diskon: 0,
-  },
-  {
-    id: 12,
-    nama: "ONE CLEAN WASH GLOVE BH",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 48,
-    hargaSatuan: 9800,
-    diskon: 0,
-  },
-  {
-    id: 13,
-    nama: "ONE SCRUB 4% GALON 5 LT BH",
-    satuan: "GALON",
-    merk: "ONEMED",
-    jumlah: 2,
-    hargaSatuan: 348000,
-    diskon: 0,
-  },
-  {
-    id: 14,
-    nama: "PLESTERIN BULAT NON WOVEN BOX 200 STR",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 1400,
-    hargaSatuan: 154,
-    diskon: 0,
-  },
-  {
-    id: 15,
-    nama: "POV IODINE 10% 1 LT ONEMED",
-    satuan: "BOTOL",
-    merk: "ONEMED",
-    jumlah: 50,
-    hargaSatuan: 68770,
-    diskon: 0,
-  },
-  {
-    id: 16,
-    nama: "SPUIT 1 CC TB ONEMED BOX 100'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 6000,
-    hargaSatuan: 520,
-    diskon: 0,
-  },
-  {
-    id: 17,
-    nama: "SPUIT 3 CC ONEMED BOX 100'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 8000,
-    hargaSatuan: 507,
-    diskon: 0,
-  },
-  {
-    id: 18,
-    nama: "SPUIT 5 CC ONEMED BOX 100'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 8000,
-    hargaSatuan: 514,
-    diskon: 0,
-  },
-  {
-    id: 19,
-    nama: "SPUIT 10 CC ONEMED BOX 100'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 4000,
-    hargaSatuan: 812,
-    diskon: 0,
-  },
-  {
-    id: 20,
-    nama: "SPUIT 20 CC EC OM BOX 50'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 2000,
-    hargaSatuan: 1160,
-    diskon: 0,
-  },
-  {
-    id: 21,
-    nama: "SPUIT 50 CC CATHETER TIP OM BOX 30'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 360,
-    hargaSatuan: 4073,
-    diskon: 0,
-  },
-  {
-    id: 22,
-    nama: "SPUIT 50 CC LL ONEMED BOX 20'S",
-    satuan: "BUAH",
-    merk: "ONEMED",
-    jumlah: 500,
-    hargaSatuan: 3400,
-    diskon: 0,
-  },
-  {
-    id: 23,
-    nama: "ST.GYNAECOLOG STERIL OM",
-    satuan: "PASANG",
-    merk: "ONEMED",
-    jumlah: 100,
-    hargaSatuan: 15800,
-    diskon: 0,
-  },
 ];
 
 export default function BuatSuratPesananFinalPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const addSurat = useSuratStore(state => state.addSurat);
+  const searchParams = useSearchParams();
+  const { addSurat, surat: allSurat } = useSuratStore(state => ({
+    addSurat: state.addSurat,
+    surat: state.surat,
+  }));
+  
+  const editNomor = searchParams.get('edit');
+  const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
     nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
@@ -297,6 +106,21 @@ export default function BuatSuratPesananFinalPage() {
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [availableSurat, setAvailableSurat] = useState<SuratPesanan[]>([]);
+
+  useEffect(() => {
+    if (isEditMode && allSurat.length > 0) {
+        const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'SP-Vendor');
+        if (suratToEdit) {
+            const { formData: dataToLoad, items: itemsToLoad } = suratToEdit.data;
+            setFormData({
+                ...dataToLoad,
+                tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
+                tanggalSuratReferensi: dataToLoad.tanggalSuratReferensi ? new Date(dataToLoad.tanggalSuratReferensi) : new Date(),
+            });
+            setItems(itemsToLoad || []);
+        }
+    }
+  }, [editNomor, allSurat, isEditMode]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce(
@@ -414,8 +238,7 @@ export default function BuatSuratPesananFinalPage() {
       addSurat('suratPesananFinalList', dataToSave);
       toast({
         title: "Berhasil",
-        description:
-          "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
+        description: isEditMode ? "Draf surat pesanan (vendor) berhasil diperbarui." : "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -440,7 +263,7 @@ export default function BuatSuratPesananFinalPage() {
             <span className="sr-only">Back</span>
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold">Buat Surat Pesanan (Vendor)</h1>
+        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Surat Pesanan (Vendor)</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleOpenImportDialog}>
             <Download className="mr-2 h-4 w-4" />
@@ -448,7 +271,7 @@ export default function BuatSuratPesananFinalPage() {
           </Button>
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            Simpan
+            {isEditMode ? 'Update Draf' : 'Simpan'}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />

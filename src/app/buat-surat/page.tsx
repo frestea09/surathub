@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { ArrowLeft, Printer, Sparkles, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
@@ -26,7 +26,14 @@ import { useSuratStore } from "@/store/suratStore";
 export default function BuatSuratPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const addSurat = useSuratStore(state => state.addSurat);
+  const searchParams = useSearchParams();
+  const { addSurat, surat: allSurat } = useSuratStore(state => ({
+    addSurat: state.addSurat,
+    surat: state.surat,
+  }));
+  
+  const editNomor = searchParams.get('edit');
+  const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
     nomor: "000.3/PPK-RSUD OTISTA/IV/2025",
@@ -44,6 +51,19 @@ export default function BuatSuratPage() {
     namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt",
     nipPenandaTangan: "NIP. 198408272008011005",
   });
+
+  useEffect(() => {
+    if (isEditMode && allSurat.length > 0) {
+        const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'SPP');
+        if (suratToEdit) {
+            const dataToLoad = suratToEdit.data;
+            setFormData({
+                ...dataToLoad,
+                tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
+            });
+        }
+    }
+  }, [editNomor, allSurat, isEditMode]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -77,7 +97,7 @@ export default function BuatSuratPage() {
       addSurat('suratPerintahList', dataToSave);
       toast({
         title: "Berhasil",
-        description: "Data surat berhasil disimpan sebagai draft.",
+        description: isEditMode ? "Draf surat berhasil diperbarui." : "Data surat berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -99,11 +119,11 @@ export default function BuatSuratPage() {
             <span className="sr-only">Back</span>
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold">Buat Surat Perintah</h1>
+        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Surat Perintah</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            Simpan
+            {isEditMode ? 'Update Draf' : 'Simpan'}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
