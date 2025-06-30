@@ -46,6 +46,7 @@ export default function BuatBeritaAcaraHasilPage() {
 
   const [formData, setFormData] = useState({
     nomor: '02/Alat Listrik/PP/V/2025',
+    nomorSuratReferensi: '',
     tanggalSurat: new Date('2025-05-19T00:00:00'),
     narasiPembuka: 'Pada Hari ini Senin Tanggal Sembilan Belas Bulan Mei Tahun Dua Ribu Dua Puluh Lima, telah dibuat Berita Acara Hasil Pengadaan Barang/Jasa untuk paket pekerjaan',
     kodePaket: 'Belanja Alat Listrik',
@@ -103,7 +104,7 @@ export default function BuatBeritaAcaraHasilPage() {
     try {
       const dataToSave = { formData: { ...formData, status: 'Draft' }, peserta };
       addSurat('beritaAcaraHasilList', dataToSave);
-      toast({ title: "Berhasil", description: isEditMode ? "Draf berhasil diperbarui." : "Data berhasil disimpan sebagai draft." });
+      toast({ title: "Berhasil", description: isEditMode ? "Draf berhasil diperbarui." : "Data berhasil disimpan sebagai draf." });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
@@ -126,6 +127,7 @@ export default function BuatBeritaAcaraHasilPage() {
     setFormData(prev => ({
       ...prev,
       namaPaket: surat.perihal,
+      nomorSuratReferensi: surat.nomor,
     }));
     setIsImportDialogOpen(false);
     toast({ title: "Berhasil", description: `Data dari surat ${surat.nomor} berhasil dimuat.` });
@@ -267,5 +269,3 @@ export default function BuatBeritaAcaraHasilPage() {
     </div>
   );
 }
-
-    

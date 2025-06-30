@@ -43,6 +43,8 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSuratStore } from "@/store/suratStore";
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 type Item = {
   id: number;
@@ -72,6 +74,7 @@ export default function BuatBeritaAcaraUmumPage() {
 
   const [formData, setFormData] = useState({
     nomor: "02/BAP-Alat Listrik/V/2025",
+    nomorSuratReferensi: "",
     narasiPembuka: "Pada Hari Sabtu Tanggal Tiga Puluh Satu Bulan Mei Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, berdasarkan Surat Keputusan Direktur RSUD Oto Iskandar Di Nata Nomor : 800.1.10.2/216/UMPEG/2024 yang bertanda tangan dibawah ini Pejabat Pembuat Komitmen Yang bersumber dari Pendapatan Fungsional Rumah Sakit Umum Daerah Oto Iskandar Di Nata yang dianggarkan dalam Rencana Bisnis Anggaran (RBA) Rumah Sakit Umum Daerah Oto Iskandar Di Nata Tahun Anggaran 2025 menyatakan dengan sebenarnya telah melaksanakan penerimaan dan pemeriksaan barang dari:",
     vendorNama: "TB. Doa Sepuh",
     vendorAlamat: "Jl. Simpang Wetan Desa Sekarwangi Soreang",
@@ -138,6 +141,7 @@ export default function BuatBeritaAcaraUmumPage() {
       vendorAlamat: importData.formData?.penerimaAlamat || prev.vendorAlamat,
       penyediaNama: importData.formData?.penerima || prev.penyediaNama,
       narasiRealisasi: `Sebagai realisasi dari Surat Pesanan dari Pejabat Pembuat Komitmen Nomor: ${importData.formData?.nomor}, tanggal ${format(new Date(importData.formData?.tanggalSurat), "dd MMMM yyyy", { locale: id })} dengan jumlah dan jenis barang sebagai berikut:`,
+      nomorSuratReferensi: importData.formData?.nomor || "",
     }));
 
     const mappedItems: Item[] = (importData.items || []).map((item) => ({
@@ -321,5 +325,3 @@ export default function BuatBeritaAcaraUmumPage() {
     </div>
   );
 }
-
-    

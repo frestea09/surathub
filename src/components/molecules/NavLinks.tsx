@@ -13,6 +13,7 @@ import {
   Settings,
   History,
   HelpCircle,
+  PackageSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
@@ -22,6 +23,7 @@ const mainNavItems = [
   { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK, icon: FileText },
   { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR, icon: Package },
   { href: "/laporan", label: NAV_LINKS.LAPORAN, icon: LineChart },
+  { href: "/arsip-bundle", label: NAV_LINKS.ARSIP_BUNDLE, icon: PackageSearch },
   { href: "/notifikasi", label: NAV_LINKS.NOTIFIKASI, icon: Bell },
   { href: "/admin", label: NAV_LINKS.ADMIN, icon: UserCog },
   { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
@@ -36,6 +38,13 @@ type NavLinksProps = {
 
 export function NavLinks({ isMobile = false }: NavLinksProps) {
   const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  };
 
   if (isMobile) {
     const allItems = [...mainNavItems, secondaryNavItem];
@@ -68,7 +77,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
             href={item.href}
             className={cn(
               "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-              pathname === item.href && "bg-muted text-foreground"
+              isActive(item.href) && "bg-muted text-foreground"
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -90,7 +99,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                pathname === item.href && "bg-muted text-primary"
+                isActive(item.href) && "bg-muted text-primary"
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -105,7 +114,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
             href={secondaryNavItem.href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-              pathname === secondaryNavItem.href && "bg-muted text-primary"
+              isActive(secondaryNavItem.href) && "bg-muted text-primary"
             )}
           >
             <secondaryNavItem.icon className="h-4 w-4" />

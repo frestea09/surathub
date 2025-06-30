@@ -107,6 +107,7 @@ export const NAV_LINKS = {
   SURAT_MASUK: "Surat Masuk",
   SURAT_KELUAR: "Surat Keluar",
   LAPORAN: "Laporan",
+  ARSIP_BUNDLE: "Arsip Bundle",
   NOTIFIKASI: "Notifikasi",
   ADMIN: "Admin",
   LOG_AKTIVITAS: "Log Aktivitas",
@@ -148,5 +149,3 @@ export const BUAT_SURAT_POPOVER = {
   SURAT_PESANAN_UMUM: "3. Surat Pesanan",
   BERITA_ACARA_PEMERIKSAAN_UMUM: "4. Berita Acara Pemeriksaan",
 };
-
-    
