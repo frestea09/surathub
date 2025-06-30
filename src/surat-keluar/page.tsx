@@ -165,6 +165,9 @@ export default function SuratKeluarPage() {
         case 'SP-Umum':
              path = '/buat-surat-pesanan-umum';
             break;
+        case 'BA-Umum':
+            path = '/buat-berita-acara-umum';
+            break;
         default:
             toast({
                 variant: 'destructive',
@@ -574,3 +577,5 @@ export default function SuratKeluarPage() {
     </AppLayout>
   );
 }
+
+    

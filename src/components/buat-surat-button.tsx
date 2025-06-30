@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill } from "lucide-react"
+import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -57,7 +57,12 @@ const suratUmumItems = [
     {
         label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM,
         href: "/buat-surat-pesanan-umum",
-        icon: FileText,
+        icon: Receipt,
+    },
+    {
+        label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN_UMUM,
+        href: "/buat-berita-acara-umum",
+        icon: FileSignature,
     },
 ];
 
@@ -183,3 +188,5 @@ export function BuatSuratButton() {
     </Popover>
   )
 }
+
+    
