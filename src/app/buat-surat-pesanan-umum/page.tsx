@@ -144,7 +144,7 @@ export default function BuatSuratPesananUmumPage() {
   const handleItemChange = (id: number, field: keyof Item, value: string | number) => {
     let finalValue = value;
     if (field === 'hargaSatuan') {
-        finalValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '.')) || 0 : value;
+        finalValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) || 0 : value;
     }
     setItems(prev => prev.map(item => (item.id === id ? { ...item, [field]: finalValue } : item)));
   };
@@ -295,7 +295,7 @@ export default function BuatSuratPesananUmumPage() {
                 </div>
 
                 <p className="mb-4 text-justify">
-                  Berdasarkan Berita Acara Hasil Pengadaan Barang Jasa Nomor {formData.nomorSuratReferensi} Tanggal {formData.tanggalSuratReferensi ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", { locale: id }) : ""}, maka dengan ini kami mengadakan Pesanan Barang/Jasa dengan perincian sebagai berikut :
+                  Berdasarkan Berita Acara Hasil Pengadaan Barang Jasa Nomor {formData.nomorSuratReferensi} Tanggal {formData.tanggalSuratReferensi ? format(new Date(formData.tanggalSuratReferensi), "dd MMMM yyyy", { locale: id }) : ""}, maka dengan ini kami mengadakan Pesanan Barang/Jasa dengan perincian sebagai berikut :
                 </p>
 
                 <Table className="mb-4 text-[10pt]">
@@ -316,13 +316,13 @@ export default function BuatSuratPesananUmumPage() {
                         <TableCell className="border border-black">{item.nama}</TableCell>
                         <TableCell className="border border-black text-center">{item.volume}</TableCell>
                         <TableCell className="border border-black text-center">{item.satuan}</TableCell>
-                        <TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell>
+                        <TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(item.hargaSatuan))}</TableCell>
                         <TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(item.volume * item.hargaSatuan))}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow>
                         <TableCell colSpan={5} className="border border-black text-right font-bold">Jumlah</TableCell>
-                        <TableCell className="border border-black text-right font-bold">{formatCurrency(totals.subtotal)}</TableCell>
+                        <TableCell className="border border-black text-right font-bold">{formatCurrency(roundHalfUp(totals.subtotal))}</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell colSpan={5} className="border border-black text-right font-bold">PPN {formData.ppn}%</TableCell>

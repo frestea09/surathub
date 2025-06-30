@@ -172,7 +172,7 @@ export default function BuatSuratPesananFinalPage() {
   ) => {
     let finalValue = value;
     if (field === 'hargaSatuan') {
-        finalValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '.')) || 0 : value;
+        finalValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) || 0 : value;
     }
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: finalValue } : item))
@@ -599,7 +599,7 @@ export default function BuatSuratPesananFinalPage() {
                 <p className="mb-4 text-justify">
                   Berdasarkan Usulan dari Pejabat Pengadaan RSUD Oto Iskandar Di
                   Nata Nomor : {formData.nomorSuratReferensi} Tanggal{" "}
-                  {formData.tanggalSuratReferensi ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", { locale: id }) : ""}, Maka dengan ini kami
+                  {formData.tanggalSuratReferensi ? format(new Date(formData.tanggalSuratReferensi), "dd MMMM yyyy", { locale: id }) : ""}, Maka dengan ini kami
                   menyatakan pesanan barang/jasa dengan perincian sebagai
                   berikut:
                 </p>
@@ -657,7 +657,7 @@ export default function BuatSuratPesananFinalPage() {
                             {formatCurrency(item.jumlah)}
                           </TableCell>
                           <TableCell className="border border-black text-right">
-                            {formatCurrency(item.hargaSatuan)}
+                            {formatCurrency(roundHalfUp(item.hargaSatuan))}
                           </TableCell>
                           <TableCell className="border border-black text-center">
                             {item.diskon > 0 ? `${item.diskon}%` : "0%"}
@@ -676,19 +676,19 @@ export default function BuatSuratPesananFinalPage() {
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                       <span className="font-bold">Subtotal</span>
                       <span className="font-bold text-right">
-                        {formatCurrency(totals.subtotal)}
+                        {formatCurrency(roundHalfUp(totals.subtotal))}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                       <span className="font-bold">Diskon</span>
                       <span className="font-bold text-right">
-                        {formatCurrency(totals.totalDiskon)}
+                        {formatCurrency(roundHalfUp(totals.totalDiskon))}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                       <span className="font-bold">Total Setelah Diskon</span>
                       <span className="font-bold text-right">
-                        {formatCurrency(totals.totalAfterDiskon)}
+                        {formatCurrency(roundHalfUp(totals.totalAfterDiskon))}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
