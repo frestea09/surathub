@@ -144,7 +144,7 @@ export default function BuatSuratPesananUmumPage() {
   const handleItemChange = (id: number, field: keyof Item, value: string | number) => {
     let finalValue = value;
     if (field === 'hargaSatuan') {
-        finalValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) || 0 : value;
+      finalValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) || 0 : value;
     }
     setItems(prev => prev.map(item => (item.id === id ? { ...item, [field]: finalValue } : item)));
   };
