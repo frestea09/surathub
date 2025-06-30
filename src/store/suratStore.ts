@@ -42,13 +42,13 @@ const mapToUnifiedFormat = (item: any, jenis: 'Surat Keluar' | 'Surat Masuk', ti
 
     return {
         nomor: base.nomor || base.noSurat || `DRAFT-${Date.now()}`,
-        judul: base.perihal || 'N/A',
+        judul: base.perihal || base.namaPaket || 'N/A',
         jenis,
         tipe,
         status: base.status || 'Draft',
         tanggal,
         unit: unit || getUnitForSurat(base),
-        penanggungJawab: base.namaPenandaTangan || base.disposisi || 'Admin',
+        penanggungJawab: base.namaPenandaTangan || base.pejabatNama || base.disposisi || 'Admin',
         dariKe: base.penerima || base.pengirim || base.vendorNama || 'Internal',
         data: item,
     };
@@ -80,6 +80,7 @@ const suratStorageKeys = [
     'beritaAcaraList', 
     'bastbList',
     'suratPerintahUmumList',
+    'beritaAcaraHasilList',
 ];
 const suratTipeMap: { [key: string]: string } = {
     'suratPerintahList': 'SPP',
@@ -88,6 +89,7 @@ const suratTipeMap: { [key: string]: string } = {
     'beritaAcaraList': 'BA',
     'bastbList': 'BASTB',
     'suratPerintahUmumList': 'SPU',
+    'beritaAcaraHasilList': 'BAH',
 };
 
 
@@ -102,11 +104,11 @@ const itemsData = [
 const itemsWithKeterangan = itemsData.map(item => ({...item, keterangan: "Baik sesuai dengan SP"}));
 
 const seedInitialData = () => {
-    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v2')) {
+    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v3')) {
         return;
     }
     
-    // 1. Surat Perintah
+    // 1. Surat Perintah (Obat)
     const suratPerintah = [{
         nomor: "000.3/PPK-RSUD OTISTA/IV/2025",
         status: "Terkirim",
@@ -124,7 +126,7 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('suratPerintahList', JSON.stringify(suratPerintah));
 
-    // 2. Surat Pesanan Internal
+    // 2. Surat Pesanan Internal (Obat)
     const suratPesanan = [{
         formData: {
             nomor: "000.3/PPBJ-RSUD OTISTA/IV/2025",
@@ -146,7 +148,7 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('suratPesananList', JSON.stringify(suratPesanan));
 
-    // 3. Surat Pesanan Vendor
+    // 3. Surat Pesanan Vendor (Obat)
     const suratPesananFinal = [{
         formData: {
             nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
@@ -168,7 +170,7 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('suratPesananFinalList', JSON.stringify(suratPesananFinal));
     
-    // 4. Berita Acara Pemeriksaan
+    // 4. Berita Acara Pemeriksaan (Obat)
     const beritaAcara = [{
         formData: {
             nomor: "06/PPK-FAR/RSUDO/IV/2025",
@@ -187,7 +189,7 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('beritaAcaraList', JSON.stringify(beritaAcara));
     
-    // 5. Berita Acara Serah Terima
+    // 5. Berita Acara Serah Terima (Obat)
     const bastb = [{
         formData: {
             nomor: 'BASTB/06/FAR/IV/2025',
@@ -210,7 +212,25 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('bastbList', JSON.stringify(bastb));
     
-    localStorage.setItem('surat_data_seeded_v2', 'true');
+    // 6. Surat Perintah (Umum)
+     const suratPerintahUmum = [{
+      nomor: "02/Alat Listrik/PPK/V/2025",
+      status: "Terkirim",
+      lampiran: "-",
+      perihal: "Pengadaan Belanja Alat Listrik Bulan Mei 2025",
+      tempat: "Soreang",
+      tanggalSurat: new Date("2025-05-19T00:00:00"),
+      penerima: "Pejabat Pengadaan Barang/Jasa",
+      penerimaTempat: "Tempat",
+      isiSurat: "Berdasarkan Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 64a/Umpeg/2025 Tanggal 2 Mei 2025 Hal Permohonan Pengadaan Barang Jasa pada IPSRS, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segera persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku.",
+      penutup: "Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.",
+      jabatanPenandaTangan: "PEJABAT PEMBUAT KOMITMEN\nRSUD OTO ISKANDAR DI NATA",
+      namaPenandaTangan: "Heru Heriyanto, S. Kep, Ners",
+      nipPenandaTangan: "NIP. 19741215 200604 1 014",
+    }];
+    localStorage.setItem('suratPerintahUmumList', JSON.stringify(suratPerintahUmum));
+
+    localStorage.setItem('surat_data_seeded_v3', 'true');
     console.log("Demo surat data seeded into localStorage.");
 };
 
@@ -321,3 +341,5 @@ export const useSuratStore = create<SuratState>((set, get) => ({
         });
     }
 }));
+
+    

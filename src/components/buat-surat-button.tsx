@@ -49,7 +49,11 @@ const suratUmumItems = [
         href: "/buat-surat-perintah-umum",
         icon: FileText,
     },
-    // ... Other general procurement documents can be added here
+    {
+        label: BUAT_SURAT_POPOVER.BERITA_ACARA_HASIL_PENGADAAN,
+        href: "/buat-berita-acara-hasil",
+        icon: FileSignature,
+    },
 ];
 
 const MainMenu = ({ setView }: { setView: (view: 'obat' | 'umum') => void }) => (
@@ -174,3 +178,5 @@ export function BuatSuratButton() {
     </Popover>
   )
 }
+
+    
