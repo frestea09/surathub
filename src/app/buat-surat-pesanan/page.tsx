@@ -136,7 +136,7 @@ export default function BuatSuratPesananPage() {
       0
     );
     const totalAfterDiskon = subtotal - totalDiskon;
-    const ppnValue = Math.round(totalAfterDiskon * (formData.ppn / 100));
+    const ppnValue = totalAfterDiskon * (formData.ppn / 100);
     const grandTotal = totalAfterDiskon + ppnValue;
     return { subtotal, totalDiskon, totalAfterDiskon, ppnValue, grandTotal };
   }, [items, formData.ppn]);
@@ -172,8 +172,12 @@ export default function BuatSuratPesananPage() {
     field: keyof Item,
     value: string | number
   ) => {
+    let finalValue = value;
+    if (field === 'hargaSatuan') {
+        finalValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+    }
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: finalValue } : item))
     );
   };
 
@@ -510,7 +514,7 @@ export default function BuatSuratPesananPage() {
                               handleItemChange(
                                 item.id,
                                 "hargaSatuan",
-                                parseFloat(e.target.value) || 0
+                                e.target.value
                               )
                             }
                           />
@@ -690,7 +694,7 @@ export default function BuatSuratPesananPage() {
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1">
                       <span className="font-bold">PPN {formData.ppn}%</span>
                       <span className="text-right font-bold">
-                        {formatCurrency(totals.ppnValue)}
+                        {formatCurrency(roundHalfUp(totals.ppnValue))}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
