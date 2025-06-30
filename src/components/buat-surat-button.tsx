@@ -54,6 +54,11 @@ const suratUmumItems = [
         href: "/buat-berita-acara-hasil",
         icon: FileSignature,
     },
+    {
+        label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM,
+        href: "/buat-surat-pesanan-umum",
+        icon: FileText,
+    },
 ];
 
 const MainMenu = ({ setView }: { setView: (view: 'obat' | 'umum') => void }) => (
@@ -178,5 +183,3 @@ export function BuatSuratButton() {
     </Popover>
   )
 }
-
-    

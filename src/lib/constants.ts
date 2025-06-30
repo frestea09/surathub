@@ -145,6 +145,5 @@ export const BUAT_SURAT_POPOVER = {
   BERITA_ACARA_SERAH_TERIMA: "5. Berita Acara Serah Terima",
   SURAT_PERINTAH_PENGADAAN: "1. Surat Perintah Pengadaan",
   BERITA_ACARA_HASIL_PENGADAAN: "2. Berita Acara Hasil Pengadaan",
+  SURAT_PESANAN_UMUM: "3. Surat Pesanan",
 };
-
-    

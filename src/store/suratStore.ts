@@ -25,7 +25,7 @@ type SuratState = {
 }
 
 const getUnitForSurat = (surat: any): string => {
-    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
+    const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || surat.namaPaket?.toLowerCase() || '';
     if (perihal.includes('keuangan')) return 'Keuangan';
     if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
     if (perihal.includes('dinas') || perihal.includes('listrik')) return 'Umum';
@@ -42,7 +42,7 @@ const mapToUnifiedFormat = (item: any, jenis: 'Surat Keluar' | 'Surat Masuk', ti
 
     return {
         nomor: base.nomor || base.noSurat || `DRAFT-${Date.now()}`,
-        judul: base.perihal || base.namaPaket || 'N/A',
+        judul: base.perihal || base.hal || base.namaPaket || 'N/A',
         jenis,
         tipe,
         status: base.status || 'Draft',
@@ -81,6 +81,7 @@ const suratStorageKeys = [
     'bastbList',
     'suratPerintahUmumList',
     'beritaAcaraHasilList',
+    'suratPesananUmumList',
 ];
 const suratTipeMap: { [key: string]: string } = {
     'suratPerintahList': 'SPP',
@@ -90,6 +91,7 @@ const suratTipeMap: { [key: string]: string } = {
     'bastbList': 'BASTB',
     'suratPerintahUmumList': 'SPU',
     'beritaAcaraHasilList': 'BAH',
+    'suratPesananUmumList': 'SP-Umum',
 };
 
 
@@ -104,7 +106,7 @@ const itemsData = [
 const itemsWithKeterangan = itemsData.map(item => ({...item, keterangan: "Baik sesuai dengan SP"}));
 
 const seedInitialData = () => {
-    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v3')) {
+    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v4')) {
         return;
     }
     
@@ -230,7 +232,58 @@ const seedInitialData = () => {
     }];
     localStorage.setItem('suratPerintahUmumList', JSON.stringify(suratPerintahUmum));
 
-    localStorage.setItem('surat_data_seeded_v3', 'true');
+    // 7. Berita Acara Hasil Pengadaan (Umum)
+    const beritaAcaraHasil = [{
+        formData: {
+            nomor: '02/Alat Listrik/PP/V/2025',
+            tanggalSurat: new Date('2025-05-19T00:00:00'),
+            namaPaket: 'Pengadaan Belanja Alat Listrik Bulan Mei 2025',
+            nilaiNegosiasi: 5308575,
+            pejabatNama: 'Asep Yuyun, S.Sos',
+            pejabatNip: 'NIP.19741219 201001 1 001',
+            status: 'Terkirim',
+        },
+        peserta: [{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }]
+    }];
+    localStorage.setItem('beritaAcaraHasilList', JSON.stringify(beritaAcaraHasil));
+
+    // 8. Surat Pesanan (Umum)
+    const suratPesananUmum = [{
+        formData: {
+            nomor: "000.3/02-Alat Listrik/RSUDO/V/2025",
+            hal: "Surat Pesanan",
+            tempat: "Soreang",
+            tanggalSurat: new Date("2025-05-20T00:00:00"),
+            penerima: "TB. Doa Sepuh",
+            penerimaAlamat: "Jl. Simpang Wetan Desa Sekarwangi Soreang",
+            nomorSuratReferensi: "02/Alat Listrik/PP/V/2025",
+            tanggalSuratReferensi: new Date("2025-05-19T00:00:00"),
+            terbilang: "Lima Juta Tiga Ratus Delapan Ribu Lima Ratus Tujuh Puluh Lima Rupiah",
+            jabatanPenandaTangan: "Pejabat Pembuat Komitmen\nRSUD Oto Iskandar Di Nata",
+            namaPenandaTangan: "Heru Heriyanto, S.Kep, Ners",
+            nipPenandaTangan: "NIP.19741215 200604 1 014",
+            ppn: 11,
+            status: 'Terkirim'
+        },
+        items: [
+            { id: 1, nama: "Lampu 8 Watt Bulat 4\"", volume: 5, satuan: "Bh", hargaSatuan: 30600 },
+            { id: 2, nama: "Steker", volume: 5, satuan: "Bh", hargaSatuan: 12800 },
+            { id: 3, nama: "Stop kontak", volume: 5, satuan: "Bh", hargaSatuan: 17400 },
+            { id: 4, nama: "Lampu downlight", volume: 50, satuan: "Bh", hargaSatuan: 46000 },
+            { id: 5, nama: "Fiting Gantung", volume: 2, satuan: "Bh", hargaSatuan: 8500 },
+            { id: 6, nama: "Lampu 15 watt", volume: 2, satuan: "Bh", hargaSatuan: 20500 },
+            { id: 7, nama: "Kabel 0,75", volume: 1, satuan: "Rol", hargaSatuan: 429000 },
+            { id: 8, nama: "Solasi Nito", volume: 5, satuan: "Bh", hargaSatuan: 12400 },
+            { id: 9, nama: "Lampu Neon", volume: 2, satuan: "Bh", hargaSatuan: 46000 },
+            { id: 10, nama: "Lampu 8 Watt", volume: 15, satuan: "Bh", hargaSatuan: 56000 },
+            { id: 11, nama: "Termial 3L Broco", volume: 10, satuan: "Bh", hargaSatuan: 46000 },
+            { id: 12, nama: "Steker Broco", volume: 5, satuan: "Bh", hargaSatuan: 12500 },
+            { id: 13, nama: "Stop Kontak Broco", volume: 10, satuan: "Bh", hargaSatuan: 17500 },
+        ]
+    }];
+    localStorage.setItem('suratPesananUmumList', JSON.stringify(suratPesananUmum));
+
+    localStorage.setItem('surat_data_seeded_v4', 'true');
     console.log("Demo surat data seeded into localStorage.");
 };
 
@@ -341,5 +394,3 @@ export const useSuratStore = create<SuratState>((set, get) => ({
         });
     }
 }));
-
-    
