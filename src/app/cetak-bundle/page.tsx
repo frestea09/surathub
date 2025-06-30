@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { roundHalfUp } from '@/lib/utils';
 
 type BundleItem = {
     tipe: 'SPP' | 'SP' | 'SP-Vendor' | 'BA' | 'BASTB';
@@ -90,7 +91,7 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
         const subtotal = items.reduce((sum: number, item: any) => sum + item.jumlah * item.hargaSatuan, 0);
         const totalDiskon = items.reduce((sum: number, item: any) => sum + item.jumlah * item.hargaSatuan * (item.diskon / 100), 0);
         const totalAfterDiskon = subtotal - totalDiskon;
-        const ppnValue = Math.round(totalAfterDiskon * (formData.ppn / 100));
+        const ppnValue = totalAfterDiskon * (formData.ppn / 100);
         const grandTotal = totalAfterDiskon + ppnValue;
         return { subtotal, totalDiskon, totalAfterDiskon, ppnValue, grandTotal };
     }, [items, formData.ppn]);
@@ -127,7 +128,7 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
                 <TableBody>
                     {items.map((item: any, index: number) => {
                         const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - item.diskon / 100);
-                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon}%</TableCell><TableCell className="border border-black text-right">{formatCurrency(jumlahHarga)}</TableCell></TableRow>);
+                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon}%</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
                     })}
                 </TableBody>
             </Table>
@@ -136,8 +137,8 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL</span><span className="text-right font-bold">{formatCurrency(totals.subtotal)}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalDiskon)}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalAfterDiskon)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="text-right font-bold">{formatCurrency(totals.ppnValue)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="text-right font-bold">{formatCurrency(totals.grandTotal)}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.ppnValue))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.grandTotal))}</span></div>
                 </div>
             </div>
             <div className="mb-12"><p>Terbilang : <span className="italic font-semibold">{formData.terbilang}</span></p></div>
@@ -156,7 +157,7 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
         const subtotal = items.reduce((sum: number, item: any) => sum + item.jumlah * item.hargaSatuan, 0);
         const totalDiskon = items.reduce((sum: number, item: any) => sum + item.jumlah * item.hargaSatuan * (item.diskon / 100), 0);
         const totalAfterDiskon = subtotal - totalDiskon;
-        const ppnValue = Math.round(totalAfterDiskon * (formData.ppn / 100));
+        const ppnValue = totalAfterDiskon * (formData.ppn / 100);
         const grandTotal = totalAfterDiskon + ppnValue;
         return { subtotal, totalDiskon, totalAfterDiskon, ppnValue, grandTotal };
     }, [items, formData.ppn]);
@@ -193,7 +194,7 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
                 <TableBody>
                      {items.map((item: any, index: number) => {
                         const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - item.diskon / 100);
-                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon > 0 ? `${item.diskon}%` : "0%"}</TableCell><TableCell className="border border-black text-right">{formatCurrency(jumlahHarga)}</TableCell></TableRow>);
+                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon > 0 ? `${item.diskon}%` : "0%"}</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
                     })}
                 </TableBody>
             </Table>
@@ -202,14 +203,14 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Subtotal</span><span className="font-bold text-right">{formatCurrency(totals.subtotal)}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Diskon</span><span className="font-bold text-right">{formatCurrency(totals.totalDiskon)}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Total Setelah Diskon</span><span className="font-bold text-right">{formatCurrency(totals.totalAfterDiskon)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="font-bold text-right">{formatCurrency(totals.ppnValue)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="font-bold text-right">{formatCurrency(totals.grandTotal)}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.ppnValue))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.grandTotal))}</span></div>
                 </div>
             </div>
             <div className="mb-12"><p>Terbilang : <span className="italic font-semibold">{formData.terbilang}</span></p></div>
             <div className="flex justify-end">
                 <div className="text-center">
-                    <p>{formData.jabatanPenandaTangan}</p><div className="h-20"></div><p className="font-bold underline">{formData.namaPenandaTangan}</p><p>{formData.nipPenandaTangan}</p>
+                    <p>{formData.jabatanPenandaTangan}</p><div className="h-20"></div><p className="font-bold underline">{formData.namaPenandaTangan}</p><p>NIP. {formData.nipPenandaTangan}</p>
                 </div>
             </div>
         </div>

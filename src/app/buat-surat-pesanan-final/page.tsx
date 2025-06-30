@@ -172,7 +172,7 @@ export default function BuatSuratPesananFinalPage() {
   ) => {
     let finalValue = value;
     if (field === 'hargaSatuan') {
-        finalValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+        finalValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '.')) || 0 : value;
     }
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: finalValue } : item))
@@ -508,8 +508,7 @@ export default function BuatSuratPesananFinalPage() {
                             Harga Satuan
                           </Label>
                           <Input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             id={`harga-${item.id}`}
                             value={item.hargaSatuan}
                             onChange={(e) =>
@@ -664,7 +663,7 @@ export default function BuatSuratPesananFinalPage() {
                             {item.diskon > 0 ? `${item.diskon}%` : "0%"}
                           </TableCell>
                           <TableCell className="border border-black text-right">
-                            {formatCurrency(jumlahHarga)}
+                            {formatCurrency(roundHalfUp(jumlahHarga))}
                           </TableCell>
                         </TableRow>
                       );

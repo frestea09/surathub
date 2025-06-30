@@ -144,7 +144,7 @@ export default function BuatSuratPesananUmumPage() {
   const handleItemChange = (id: number, field: keyof Item, value: string | number) => {
     let finalValue = value;
     if (field === 'hargaSatuan') {
-        finalValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+        finalValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '.')) || 0 : value;
     }
     setItems(prev => prev.map(item => (item.id === id ? { ...item, [field]: finalValue } : item)));
   };
@@ -251,7 +251,7 @@ export default function BuatSuratPesananUmumPage() {
                       <div className="space-y-2 col-span-2"><Label htmlFor={`nama-${item.id}`}>Nama Barang</Label><Input id={`nama-${item.id}`} value={item.nama} onChange={(e) => handleItemChange(item.id, "nama", e.target.value)}/></div>
                       <div className="space-y-2"><Label htmlFor={`volume-${item.id}`}>Volume</Label><Input type="number" id={`volume-${item.id}`} value={item.volume} onChange={(e) => handleItemChange(item.id, "volume", parseInt(e.target.value, 10) || 0)}/></div>
                       <div className="space-y-2"><Label htmlFor={`satuan-${item.id}`}>Satuan</Label><Input id={`satuan-${item.id}`} value={item.satuan} onChange={(e) => handleItemChange(item.id, "satuan", e.target.value)}/></div>
-                      <div className="space-y-2 col-span-2"><Label htmlFor={`harga-${item.id}`}>Harga Satuan</Label><Input type="number" step="0.01" id={`harga-${item.id}`} value={item.hargaSatuan} onChange={(e) => handleItemChange(item.id, "hargaSatuan", e.target.value)}/></div>
+                      <div className="space-y-2 col-span-2"><Label htmlFor={`harga-${item.id}`}>Harga Satuan</Label><Input type="text" id={`harga-${item.id}`} value={item.hargaSatuan} onChange={(e) => handleItemChange(item.id, "hargaSatuan", e.target.value)}/></div>
                     </div>
                   </div>
                 ))}
@@ -317,7 +317,7 @@ export default function BuatSuratPesananUmumPage() {
                         <TableCell className="border border-black text-center">{item.volume}</TableCell>
                         <TableCell className="border border-black text-center">{item.satuan}</TableCell>
                         <TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell>
-                        <TableCell className="border border-black text-right">{formatCurrency(item.volume * item.hargaSatuan)}</TableCell>
+                        <TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(item.volume * item.hargaSatuan))}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow>
