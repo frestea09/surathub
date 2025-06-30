@@ -47,6 +47,8 @@ import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning"
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useSuratStore } from "@/store/suratStore";
+import { terbilang } from "@/lib/terbilang";
+import { roundHalfUp } from "@/lib/utils";
 
 type Item = {
   id: number;
@@ -98,7 +100,7 @@ export default function BuatSuratPesananPage() {
     nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025",
     tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
     terbilang:
-      "Empat Puluh Sembilan Juta Empat Ratus Tiga Puluh Ribu Empat Ratus Dua Puluh Enam Rupiah",
+      "",
     jabatanPenandaTangan: "Pejabat Pengadaan Barang Jasa",
     namaPenandaTangan: "Deti Hapitri, A.Md.Gz",
     nipPenandaTangan: "NIP. 197711042005042013",
@@ -138,6 +140,19 @@ export default function BuatSuratPesananPage() {
     const grandTotal = totalAfterDiskon + ppnValue;
     return { subtotal, totalDiskon, totalAfterDiskon, ppnValue, grandTotal };
   }, [items, formData.ppn]);
+
+  useEffect(() => {
+    if (totals.grandTotal > 0) {
+      const roundedTotal = roundHalfUp(totals.grandTotal);
+      const terbilangText = terbilang(roundedTotal);
+      setFormData(prev => ({
+        ...prev,
+        terbilang: `${terbilangText} Rupiah`
+      }));
+    } else {
+       setFormData(prev => ({ ...prev, terbilang: "Nol Rupiah" }));
+    }
+  }, [totals.grandTotal]);
 
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -488,13 +503,14 @@ export default function BuatSuratPesananPage() {
                           </Label>
                           <Input
                             type="number"
+                            step="0.01"
                             id={`harga-${item.id}`}
                             value={item.hargaSatuan}
                             onChange={(e) =>
                               handleItemChange(
                                 item.id,
                                 "hargaSatuan",
-                                parseInt(e.target.value, 10) || 0
+                                parseFloat(e.target.value) || 0
                               )
                             }
                           />
@@ -536,7 +552,7 @@ export default function BuatSuratPesananPage() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="hospital logo" />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -680,7 +696,7 @@ export default function BuatSuratPesananPage() {
                     <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1">
                       <span className="font-bold">JUMLAH</span>
                       <span className="text-right font-bold">
-                        {formatCurrency(totals.grandTotal)}
+                        {formatCurrency(roundHalfUp(totals.grandTotal))}
                       </span>
                     </div>
                   </div>
@@ -689,7 +705,7 @@ export default function BuatSuratPesananPage() {
                 <div className="mb-12">
                   <p>
                     Terbilang :{" "}
-                    <span className="italic font-semibold">
+                    <span className="italic font-semibold capitalize">
                       {formData.terbilang}
                     </span>
                   </p>
@@ -702,7 +718,7 @@ export default function BuatSuratPesananPage() {
                     <p className="font-bold underline">
                       {formData.namaPenandaTangan}
                     </p>
-                    <p>NIP. {formData.nipPenandaTangan}</p>
+                    <p>{formData.nipPenandaTangan}</p>
                   </div>
                 </div>
               </div>

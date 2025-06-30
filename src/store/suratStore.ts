@@ -28,7 +28,7 @@ const getUnitForSurat = (surat: any): string => {
     const perihal = surat.perihal?.toLowerCase() || surat.judul?.toLowerCase() || '';
     if (perihal.includes('keuangan')) return 'Keuangan';
     if (perihal.includes('farmasi') || perihal.includes('pengadaan')) return 'Pengadaan';
-    if (perihal.includes('dinas')) return 'Umum';
+    if (perihal.includes('dinas') || perihal.includes('listrik')) return 'Umum';
     if (surat.tujuan?.toLowerCase().includes('kepala') || surat.tujuan?.toLowerCase().includes('direktur')) return 'Pimpinan';
     return 'Umum';
 };
@@ -78,14 +78,16 @@ const suratStorageKeys = [
     'suratPesananList', 
     'suratPesananFinalList', 
     'beritaAcaraList', 
-    'bastbList'
+    'bastbList',
+    'suratPerintahUmumList',
 ];
 const suratTipeMap: { [key: string]: string } = {
     'suratPerintahList': 'SPP',
     'suratPesananList': 'SP',
     'suratPesananFinalList': 'SP-Vendor',
     'beritaAcaraList': 'BA',
-    'bastbList': 'BASTB'
+    'bastbList': 'BASTB',
+    'suratPerintahUmumList': 'SPU',
 };
 
 
@@ -223,7 +225,7 @@ const fetchSuratFromStorage = (): Surat[] => {
 
         // Fetch Surat Keluar from multiple localStorage keys
         suratStorageKeys.forEach(key => {
-            const list = JSON.parse(localStorage.getItem(key) || '[]').map((s: any) => mapToUnifiedFormat(s, 'Surat Keluar', suratTipeMap[key], 'Pengadaan'));
+            const list = JSON.parse(localStorage.getItem(key) || '[]').map((s: any) => mapToUnifiedFormat(s, 'Surat Keluar', suratTipeMap[key]));
             allSurat.push(...list);
         });
 
@@ -259,7 +261,8 @@ export const useSuratStore = create<SuratState>((set, get) => ({
 
     addSurat: (listKey, suratData) => {
         if (typeof window === 'undefined') return;
-        const list = JSON.parse(localStorage.getItem(listKey) || '[]');
+        const list = JSON.parse(localStorage.getItem(listKey) || '[]'
+        );
         const existingIndex = list.findIndex((item: any) => (item.formData || item).nomor === (suratData.formData || suratData).nomor);
         if (existingIndex > -1) {
           list[existingIndex] = suratData;
