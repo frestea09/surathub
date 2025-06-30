@@ -39,7 +39,7 @@ export default function BuatBeritaAcaraHasilPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore();
+  const { addSurat, surat: allSurat } = useUserStore();
 
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -91,9 +91,9 @@ export default function BuatBeritaAcaraHasilPage() {
 
   const handleDateChange = (field: 'tanggalSurat' | 'vendorTanggal', date: Date | undefined) => {
     if(date) {
-      setFormData(prev => ({...prev, [field]: date}))
+      setFormData(prev => ({...prev, [field]: date}));
     }
-  }
+  };
 
   const handleSave = () => {
     if (!formData.nomor) {
@@ -265,7 +265,27 @@ export default function BuatBeritaAcaraHasilPage() {
           </DialogContent>
         </Dialog>
       </main>
-      <style jsx global>{\` @media print { body * { visibility: hidden; } #surat-preview, #surat-preview * { visibility: visible; } #surat-preview { position: absolute; left: 0; top: 0; width: 100%; font-size: 11pt; } } @page { size: A4; margin: 1in; } \`}</style>
+      <style jsx global>{\`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #surat-preview, #surat-preview * {
+            visibility: visible;
+          }
+          #surat-preview {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            font-size: 11pt;
+          }
+        }
+        @page {
+          size: A4;
+          margin: 1in;
+        }
+      \`}</style>
     </div>
   );
 }
