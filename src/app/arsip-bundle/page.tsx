@@ -12,7 +12,7 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { PackageSearch, FileArchive, FileText, ChevronRight } from 'lucide-react';
+import { PackageSearch, FileText, ChevronRight, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -58,6 +58,8 @@ export default function ArsipBundlePage() {
     const { surat, isLoading, fetchAllSurat } = useSuratStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>();
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
     useEffect(() => {
         fetchAllSurat();
@@ -114,6 +116,17 @@ export default function ArsipBundlePage() {
             return matchesSearchTerm && matchesDateRange;
         });
     }, [bundles, searchTerm, date]);
+    
+    useEffect(() => {
+      setCurrentPage(1);
+    }, [searchTerm, date]);
+
+    const paginatedBundles = useMemo(() => {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      return filteredBundles.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredBundles, currentPage, itemsPerPage]);
+
+    const totalPages = Math.ceil(filteredBundles.length / itemsPerPage);
 
 
     if (isLoading) {
@@ -158,51 +171,79 @@ export default function ArsipBundlePage() {
 
             <div className="mt-6">
                 {filteredBundles.length > 0 ? (
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {filteredBundles.map(bundle => {
-                            const head = bundle[0];
-                            const firstDate = new Date(bundle[0].tanggal);
-                            const lastDate = new Date(bundle[bundle.length - 1].tanggal);
-                            const dateRange = format(firstDate, "dd MMM", { locale: id }) + (firstDate.getTime() !== lastDate.getTime() ? ` - ${format(lastDate, "dd MMM yyyy", { locale: id })}` : ` ${format(lastDate, "yyyy", { locale: id })}`);
+                    <>
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                            {paginatedBundles.map(bundle => {
+                                const head = bundle[0];
+                                const firstDate = new Date(bundle[0].tanggal);
+                                const lastDate = new Date(bundle[bundle.length - 1].tanggal);
+                                const dateRange = format(firstDate, "dd MMM", { locale: id }) + (firstDate.getTime() !== lastDate.getTime() ? ` - ${format(lastDate, "dd MMM yyyy", { locale: id })}` : ` ${format(lastDate, "yyyy", { locale: id })}`);
 
-                            return (
-                                <Card key={head.nomor} className="flex flex-col">
-                                    <CardHeader>
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                <PackageSearch className="h-6 w-6" />
+                                return (
+                                    <Card key={head.nomor} className="flex flex-col">
+                                        <CardHeader>
+                                            <div className="flex items-start gap-4">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                    <PackageSearch className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <CardTitle className="text-base">{head.judul}</CardTitle>
+                                                    <CardDescription>{dateRange} • {bundle.length} Dokumen</CardDescription>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <CardTitle className="text-base">{head.judul}</CardTitle>
-                                                <CardDescription>{dateRange} • {bundle.length} Dokumen</CardDescription>
-                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="flex-grow">
+                                            <ul className="space-y-2">
+                                                {bundle.map(doc => (
+                                                    <li key={doc.nomor} className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="h-4 w-4 text-muted-foreground" />
+                                                            <span className="text-muted-foreground">{tipeToLabel[doc.tipe] || doc.tipe}</span>
+                                                        </div>
+                                                        <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardContent>
+                                        <div className="p-6 pt-0">
+                                            <Button asChild className="w-full">
+                                                <Link href={`/cetak-bundle?nomor=${head.nomor}&tipe=${head.tipe}`}>
+                                                    Lihat & Cetak Bundle
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
                                         </div>
-                                    </CardHeader>
-                                    <CardContent className="flex-grow">
-                                        <ul className="space-y-2">
-                                            {bundle.map(doc => (
-                                                <li key={doc.nomor} className="flex items-center justify-between text-sm">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">{tipeToLabel[doc.tipe] || doc.tipe}</span>
-                                                    </div>
-                                                     <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </CardContent>
-                                    <div className="p-6 pt-0">
-                                        <Button asChild className="w-full">
-                                            <Link href={`/cetak-bundle?nomor=${head.nomor}&tipe=${head.tipe}`}>
-                                                Lihat & Cetak Bundle
-                                                <ChevronRight className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </Card>
-                            )
-                        })}
-                    </div>
+                                    </Card>
+                                )
+                            })}
+                        </div>
+
+                         {totalPages > 1 && (
+                            <div className="flex items-center justify-center space-x-4 py-4 mt-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-2" />
+                                    Sebelumnya
+                                </Button>
+                                <span className="text-sm font-medium text-muted-foreground">
+                                    Halaman {currentPage} dari {totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Selanjutnya
+                                    <ChevronRight className="h-4 w-4 ml-2" />
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <Alert>
                         <PackageSearch className="h-4 w-4" />
