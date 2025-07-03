@@ -24,63 +24,46 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-const roles = {
-  "Pimpinan & Pengawas": [
-    "Direktur",
-    "Dewan Pengawas",
-    "Satuan Pengawasan Intern (SPI)",
-  ],
-  "Wakil Direktur Umum dan Sumber Daya": [
-    "Wakil Direktur Umum dan Sumber Daya",
-    "Kepala Bagian Umum dan Kepegawaian",
-    "Tim Kerja Bidang Umum & Kepegawaian",
-    "Kepala Bagian Keuangan",
-    "Tim Kerja Bidang Pendapatan",
-    "Tim Kerja Bidang Pengeluaran",
-    "Kepala Bagian Perencanaan dan Kehumasan",
-    "Tim Kerja Bidang Perencanaan",
-    "Tim Kerja Bidang Kehumasan",
-  ],
-  "Wakil Direktur Pelayanan": [
-    "Wakil Direktur Pelayanan",
-    "Kepala Bidang Pelayanan Medik",
-    "Tim Kerja Bidang Pelayanan Medik",
-    "Kepala Bidang Pelayanan Keperawatan",
-    "Tim Kerja Bidang Pelayanan Keperawatan",
-    "Kepala Bidang Mutu Pelayanan",
-    "Tim Kerja Bidang Mutu Pelayanan",
-    "Kepala Bidang Rawat Inap",
-    "Tim Kerja Bidang Rawat Inap",
-  ],
-  "Wakil Direktur Penunjang": [
-    "Wakil Direktur Penunjang",
-    "Kepala Bidang Penunjang Medik",
-    "Tim Kerja Bidang Farmasi",
-    "Tim Kerja Bidang Radiologi",
-    "Tim Kerja Bidang Laboratorium",
-    "Tim Kerja Bidang Rehabilitasi Medik",
-    "Tim Kerja Bidang Gizi",
-    "Kepala Bidang Penunjang Non-Medik",
-    "Tim Kerja Bidang Sarana & Prasarana",
-    "Tim Kerja Bidang Keamanan",
-    "Tim Kerja Bidang Kebersihan dan Pengelolaan Sampah",
-  ],
-  "Komite & SMF": [
-    "Komite Rekrutmen Medis",
-    "Komite Etik dan Hukum",
-    "Komite Pengendalian Infeksi",
-    "Komite Mutu dan Keselamatan Pasien",
-    "SMF (Sarana Medis Fungsional)",
-  ],
-};
+import { useUserStore } from '@/store/userStore';
+import { useToast } from '@/hooks/use-toast';
+import { ROLES } from '@/lib/constants';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useUserStore();
+  const { toast } = useToast();
+  const [nip, setNip] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [role, setRole] = React.useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    if (!nip || !password) {
+        toast({
+            variant: "destructive",
+            title: "Login Gagal",
+            description: "NIP dan Password tidak boleh kosong."
+        });
+        return;
+    }
+
+    try {
+        const user = await login(nip, password);
+        // We will not validate role for this prototype to allow easy login
+        // But in a real app, you would check if user.jabatan === role
+        toast({
+            title: "Login Berhasil",
+            description: `Selamat datang, ${user.nama}!`
+        });
+        router.push('/dashboard');
+    } catch(error: any) {
+        toast({
+            variant: "destructive",
+            title: "Login Gagal",
+            description: error.message || "NIP atau password salah."
+        });
+    }
   };
 
   return (
@@ -99,20 +82,20 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">NIP / Username</Label>
-              <Input id="username" placeholder="Masukkan NIP atau username" required />
+              <Input id="username" placeholder="Masukkan NIP atau username" required value={nip} onChange={(e) => setNip(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Masukkan password" required />
+              <Input id="password" type="password" placeholder="Masukkan password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
-              <Select required>
+              <Select required onValueChange={setRole} value={role}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Pilih jabatan Anda" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(roles).map(([group, groupRoles]) => (
+                  {Object.entries(ROLES).filter(([group]) => group !== "Pihak Eksternal").map(([group, groupRoles]) => (
                     <SelectGroup key={group}>
                       <SelectLabel>{group}</SelectLabel>
                       {groupRoles.map((role) => (
@@ -124,10 +107,16 @@ export default function LoginPage() {
               </Select>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full">
               Login
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Login sebagai vendor?{' '}
+              <Link href="/vendor/login" className="underline underline-offset-4 hover:text-primary">
+                Klik di sini
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>

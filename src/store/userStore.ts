@@ -68,14 +68,33 @@ const initialUsersData: User[] = [
     status: "Aktif",
     password: "password-yanmed",
   },
+  {
+    id: "vendor-01",
+    nip: "vendor",
+    nama: "PT Intisumber Hasil Sempurna Global",
+    jabatan: "Vendor",
+    status: "Aktif",
+    password: "password-vendor",
+  },
+  {
+    id: "vendor-02",
+    nip: "vendor2",
+    nama: "TB. Doa Sepuh",
+    jabatan: "Vendor",
+    status: "Aktif",
+    password: "password-vendor2",
+  }
 ];
 
 
 type UserState = {
     users: User[];
+    activeUser: User | null;
     isLoading: boolean;
     error: string | null;
     fetchUsers: () => void;
+    login: (nip: string, password?: string) => Promise<User>;
+    logout: () => void;
     addUser: (data: Omit<User, 'id' | 'status'>) => Promise<void>;
     updateUser: (id: string, data: Partial<Omit<User, 'id'>>) => Promise<void>;
     deleteUser: (id: string) => Promise<void>;
@@ -105,6 +124,7 @@ const setStoredUsers = (users: User[]) => {
 
 export const useUserStore = create<UserState>((set, get) => ({
   users: [],
+  activeUser: null,
   isLoading: true,
   error: null,
 
@@ -116,6 +136,23 @@ export const useUserStore = create<UserState>((set, get) => ({
     } catch (e: any) {
       set({ error: e.message, isLoading: false });
     }
+  },
+
+  login: async (nip, password) => {
+    const users = getStoredUsers();
+    const user = users.find(u => u.nip === nip && u.password === password);
+    if (user && user.status === 'Aktif') {
+      set({ activeUser: user });
+      return user;
+    }
+    if (user && user.status !== 'Aktif') {
+      throw new Error("Akun Anda tidak aktif. Silakan hubungi administrator.");
+    }
+    throw new Error("NIP/Username atau password salah.");
+  },
+
+  logout: () => {
+    set({ activeUser: null });
   },
 
   addUser: async (data) => {

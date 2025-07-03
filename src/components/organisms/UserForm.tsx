@@ -53,7 +53,7 @@ export function UserForm({ user }: UserFormProps) {
   const isEditMode = !!user;
 
   const formSchema = z.object({
-    nama: z.string().min(1, "Nama lengkap tidak boleh kosong."),
+    nama: z.string().min(1, "Nama lengkap atau nama perusahaan tidak boleh kosong."),
     nip: z.string().min(1, "NIP/Username tidak boleh kosong."),
     jabatan: z.string().min(1, "Jabatan harus dipilih."),
     status: z.string().optional(),

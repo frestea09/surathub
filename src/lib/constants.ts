@@ -47,6 +47,9 @@ export const ROLES = {
     "Komite Mutu dan Keselamatan Pasien",
     "SMF (Sarana Medis Fungsional)",
   ],
+  "Pihak Eksternal": [
+    "Vendor",
+  ],
 };
 
 export const USERS_STORAGE_KEY = 'surathub_users';
@@ -61,7 +64,7 @@ export const ADD_USER_TITLE = "Tambah Pengguna Baru";
 export const ADD_USER_DESCRIPTION = "Isi formulir untuk menambahkan pengguna baru ke sistem.";
 export const EDIT_USER_TITLE = "Ubah Data Pengguna";
 export const EDIT_USER_DESCRIPTION_PREFIX = "Perbarui informasi untuk pengguna:";
-export const NAMA_LENGKAP_LABEL = "Nama Lengkap";
+export const NAMA_LENGKAP_LABEL = "Nama Lengkap / Nama Perusahaan";
 export const NIP_USERNAME_LABEL = "NIP / Username";
 export const PASSWORD_LABEL = "Password";
 export const CONFIRM_PASSWORD_LABEL = "Konfirmasi Password";
@@ -73,7 +76,7 @@ export const BACK_TO_ADMIN_LINK_TEXT = "Kembali ke Manajemen Pengguna";
 export const CANCEL_AND_BACK_LINK_TEXT = "Batal dan Kembali";
 
 // Placeholders
-export const NAMA_LENGKAP_PLACEHOLDER = "Masukkan nama lengkap";
+export const NAMA_LENGKAP_PLACEHOLDER = "Masukkan nama lengkap atau nama perusahaan";
 export const NIP_USERNAME_PLACEHOLDER = "Masukkan NIP atau username";
 export const PASSWORD_PLACEHOLDER = "Masukkan password";
 export const CONFIRM_PASSWORD_PLACEHOLDER = "Konfirmasi password Anda";

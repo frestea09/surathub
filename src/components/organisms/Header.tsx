@@ -22,6 +22,7 @@ import { BuatSuratButton } from "@/components/buat-surat-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavLinks } from "../molecules/NavLinks";
 import { HEADER_SR, USER_MENU, NOTIFICATION_MENU } from "@/lib/constants";
+import { useUserStore } from "@/store/userStore";
 
 type Notification = {
   title: string;
@@ -43,7 +44,13 @@ type HeaderProps = {
 
 export function Header({ notifications, user }: HeaderProps) {
   const router = useRouter();
+  const { logout } = useUserStore();
   const [showNotificationBadge, setShowNotificationBadge] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  }
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
@@ -138,7 +145,7 @@ export function Header({ notifications, user }: HeaderProps) {
             {USER_MENU.PENGATURAN}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/")}>
+          <DropdownMenuItem onClick={handleLogout}>
             {USER_MENU.KELUAR}
           </DropdownMenuItem>
         </DropdownMenuContent>
