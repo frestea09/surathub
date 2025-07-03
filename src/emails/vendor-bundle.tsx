@@ -35,6 +35,7 @@ export const VendorBundleEmail = ({
           height="48"
           alt="Logo RSUD"
           style={logo}
+          data-ai-hint="government logo"
         />
         <Heading style={heading}>Pemberitahuan Dokumen Pengadaan</Heading>
         <Section style={box}>

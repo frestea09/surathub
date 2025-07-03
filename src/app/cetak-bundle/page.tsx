@@ -18,42 +18,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { roundHalfUp } from '@/lib/utils';
+import { useSuratStore, type Surat } from '@/store/suratStore';
 
-type BundleItem = {
-    tipe: 'SPP' | 'SP' | 'SP-Vendor' | 'BA' | 'BASTB';
-    data: any;
+// Mapping from tipe to a more readable name
+const tipeToLabel: { [key: string]: string } = {
+    'SPP': '1. Surat Perintah',
+    'SP': '2. Surat Pesanan (Internal)',
+    'SP-Vendor': '3. Surat Pesanan (Vendor)',
+    'BA': '4. BA Pemeriksaan',
+    'BASTB': '5. BA Serah Terima',
+    'SPU': '1. Surat Perintah Pengadaan',
+    'BAH': '2. BA Hasil Pengadaan',
+    'SP-Umum': '3. Surat Pesanan',
+    'BA-Umum': '4. BA Pemeriksaan',
 };
-
-const suratStorageKeys = {
-    SPP: 'suratPerintahList',
-    SP: 'suratPesananList',
-    'SP-Vendor': 'suratPesananFinalList',
-    BA: 'beritaAcaraList',
-    BASTB: 'bastbList'
-};
-
-// Forward chain: SPP -> SP -> SP-Vendor -> BA -> BASTB
-const forwardLinks: { [key: string]: any } = {
-    SPP: { nextType: 'SP', refKey: 'nomorSuratReferensi', sourceKey: 'nomor' },
-    SP: { nextType: 'SP-Vendor', refKey: 'nomorSuratReferensi', sourceKey: 'nomor' },
-    'SP-Vendor': { nextType: 'BA', refKey: 'nomorSuratReferensi', sourceKey: 'nomor' },
-    BA: { nextType: 'BASTB', refKey: 'nomorBeritaAcara', sourceKey: 'nomor' },
-};
-
-// Backward chain: BASTB -> BA -> SP-Vendor -> SP -> SPP
-const backwardLinks: { [key: string]: any } = {
-    BASTB: { prevType: 'BA', localKey: 'nomorBeritaAcara', targetKey: 'nomor' },
-    BA: { prevType: 'SP-Vendor', localKey: 'nomorSuratReferensi', targetKey: 'nomor' },
-    'SP-Vendor': { prevType: 'SP', localKey: 'nomorSuratReferensi', targetKey: 'nomor' },
-    SP: { prevType: 'SPP', localKey: 'nomorSuratReferensi', targetKey: 'nomor' },
-};
-
-const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID").format(value);
 
 const RenderSuratPerintah = ({ data }: { data: any }) => (
     <div className="bg-white text-black p-8 font-serif text-sm page-break">
         <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-            <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+            <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
             <div>
                 <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                 <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -85,6 +68,8 @@ const RenderSuratPerintah = ({ data }: { data: any }) => (
     </div>
 );
 
+const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID").format(value);
+
 const RenderSuratPesanan = ({ data }: { data: any }) => {
     const { formData, items } = data;
     const totals = useMemo(() => {
@@ -99,7 +84,7 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -128,20 +113,20 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
                 <TableBody>
                     {items.map((item: any, index: number) => {
                         const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - item.diskon / 100);
-                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon}%</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
+                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(item.hargaSatuan))}</TableCell><TableCell className="border border-black text-center">{item.diskon}%</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
                     })}
                 </TableBody>
             </Table>
             <div className="flex justify-end mb-4">
                 <div className="w-2/3 md:w-1/2">
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL</span><span className="text-right font-bold">{formatCurrency(totals.subtotal)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalDiskon)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(totals.totalAfterDiskon)}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.subtotal))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">DISKON</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.totalDiskon))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">TOTAL SETELAH DISKON</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.totalAfterDiskon))}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.ppnValue))}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="text-right font-bold">{formatCurrency(roundHalfUp(totals.grandTotal))}</span></div>
                 </div>
             </div>
-            <div className="mb-12"><p>Terbilang : <span className="italic font-semibold">{formData.terbilang}</span></p></div>
+            <div className="mb-12"><p>Terbilang : <span className="italic font-semibold capitalize">{formData.terbilang}</span></p></div>
             <div className="flex justify-end">
                 <div className="text-center">
                     <p>{formData.jabatanPenandaTangan}</p><div className="h-20"></div><p className="font-bold underline">{formData.namaPenandaTangan}</p><p>NIP. {formData.nipPenandaTangan}</p>
@@ -165,7 +150,7 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                 <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                 <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -194,20 +179,20 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
                 <TableBody>
                      {items.map((item: any, index: number) => {
                         const jumlahHarga = item.jumlah * item.hargaSatuan * (1 - item.diskon / 100);
-                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.hargaSatuan)}</TableCell><TableCell className="border border-black text-center">{item.diskon > 0 ? `${item.diskon}%` : "0%"}</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
+                        return (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black text-center">{item.merk}</TableCell><TableCell className="border border-black text-right">{formatCurrency(item.jumlah)}</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(item.hargaSatuan))}</TableCell><TableCell className="border border-black text-center">{item.diskon > 0 ? `${item.diskon}%` : "0%"}</TableCell><TableCell className="border border-black text-right">{formatCurrency(roundHalfUp(jumlahHarga))}</TableCell></TableRow>);
                     })}
                 </TableBody>
             </Table>
             <div className="flex justify-end mb-4">
                 <div className="w-2/3 md:w-1/2">
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Subtotal</span><span className="font-bold text-right">{formatCurrency(totals.subtotal)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Diskon</span><span className="font-bold text-right">{formatCurrency(totals.totalDiskon)}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Total Setelah Diskon</span><span className="font-bold text-right">{formatCurrency(totals.totalAfterDiskon)}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Subtotal</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.subtotal))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Diskon</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.totalDiskon))}</span></div>
+                    <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">Total Setelah Diskon</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.totalAfterDiskon))}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-black py-1"><span className="font-bold">PPN {formData.ppn}%</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.ppnValue))}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 border-t border-b border-black py-1"><span className="font-bold">JUMLAH</span><span className="font-bold text-right">{formatCurrency(roundHalfUp(totals.grandTotal))}</span></div>
                 </div>
             </div>
-            <div className="mb-12"><p>Terbilang : <span className="italic font-semibold">{formData.terbilang}</span></p></div>
+            <div className="mb-12"><p>Terbilang : <span className="italic font-semibold capitalize">{formData.terbilang}</span></p></div>
             <div className="flex justify-end">
                 <div className="text-center">
                     <p>{formData.jabatanPenandaTangan}</p><div className="h-20"></div><p className="font-bold underline">{formData.namaPenandaTangan}</p><p>NIP. {formData.nipPenandaTangan}</p>
@@ -222,7 +207,7 @@ const RenderBeritaAcara = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -261,7 +246,7 @@ const RenderBASTB = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -305,89 +290,74 @@ export default function CetakBundlePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const [bundle, setBundle] = useState<BundleItem[]>([]);
+    const { surat, isLoading: isSuratLoading, fetchAllSurat } = useSuratStore();
+    
+    const [bundle, setBundle] = useState<Surat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
     const [vendorEmail, setVendorEmail] = useState('');
     const [isSending, setIsSending] = useState(false);
 
     useEffect(() => {
+        fetchAllSurat();
+    }, [fetchAllSurat]);
+
+    useEffect(() => {
+        if (isSuratLoading) return;
+
         const startNomor = searchParams.get('nomor');
-        const startTipe = searchParams.get('tipe');
-
-        if (!startNomor || !startTipe) {
+        if (!startNomor) {
             setIsLoading(false);
             return;
         }
 
-        const allLists: { [key: string]: any[] } = Object.fromEntries(
-            Object.entries(suratStorageKeys).map(([tipe, key]) => [
-                tipe,
-                JSON.parse(localStorage.getItem(key) || '[]')
-            ])
-        );
+        const findDocumentByNomor = (nomor: string) => surat.find(s => s.nomor === nomor);
         
-        const startList = allLists[startTipe];
-        if (!startList) {
-             setIsLoading(false);
-             return;
-        }
-
-        const startDoc = startList.find(doc => (doc.formData?.nomor || doc.nomor) === startNomor);
-
-        if (!startDoc) {
+        const startingDoc = findDocumentByNomor(startNomor);
+        if (!startingDoc) {
             setIsLoading(false);
             return;
         }
+        
+        let headNomor = startNomor;
+        let currentDoc = startingDoc;
+        
+        // Traverse backwards to find the head of the chain (SPP or SPU)
+        while (currentDoc) {
+            const refKey = currentDoc.data.formData?.nomorSuratReferensi || currentDoc.data.nomorSuratReferensi;
+            if (!refKey) break;
 
-        const bundleMap = new Map();
-        bundleMap.set(startTipe, startDoc);
-
-        // Traverse backward
-        let currentDoc = startDoc;
-        let currentTipe: string = startTipe;
-        while (backwardLinks[currentTipe]) {
-            const link = backwardLinks[currentTipe];
-            const localRefValue = currentDoc.formData?.[link.localKey] || currentDoc[link.localKey];
-            const prevList = allLists[link.prevType];
-            const prevDoc = prevList.find((doc: any) => (doc.formData?.[link.targetKey] || doc[link.targetKey]) === localRefValue);
-            
+            const prevDoc = findDocumentByNomor(refKey);
             if (prevDoc) {
-                bundleMap.set(link.prevType, prevDoc);
+                headNomor = prevDoc.nomor;
                 currentDoc = prevDoc;
-                currentTipe = link.prevType;
             } else {
                 break;
             }
         }
+        
+        // From the head, traverse forward to build the full bundle
+        const finalBundle: Surat[] = [];
+        let docToAdd = findDocumentByNomor(headNomor);
+        const addedNomors = new Set<string>();
 
-        // Traverse forward
-        currentDoc = startDoc;
-        currentTipe = startTipe;
-        while (forwardLinks[currentTipe]) {
-            const link = forwardLinks[currentTipe];
-            const sourceRefValue = currentDoc.formData?.[link.sourceKey] || currentDoc[link.sourceKey];
-            const nextList = allLists[link.nextType];
-            const nextDoc = nextList.find((doc: any) => (doc.formData?.[link.refKey] || doc[link.refKey]) === sourceRefValue);
+        while (docToAdd && !addedNomors.has(docToAdd.nomor)) {
+            finalBundle.push(docToAdd);
+            addedNomors.add(docToAdd.nomor);
 
-            if (nextDoc) {
-                bundleMap.set(link.nextType, nextDoc);
-                currentDoc = nextDoc;
-                currentTipe = link.nextType;
-            } else {
-                break;
-            }
+            const nextRefKey = docToAdd.nomor;
+            const nextDoc = surat.find(s => (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === nextRefKey);
+            docToAdd = nextDoc;
         }
+        
+        const typeOrder = ['SPP', 'SPU', 'BAH', 'SP', 'SP-Vendor', 'SP-Umum', 'BA', 'BA-Umum', 'BASTB'];
+        finalBundle.sort((a, b) => typeOrder.indexOf(a.tipe) - typeOrder.indexOf(b.tipe));
 
-        const orderedTipes = ['SPP', 'SP', 'SP-Vendor', 'BA', 'BASTB'];
-        const orderedBundle = orderedTipes
-            .map(tipe => bundleMap.has(tipe) ? { tipe, data: bundleMap.get(tipe) } as BundleItem : null)
-            .filter((item): item is BundleItem => item !== null);
-
-        setBundle(orderedBundle);
+        setBundle(finalBundle);
         setIsLoading(false);
 
-    }, [searchParams]);
+    }, [searchParams, isSuratLoading, surat]);
+    
 
     const handleSendEmail = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -397,8 +367,8 @@ export default function CetakBundlePage() {
         }
         setIsSending(true);
 
-        const vendorSurat = bundle.find(item => item.tipe === 'SP-Vendor');
-        const vendorName = vendorSurat?.data?.formData?.penerima || 'Vendor';
+        const vendorSurat = bundle.find(item => item.tipe === 'SP-Vendor' || item.tipe === 'SP-Umum');
+        const vendorName = vendorSurat?.dariKe || 'Rekan Vendor';
 
         try {
             const response = await fetch('/api/kirim-bundle', {
@@ -412,9 +382,9 @@ export default function CetakBundlePage() {
                 }),
             });
 
+            const responseData = await response.json();
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Gagal mengirim email.');
+                throw new Error(responseData.error || 'Gagal mengirim email.');
             }
             
             toast({ title: "Email Terkirim", description: `Bundle dokumen berhasil dikirim ke ${vendorEmail}.` });
@@ -426,14 +396,20 @@ export default function CetakBundlePage() {
         }
     };
 
-    const renderComponent = (item: BundleItem) => {
+    const renderComponent = (item: Surat) => {
         switch (item.tipe) {
             case 'SPP': return <RenderSuratPerintah data={item.data} />;
             case 'SP': return <RenderSuratPesanan data={item.data} />;
             case 'SP-Vendor': return <RenderSuratPesananFinal data={item.data} />;
             case 'BA': return <RenderBeritaAcara data={item.data} />;
             case 'BASTB': return <RenderBASTB data={item.data} />;
-            default: return null;
+            // Add cases for Pengadaan Umum when components are created
+            default: return (
+                 <div className="p-8 text-center">
+                    <p className="font-bold">Pratinjau tidak tersedia</p>
+                    <p className="text-muted-foreground text-sm">Pratinjau untuk tipe surat '{tipeToLabel[item.tipe] || item.tipe}' belum diimplementasikan di halaman bundle ini.</p>
+                </div>
+            );
         }
     };
     
@@ -477,7 +453,7 @@ export default function CetakBundlePage() {
                 <main>
                     {bundle.length > 0 ? (
                         bundle.map((item, index) => (
-                            <Card key={index} className="my-4 mx-auto w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0 print:w-full">
+                            <Card key={item.nomor} className="my-4 mx-auto w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0 print:w-full">
                                 <CardContent className="p-0">
                                     {renderComponent(item)}
                                 </CardContent>
