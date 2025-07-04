@@ -1,5 +1,6 @@
 
 import create from 'zustand';
+import type { User } from './userStore';
 
 export type Surat = {
     nomor: string;
@@ -18,7 +19,7 @@ type SuratState = {
     surat: Surat[];
     isLoading: boolean;
     error: string | null;
-    fetchAllSurat: () => void;
+    fetchAllSurat: (activeUser?: User | null) => void;
     addSurat: (listKey: string, suratData: any) => void;
     updateSurat: (nomor: string, updatedData: Partial<Surat>) => void;
     deleteSurat: (nomor: string) => void;
@@ -135,7 +136,7 @@ const seedInitialData = () => {
 };
 
 
-const fetchSuratFromStorage = (): Surat[] => {
+const fetchSuratFromStorage = (activeUser?: User | null): Surat[] => {
     try {
         if (typeof window === 'undefined') return [];
 
@@ -157,6 +158,17 @@ const fetchSuratFromStorage = (): Surat[] => {
             index === self.findIndex((s) => s.nomor === surat.nomor)
         );
 
+        // Filter for vendor if an active vendor user is provided
+        if (activeUser && activeUser.jabatan === 'Vendor') {
+            const vendorSurat = uniqueSurat.filter(s => {
+              const isVendorSurat = s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum';
+              // Check the `dariKe` field which is mapped from `penerima`
+              const isForThisVendor = s.dariKe === activeUser.nama;
+              return isVendorSurat && isForThisVendor;
+            });
+            return vendorSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+        }
+
         return uniqueSurat.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
     } catch (e) {
         console.error("Failed to load surat from localStorage", e);
@@ -169,10 +181,10 @@ export const useSuratStore = create<SuratState>((set, get) => ({
     isLoading: true,
     error: null,
     
-    fetchAllSurat: () => {
+    fetchAllSurat: (activeUser) => {
         set({ isLoading: true, error: null });
         try {
-            const surat = fetchSuratFromStorage();
+            const surat = fetchSuratFromStorage(activeUser);
             set({ surat, isLoading: false });
         } catch (e: any) {
             set({ error: e.message, isLoading: false });
@@ -242,5 +254,3 @@ export const useSuratStore = create<SuratState>((set, get) => ({
         });
     }
 }));
-
-    

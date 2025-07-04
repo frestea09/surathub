@@ -30,19 +30,15 @@ export default function VendorDashboardPage() {
   const { surat, fetchAllSurat, isLoading } = useSuratStore();
 
   useEffect(() => {
-    fetchAllSurat();
-  }, [fetchAllSurat]);
+    if (activeUser) {
+      fetchAllSurat(activeUser);
+    }
+  }, [fetchAllSurat, activeUser]);
 
   const vendorSurat = useMemo(() => {
-    if (!activeUser || surat.length === 0) return [];
-    
-    return surat.filter(s => {
-      const isVendorSurat = s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum';
-      const isForThisVendor = s.data.formData?.penerima === activeUser.nama;
-      return isVendorSurat && isForThisVendor;
-    }).sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
-
-  }, [activeUser, surat]);
+    // The data is already filtered by the store, so we can just use it directly.
+    return surat;
+  }, [surat]);
 
   if (isLoading) {
     return <p>Memuat data...</p>;
