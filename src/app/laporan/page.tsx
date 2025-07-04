@@ -55,15 +55,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AppLayout } from "@/components/templates/AppLayout";
 import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserStore, type User } from "@/store/userStore";
+import { getVisibleUsers } from "@/lib/rolesHelper";
 
-const mockUsers = [
-    { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur', unit: 'All' },
-    { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen', unit: 'Pengadaan' },
-    { id: 'ppbj', name: 'Deti Hapitri, A.Md.Gz', role: 'Pejabat Pengadaan Barang Jasa', unit: 'Pengadaan' },
-    { id: 'keuangan', name: 'Jane Doe', role: 'Kepala Bagian Keuangan', unit: 'Keuangan' },
-    { id: 'yanmed', name: 'Dr. Anisa Fitriani, Sp.A', role: 'Kepala Bidang Pelayanan Medik', unit: 'Pelayanan' },
-    { id: 'staf', name: 'Staf Umum', role: 'Staf/Pengguna', unit: 'Umum' },
-    { id: 'admin', name: 'Admin Utama', role: 'Administrator Sistem', unit: 'All' },
+const mockUsers: User[] = [
+    { id: 'direktur', nip: '196711022002121001', nama: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', jabatan: 'Direktur', status: 'Aktif', password: 'password-direktur' },
+    { id: 'admin', nip: 'admin', nama: 'Admin Utama', jabatan: 'Administrator Sistem', status: 'Aktif', password: 'password-admin' },
+    { id: 'ppk', nip: '198408272008011005', nama: 'Saep Trian Prasetia.S.Si.Apt', jabatan: 'Pejabat Pembuat Komitmen', status: 'Aktif', password: 'password-ppk' },
+    { id: 'ppbj', nip: '197711042005042013', nama: 'Deti Hapitri, A.Md.Gz', jabatan: 'Pejabat Pengadaan Barang Jasa', status: 'Aktif', password: 'password-ppbj' },
+    { id: 'keuangan', nip: '198001012005012002', nama: 'Jane Doe', jabatan: 'Kepala Bagian Keuangan', status: 'Aktif', password: 'password-keuangan' },
+    { id: 'yanmed', nip: '197505202003122001', nama: 'Dr. Anisa Fitriani, Sp.A', jabatan: 'Kepala Bidang Pelayanan Medik', status: 'Aktif', password: 'password-yanmed' },
+    { id: 'staf', nip: '199501012020121001', nama: 'Andi Wijaya', jabatan: 'Tim Kerja Bidang Umum & Kepegawaian', status: 'Aktif', password: 'password-staf' },
 ];
 
 const COLORS = ["hsl(var(--chart-2))", "hsl(var(--chart-1))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
@@ -107,10 +109,12 @@ const ChartSkeleton = () => (
 export default function LaporanPage() {
   const { toast } = useToast();
   const { surat, isLoading, error, fetchAllSurat } = useSuratStore();
+  const { activeUser } = useUserStore();
+
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAlurOpen, setIsAlurOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(mockUsers[0]);
+  const [viewAsUser, setViewAsUser] = useState<User | null>(activeUser);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(new Date().getFullYear(), 11, 31),
@@ -120,18 +124,36 @@ export default function LaporanPage() {
     fetchAllSurat();
   }, [fetchAllSurat]);
 
+  useEffect(() => {
+    if (activeUser && !viewAsUser) {
+        setViewAsUser(activeUser);
+    }
+  }, [activeUser, viewAsUser]);
 
-  const handleRoleChange = (userId: string) => {
+  const visibleUsers = useMemo(() => {
+    if (!activeUser) return [];
+    return getVisibleUsers(activeUser, mockUsers);
+  }, [activeUser]);
+
+  const handleViewAsChange = (userId: string) => {
       const user = mockUsers.find(u => u.id === userId);
       if(user) {
-          setCurrentUser(user);
+          setViewAsUser(user);
       }
   };
 
   const { filteredData, dynamicStatCards, suratVolumeData, statusDistributionData } = useMemo(() => {
-    let dataByUnit = (currentUser.unit === 'All')
+    if (!viewAsUser) return { filteredData: [], dynamicStatCards: [], suratVolumeData: [], statusDistributionData: [] };
+
+    const roleUnitMapping: { [key: string]: string } = {
+        'Direktur': 'All', 'Administrator Sistem': 'All', 'Pejabat Pembuat Komitmen': 'Pengadaan', 'Pejabat Pengadaan Barang Jasa': 'Pengadaan',
+        'Kepala Bagian Keuangan': 'Keuangan', 'Kepala Bidang Pelayanan Medik': 'Pelayanan', 'Tim Kerja Bidang Umum & Kepegawaian': 'Umum',
+    };
+    const unit = roleUnitMapping[viewAsUser.jabatan] || 'Umum';
+
+    let dataByUnit = (unit === 'All')
       ? surat || []
-      : (surat || []).filter(s => s.unit === currentUser.unit || s.unit === "Pimpinan");
+      : (surat || []).filter(s => s.unit === unit || s.unit === "Pimpinan");
       
     const dataByDate = date?.from
       ? dataByUnit.filter(s => {
@@ -143,30 +165,10 @@ export default function LaporanPage() {
       : dataByUnit;
 
     const cards = [
-      {
-        title: "Total Surat Keluar",
-        value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(),
-        description: "Surat yang dibuat internal",
-        icon: Send,
-      },
-      {
-        title: "Total Surat Masuk",
-        value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(),
-        description: "Surat yang diterima dari eksternal",
-        icon: Mailbox,
-      },
-      {
-        title: "Surat Selesai",
-        value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(),
-        description: "Surat yang prosesnya telah rampung",
-        icon: CheckCircle,
-      },
-      {
-        title: "Total Surat Ditolak",
-        value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(),
-        description: "Surat yang pengajuannya ditolak",
-        icon: XCircle,
-      },
+      { title: "Total Surat Keluar", value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(), description: "Surat yang dibuat internal", icon: Send },
+      { title: "Total Surat Masuk", value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(), description: "Surat yang diterima dari eksternal", icon: Mailbox },
+      { title: "Surat Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(), description: "Surat yang prosesnya telah rampung", icon: CheckCircle },
+      { title: "Total Surat Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(), description: "Surat yang pengajuannya ditolak", icon: XCircle },
     ];
     
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -182,40 +184,17 @@ export default function LaporanPage() {
     ].filter(item => item.value > 0);
 
     return { filteredData: dataByDate, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
-  }, [currentUser, date, surat]);
+  }, [viewAsUser, date, surat]);
 
 
   const handleExport = () => {
     if (filteredData.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "Gagal Ekspor",
-            description: "Tidak ada data untuk diekspor pada rentang tanggal yang dipilih.",
-        });
+        toast({ variant: "destructive", title: "Gagal Ekspor", description: "Tidak ada data untuk diekspor pada rentang tanggal yang dipilih." });
         return;
     }
-    
     const headers = ["Nomor Surat", "Judul", "Jenis", "Tipe", "Tanggal", "Dari/Ke", "Status Saat Ini", "Penanggung Jawab", "Unit"];
-    
-    const csvRows = [
-        headers.join(','),
-        ...filteredData.map(row => 
-            [
-                `"${row.nomor}"`,
-                `"${row.judul.replace(/"/g, '""')}"`,
-                `"${row.jenis}"`,
-                `"${row.tipe}"`,
-                `"${row.tanggal}"`,
-                `"${row.dariKe.replace(/"/g, '""')}"`,
-                `"${row.status}"`,
-                `"${row.penanggungJawab.replace(/"/g, '""')}"`,
-                `"${row.unit}"`
-            ].join(',')
-        )
-    ];
-    
+    const csvRows = [ headers.join(','), ...filteredData.map(row => [`"${row.nomor}"`, `"${row.judul.replace(/"/g, '""')}"`, `"${row.jenis}"`, `"${row.tipe}"`, `"${row.tanggal}"`, `"${row.dariKe.replace(/"/g, '""')}"`, `"${row.status}"`, `"${row.penanggungJawab.replace(/"/g, '""')}"`, `"${row.unit}"`].join(',')) ];
     const csvString = csvRows.join('\n');
-    
     const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     if (link.download !== undefined) {
@@ -228,76 +207,48 @@ export default function LaporanPage() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }
-
-    toast({
-        title: "Ekspor Berhasil",
-        description: "Data laporan telah berhasil diunduh.",
-    });
+    toast({ title: "Ekspor Berhasil", description: "Data laporan telah berhasil diunduh." });
   };
 
   const handleActionClick = (surat: Surat, action: 'detail' | 'alur') => {
     setSelectedSurat(surat);
-    if (action === 'detail') {
-      setIsDetailOpen(true);
-    } else if (action === 'alur') {
-      setIsAlurOpen(true);
-    }
+    if (action === 'detail') setIsDetailOpen(true);
+    else if (action === 'alur') setIsAlurOpen(true);
   };
 
   const columns: ColumnDef<Surat>[] = [
       { accessorKey: "nomor", header: "Nomor Surat" },
       { accessorKey: "judul", header: "Judul" },
-      {
-          accessorKey: "jenis", header: "Jenis",
-          cell: ({ row }) => <Badge variant={row.original.jenis === 'Surat Masuk' ? 'secondary' : 'outline'}>{row.original.jenis}</Badge>
-      },
+      { accessorKey: "jenis", header: "Jenis", cell: ({ row }) => <Badge variant={row.original.jenis === 'Surat Masuk' ? 'secondary' : 'outline'}>{row.original.jenis}</Badge> },
       { accessorKey: "tanggal", header: "Tanggal" },
       { accessorKey: "dariKe", header: "Dari/Ke" },
-      {
-          accessorKey: "status", header: "Status",
-           cell: ({ row }) => <Badge variant={statusVariant[row.original.status as keyof typeof statusVariant]}>{row.original.status}</Badge>
-      },
+      { accessorKey: "status", header: "Status", cell: ({ row }) => <Badge variant={statusVariant[row.original.status as keyof typeof statusVariant]}>{row.original.status}</Badge> },
       { accessorKey: "penanggungJawab", header: "P. Jawab" },
-      {
-          id: "actions",
-          cell: ({ row }) => (
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleActionClick(row.original, 'detail')}><FileSearch className="mr-2 h-4 w-4" />Lihat Detail Surat</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleActionClick(row.original, 'alur')}><FileSearch className="mr-2 h-4 w-4" />Lihat Alur Lengkap</DropdownMenuItem>
-                  </DropdownMenuContent>
-              </DropdownMenu>
-          )
+      { id: "actions", cell: ({ row }) => (
+          <DropdownMenu>
+              <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => handleActionClick(row.original, 'detail')}><FileSearch className="mr-2 h-4 w-4" />Lihat Detail Surat</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleActionClick(row.original, 'alur')}><FileSearch className="mr-2 h-4 w-4" />Lihat Alur Lengkap</DropdownMenuItem>
+              </DropdownMenuContent>
+          </DropdownMenu>
+        )
       }
   ];
 
-  if (error) {
-    return (
-        <AppLayout>
-             <Card className="bg-destructive/10 border-destructive/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle />Gagal Memuat Data Laporan</CardTitle>
-                    <CardDescription className="text-destructive">Terjadi kesalahan saat mengambil data surat untuk laporan: {error}</CardDescription>
-                </CardHeader>
-            </Card>
-        </AppLayout>
-    )
-  }
+  if (error) return <AppLayout><Card className="bg-destructive/10 border-destructive/50"><CardHeader><CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle />Gagal Memuat Data Laporan</CardTitle><CardDescription className="text-destructive">Terjadi kesalahan saat mengambil data surat untuk laporan: {error}</CardDescription></CardHeader></Card></AppLayout>;
 
   return (
     <AppLayout>
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold md:text-2xl">Laporan ({currentUser.role})</h1>
+        <h1 className="text-lg font-semibold md:text-2xl">Laporan {viewAsUser ? `(${viewAsUser.jabatan})` : ''}</h1>
           <div className="w-64">
             <Label htmlFor="role-switcher-laporan">Tampilan Sebagai:</Label>
-            <Select value={currentUser.id} onValueChange={handleRoleChange}>
+            <Select value={viewAsUser?.id} onValueChange={handleViewAsChange} disabled={visibleUsers.length <= 1}>
                 <SelectTrigger id="role-switcher-laporan"><SelectValue placeholder="Pilih Peran" /></SelectTrigger>
                 <SelectContent>
-                    {mockUsers.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>)}
+                    {visibleUsers.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>)}
                 </SelectContent>
             </Select>
         </div>
@@ -306,52 +257,34 @@ export default function LaporanPage() {
         {isLoading ? Array.from({length: 4}).map((_, i) => <StatCardSkeleton key={i} />) : (
             dynamicStatCards.map((card, index) => (
             <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
-                </CardContent>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">{card.title}</CardTitle><card.icon className="h-4 w-4 text-muted-foreground" /></CardHeader>
+                <CardContent><div className="text-2xl font-bold">{card.value}</div><p className="text-xs text-muted-foreground">{card.description}</p></CardContent>
             </Card>
             ))
         )}
       </div>
 
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
-        {isLoading ? (<><ChartSkeleton /><ChartSkeleton /></>) : (
+        {isLoading ? <><ChartSkeleton /><ChartSkeleton /></> : (
             <>
             <Card>
-              <CardHeader>
-                <CardTitle>Volume Surat per Bulan</CardTitle>
-                <CardDescription>Jumlah total surat masuk dan keluar yang tercatat setiap bulan.</CardDescription>
-              </CardHeader>
+              <CardHeader><CardTitle>Volume Surat per Bulan</CardTitle><CardDescription>Jumlah total surat masuk dan keluar yang tercatat setiap bulan.</CardDescription></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={suratVolumeData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="total" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                    <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} /><Tooltip /><Bar dataKey="total" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-              <Card>
-              <CardHeader>
-                <CardTitle>Distribusi Status Surat</CardTitle>
-                <CardDescription>Proporsi surat berdasarkan statusnya saat ini.</CardDescription>
-              </CardHeader>
+            <Card>
+              <CardHeader><CardTitle>Distribusi Status Surat</CardTitle><CardDescription>Proporsi surat berdasarkan statusnya saat ini.</CardDescription></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={statusDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
                         {statusDistributionData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
+                    </Pie><Tooltip /><Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -362,21 +295,11 @@ export default function LaporanPage() {
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Laporan Rinci Semua Surat</CardTitle>
-            <CardDescription>Lacak alur dan status semua surat dalam sistem untuk {currentUser.unit === 'All' ? 'semua unit' : `unit ${currentUser.unit}`}.</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-              <DateRangePicker date={date} setDate={setDate} />
-              <Button onClick={handleExport} disabled={isLoading}><Download className="mr-2 h-4 w-4" />Ekspor</Button>
-          </div>
+          <div><CardTitle>Laporan Rinci Semua Surat</CardTitle><CardDescription>Lacak alur dan status semua surat dalam sistem {viewAsUser ? `untuk ${viewAsUser.jabatan}`: ''}.</CardDescription></div>
+          <div className="flex items-center gap-2"><DateRangePicker date={date} setDate={setDate} /><Button onClick={handleExport} disabled={isLoading}><Download className="mr-2 h-4 w-4" />Ekspor</Button></div>
         </CardHeader>
         <CardContent>
-            {isLoading ? (
-                 <div className="space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-48 w-full" /><Skeleton className="h-8 w-1/3 ml-auto" /></div>
-            ) : (
-                <DataTable columns={columns} data={filteredData} />
-            )}
+            {isLoading ? <div className="space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-48 w-full" /><Skeleton className="h-8 w-1/3 ml-auto" /></div> : <DataTable columns={columns} data={filteredData} />}
         </CardContent>
       </Card>
 
@@ -440,5 +363,3 @@ export default function LaporanPage() {
     </AppLayout>
   );
 }
-
-    
