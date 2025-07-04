@@ -105,13 +105,24 @@ const getStoredUsers = (): User[] => {
     if (typeof window === 'undefined') return initialUsersData;
     const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
     if (storedUsers) {
-      return JSON.parse(storedUsers);
+      const users = JSON.parse(storedUsers);
+      // Self-healing check: ensure the main admin account is present and correct.
+      // This prevents issues if the localStorage data is from an older, incompatible version.
+      const adminUser = users.find((u: User) => u.nip === 'admin');
+      if (!adminUser || adminUser.password !== 'password-admin') {
+        // Data is stale or corrupted, re-seed.
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
+        return initialUsersData;
+      }
+      return users;
     } else {
+      // First time seeding
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
       return initialUsersData;
     }
   } catch (error) {
     console.error("Error accessing localStorage:", error);
+    // Fallback to initial data if localStorage fails
     return initialUsersData;
   }
 };
