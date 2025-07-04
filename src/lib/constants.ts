@@ -2,6 +2,7 @@
 export const ROLES = {
   "Pimpinan & Pengawas": [
     "Direktur",
+    "Administrator Sistem",
     "Dewan Pengawas",
     "Satuan Pengawasan Intern (SPI)",
   ],
