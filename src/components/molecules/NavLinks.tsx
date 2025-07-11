@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
+import { useUserStore } from "@/store/userStore";
 
 const mainNavItems = [
   { href: "/dashboard", label: NAV_LINKS.DASHBOARD, icon: Home },
@@ -38,6 +39,14 @@ type NavLinksProps = {
 
 export function NavLinks({ isMobile = false }: NavLinksProps) {
   const pathname = usePathname();
+  const { activeUser } = useUserStore();
+
+  const vendorHiddenRoutes = ["/admin", "/log-aktivitas", "/laporan"];
+
+  const visibleMainNavItems =
+    activeUser?.jabatan === "Vendor"
+      ? mainNavItems.filter((item) => !vendorHiddenRoutes.includes(item.href))
+      : mainNavItems;
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -47,7 +56,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
   };
 
   if (isMobile) {
-    const allItems = [...mainNavItems, secondaryNavItem];
+    const allItems = [...visibleMainNavItems, secondaryNavItem];
     return (
       <nav className="grid gap-2 text-lg font-medium">
         <Link
@@ -93,7 +102,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
     <>
       <div className="flex-1">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-          {mainNavItems.map((item) => (
+          {visibleMainNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
