@@ -39,7 +39,7 @@ export default function BuatBeritaAcaraHasilPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useUserStore();
+  const { addSurat, surat: allSurat } = useSuratStore();
 
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -261,7 +261,7 @@ export default function BuatBeritaAcaraHasilPage() {
         </div>
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
           <DialogContent><DialogHeader><DialogTitle>Pilih Surat Perintah untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi untuk mengisi data.</DialogDescription></DialogHeader>
-            <ScrollArea className="max-h-96 pr-4">{availableSurat.length > 0 ? (availableSurat.map((s) => (<div key={s.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.perihal}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersimpan.</p>)}</ScrollArea>
+            <ScrollArea className="max-h-96 pr-4">{availableSurat.length > 0 ? (availableSurat.map((s, i) => (<div key={`${s.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.perihal}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersimpan.</p>)}</ScrollArea>
           </DialogContent>
         </Dialog>
       </main>

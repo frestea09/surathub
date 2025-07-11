@@ -306,8 +306,8 @@ export default function BuatBeritaAcaraUmumPage() {
           <DialogHeader><DialogTitle>Pilih Surat Pesanan untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi untuk mengisi data.</DialogDescription></DialogHeader>
           <ScrollArea className="max-h-96 pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: SuratPesananUmum) => (
-                  <div key={surat.formData.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                availableSurat.map((surat: SuratPesananUmum, i: number) => (
+                  <div key={`${surat.formData.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
                     <div>
                       <p className="font-semibold">{surat.formData.nomor}</p>
                       <p className="text-sm text-muted-foreground">{surat.formData.penerima}</p>

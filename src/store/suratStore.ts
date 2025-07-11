@@ -114,8 +114,8 @@ const seedInitialData = () => {
     localStorage.setItem('suratPerintahList', JSON.stringify([{ nomor: "000.3/PPK-RSUD OTISTA/IV/2025", status: "Terkirim", perihal: "Perintah Pengadaan Barang Farmasi", tanggalSurat: new Date("2025-04-08T00:00:00"), penerima: "Pejabat Pengadaan Barang Jasa", namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt"}]));
     localStorage.setItem('suratPesananList', JSON.stringify([{ formData: { nomor: "000.3/PPBJ-RSUD OTISTA/IV/2025", perihal: "Penerbitan Surat Pesanan", tanggalSurat: new Date("2025-04-09T00:00:00"), nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025", status: "Terkirim"}, items: itemsDataObat}]));
     localStorage.setItem('suratPesananFinalList', JSON.stringify([{ formData: { nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", perihal: "Pesanan Barang Farmasi", tanggalSurat: new Date("2025-04-10T00:00:00"), penerima: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/PPBJ-RSUD OTISTA/IV/2025", status: "Terkirim"}, items: itemsDataObat}]));
-    localStorage.setItem('beritaAcaraList', JSON.stringify([{ formData: { nomor: "06/PPK-FAR/RSUDO/IV/2025", vendorNama: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Selesai", perihal: "BA Pemeriksaan untuk PT Intisumber"}, items: itemsDataObatWithKeterangan}]));
-    localStorage.setItem('bastbList', JSON.stringify([{ formData: { nomor: 'BASTB/06/FAR/IV/2025', nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025', status: 'Selesai', perihal: "BASTB untuk PT Intisumber" }}]));
+    localStorage.setItem('beritaAcaraList', JSON.stringify([{ formData: { nomor: "06/PPK-FAR/RSUDO/IV/2025", vendorNama: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Selesai", perihal: "BA Pemeriksaan untuk PT Intisumber", tanggalSuratReferensi: new Date("2025-04-11T00:00:00")}, items: itemsDataObatWithKeterangan}]));
+    localStorage.setItem('bastbList', JSON.stringify([{ formData: { nomor: 'BASTB/06/FAR/IV/2025', nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025', status: 'Selesai', perihal: "BASTB untuk PT Intisumber", tanggalBeritaAcara: new Date("2025-04-12T00:00:00") }}]));
 
     // Alur Pengadaan Barang Jasa Umum
     const itemsDataUmum = [
@@ -127,9 +127,9 @@ const seedInitialData = () => {
     ];
     const itemsDataUmumWithKeterangan = itemsDataUmum.map(item => ({...item, keterangan: "Baik Sesuai dengan SP"}));
     localStorage.setItem('suratPerintahUmumList', JSON.stringify([{ nomor: "02/Alat Listrik/PPK/V/2025", perihal: "Pengadaan Belanja Alat Listrik Bulan Mei 2025", tanggalSurat: new Date("2025-05-19T00:00:00"), status: "Terkirim"}]));
-    localStorage.setItem('beritaAcaraHasilList', JSON.stringify([{ formData: { nomor: '02/Alat Listrik/PP/V/2025', namaPaket: 'Pengadaan Belanja Alat Listrik Bulan Mei 2025', tanggalSurat: new Date('2025-05-19T00:00:00'), status: 'Terkirim'}, peserta: [{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }]}]));
-    localStorage.setItem('suratPesananUmumList', JSON.stringify([{ formData: { nomor: "000.3/02-Alat Listrik/RSUDO/V/2025", hal: "Surat Pesanan", tanggalSurat: new Date("2025-05-20T00:00:00"), penerima: "TB. Doa Sepuh", nomorSuratReferensi: "02/Alat Listrik/PP/V/2025", status: "Terkirim"}, items: itemsDataUmum}]));
-    localStorage.setItem('beritaAcaraUmumList', JSON.stringify([{ formData: { nomor: "02/BAP-Alat Listrik/V/2025", perihal: "BA Pemeriksaan untuk TB. Doa Sepuh", vendorNama: "TB. Doa Sepuh", narasiRealisasi: "Sebagai realisasi dari Surat Pesanan dari Pejabat Pembuat Komitmen Nomor: 000.3/02-Alat Listrik/RSUDO/V/2025, tanggal 20 Mei 2025 dengan jumlah dan jenis barang sebagai berikut:", status: "Selesai"}, items: itemsDataUmumWithKeterangan}]));
+    localStorage.setItem('beritaAcaraHasilList', JSON.stringify([{ formData: { nomor: '02/Alat Listrik/PP/V/2025', namaPaket: 'Pengadaan Belanja Alat Listrik Bulan Mei 2025', tanggalSurat: new Date('2025-05-20T00:00:00'), status: 'Terkirim', nomorSuratReferensi: '02/Alat Listrik/PPK/V/2025'}, peserta: [{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }]}]));
+    localStorage.setItem('suratPesananUmumList', JSON.stringify([{ formData: { nomor: "000.3/02-Alat Listrik/RSUDO/V/2025", hal: "Surat Pesanan", tanggalSurat: new Date("2025-05-21T00:00:00"), penerima: "TB. Doa Sepuh", nomorSuratReferensi: "02/Alat Listrik/PP/V/2025", status: "Terkirim"}, items: itemsDataUmum}]));
+    localStorage.setItem('beritaAcaraUmumList', JSON.stringify([{ formData: { nomor: "02/BAP-Alat Listrik/V/2025", perihal: "BA Pemeriksaan untuk TB. Doa Sepuh", vendorNama: "TB. Doa Sepuh", nomorSuratReferensi: "000.3/02-Alat Listrik/RSUDO/V/2025", tanggalSurat: new Date("2025-05-22T00:00:00"), narasiRealisasi: "Sebagai realisasi dari Surat Pesanan dari Pejabat Pembuat Komitmen Nomor: 000.3/02-Alat Listrik/RSUDO/V/2025, tanggal 20 Mei 2025 dengan jumlah dan jenis barang sebagai berikut:", status: "Selesai"}, items: itemsDataUmumWithKeterangan}]));
     
     localStorage.setItem('surat_data_seeded_v5', 'true');
     console.log("Demo surat data seeded into localStorage (v5).");
@@ -246,7 +246,8 @@ export const useSuratStore = create<SuratState>((set, get) => ({
 
             const key = Object.keys(suratTipeMap).find(k => suratTipeMap[k] === suratToDelete.tipe);
             if (key && typeof window !== 'undefined') {
-                let list = JSON.parse(localStorage.getItem(key) || '[]');
+                let list = JSON.parse(localStorage.getItem(key) || '[]'
+                );
                 list = list.filter((item: any) => (item.formData || item).nomor !== nomor);
                 localStorage.setItem(key, JSON.stringify(list));
             }

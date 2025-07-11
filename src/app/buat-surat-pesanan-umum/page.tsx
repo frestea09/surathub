@@ -360,8 +360,8 @@ export default function BuatSuratPesananUmumPage() {
           <DialogHeader><DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription></DialogHeader>
           <ScrollArea className="max-h-96 pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: BeritaAcaraHasil) => (
-                  <div key={surat.formData.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                availableSurat.map((surat: BeritaAcaraHasil, i: number) => (
+                  <div key={`${surat.formData.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
                     <div>
                       <p className="font-semibold">{surat.formData.nomor}</p>
                       <p className="text-sm text-muted-foreground">{surat.formData.namaPaket}</p>
