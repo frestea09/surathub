@@ -41,7 +41,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
   const pathname = usePathname();
   const { activeUser } = useUserStore();
 
-  const vendorHiddenRoutes = ["/admin", "/log-aktivitas", "/laporan"];
+  const vendorHiddenRoutes = ["/dashboard", "/admin", "/log-aktivitas", "/laporan"];
 
   const visibleMainNavItems =
     activeUser?.jabatan === "Vendor"
