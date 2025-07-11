@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VendorLayout({
   children,
@@ -24,10 +25,15 @@ export default function VendorLayout({
 }) {
   const { activeUser, logout } = useUserStore();
   const router = useRouter();
+  const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    if (!activeUser) {
+    // Check authentication status. If no user, redirect to login.
+    // This check runs only once after the component mounts and activeUser is initialized.
+    if (activeUser === null) {
       router.replace('/vendor/login');
+    } else {
+      setIsAuthCheckComplete(true);
     }
   }, [activeUser, router]);
 
@@ -36,8 +42,22 @@ export default function VendorLayout({
     router.push('/vendor/login');
   };
 
-  if (!activeUser) {
-    return null;
+  if (!isAuthCheckComplete || !activeUser) {
+    // Show a loading skeleton or a blank screen while the auth check is in progress
+    // to prevent flicker or rendering content that shouldn't be visible.
+    return (
+        <div className="flex min-h-screen w-full flex-col">
+            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+                <Skeleton className="h-8 w-48" />
+                <div className="ml-auto flex items-center gap-4">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+            </header>
+            <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+                <Skeleton className="h-96 w-full" />
+            </main>
+        </div>
+    );
   }
 
   return (
