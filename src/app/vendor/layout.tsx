@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -25,22 +25,25 @@ export default function VendorLayout({
 }) {
   const { activeUser, logout } = useUserStore();
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    if (activeUser === null) {
-      const timer = setTimeout(() => {
-        if (!useUserStore.getState().activeUser) {
+    const user = useUserStore.getState().activeUser;
+    if (!user && pathname !== '/vendor/login') {
+       const timer = setTimeout(() => {
+         // Re-check after a brief moment to allow state to potentially update
+         if (!useUserStore.getState().activeUser) {
            router.replace('/vendor/login');
-        } else {
-           setIsAuthCheckComplete(true);
-        }
-      }, 100); 
-      return () => clearTimeout(timer);
+         } else {
+            setIsAuthCheckComplete(true);
+         }
+       }, 100);
+       return () => clearTimeout(timer);
     } else {
-      setIsAuthCheckComplete(true);
+        setIsAuthCheckComplete(true);
     }
-  }, [activeUser, router]);
+  }, [pathname, router]);
 
   const handleLogout = () => {
     logout();
@@ -48,6 +51,9 @@ export default function VendorLayout({
   };
 
   if (!isAuthCheckComplete || !activeUser) {
+    // Show a skeleton loader while auth check is in progress, but only if not on the login page itself
+    if (pathname === '/vendor/login') return <>{children}</>;
+    
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -89,8 +95,7 @@ export default function VendorLayout({
             <span>Portal Vendor SuratHub</span>
           </Link>
         </nav>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <div className="ml-auto flex-1 sm:flex-initial" />
+        <div className="ml-auto flex-1 sm:flex-initial" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -109,7 +114,6 @@ export default function VendorLayout({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         {children}

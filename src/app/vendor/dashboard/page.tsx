@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUserStore } from '@/store/userStore';
 import { useSuratStore, type Surat } from '@/store/suratStore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function VendorDashboardPage() {
   const router = useRouter();
@@ -41,7 +42,24 @@ export default function VendorDashboardPage() {
   }, [surat]);
 
   if (isLoading) {
-    return <p>Memuat data...</p>;
+    return (
+        <div>
+            <Skeleton className="h-8 w-1/3 mb-4" />
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-1/2 mb-2"/>
+                    <Skeleton className="h-4 w-full" />
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
   }
 
   return (
@@ -69,8 +87,8 @@ export default function VendorDashboardPage() {
             </TableHeader>
             <TableBody>
               {vendorSurat.length > 0 ? (
-                vendorSurat.map((s) => (
-                  <TableRow key={s.nomor}>
+                vendorSurat.map((s, index) => (
+                  <TableRow key={`${s.nomor}-${index}`}>
                     <TableCell className="font-medium">{s.nomor}</TableCell>
                     <TableCell>{s.judul}</TableCell>
                     <TableCell>{new Date(s.tanggal).toLocaleDateString('id-ID', { dateStyle: 'long' })}</TableCell>
