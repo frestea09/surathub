@@ -22,8 +22,8 @@ export default function VendorLoginPage() {
   const router = useRouter();
   const { login } = useUserStore();
   const { toast } = useToast();
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [username, setUsername] = React.useState('vendor');
+  const [password, setPassword] = React.useState('password-vendor');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

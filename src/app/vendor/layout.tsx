@@ -26,8 +26,6 @@ export default function VendorLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // For prototype purposes, if no activeUser, redirect to login.
-    // In a real app, this would be a protected route middleware.
     if (!activeUser) {
       router.replace('/vendor/login');
     }
@@ -39,7 +37,6 @@ export default function VendorLayout({
   };
 
   if (!activeUser) {
-    // Render a loading state or null while redirecting
     return null;
   }
 
@@ -66,9 +63,8 @@ export default function VendorLayout({
               <path d="M22 12h-6l-2 3h-4l-2-3H2" />
               <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
             </svg>
-            <span className="sr-only">SuratHub</span>
+            <span>Portal Vendor SuratHub</span>
           </Link>
-          <span className="text-muted-foreground">Portal Vendor</span>
         </nav>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
           <div className="ml-auto flex-1 sm:flex-initial" />
@@ -76,7 +72,7 @@ export default function VendorLayout({
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{activeUser.nama.substring(0, 2)}</AvatarFallback>
+                  <AvatarFallback>{activeUser.nama.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
