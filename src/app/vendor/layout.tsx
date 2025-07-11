@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VendorLayout({
@@ -28,10 +28,15 @@ export default function VendorLayout({
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    // Check authentication status. If no user, redirect to login.
-    // This check runs only once after the component mounts and activeUser is initialized.
     if (activeUser === null) {
-      router.replace('/vendor/login');
+      const timer = setTimeout(() => {
+        if (!useUserStore.getState().activeUser) {
+           router.replace('/vendor/login');
+        } else {
+           setIsAuthCheckComplete(true);
+        }
+      }, 100); 
+      return () => clearTimeout(timer);
     } else {
       setIsAuthCheckComplete(true);
     }
@@ -43,8 +48,6 @@ export default function VendorLayout({
   };
 
   if (!isAuthCheckComplete || !activeUser) {
-    // Show a loading skeleton or a blank screen while the auth check is in progress
-    // to prevent flicker or rendering content that shouldn't be visible.
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

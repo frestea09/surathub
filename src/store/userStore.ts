@@ -106,23 +106,18 @@ const getStoredUsers = (): User[] => {
     const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
     if (storedUsers) {
       const users = JSON.parse(storedUsers);
-      // Self-healing check: ensure the main admin account is present and correct.
-      // This prevents issues if the localStorage data is from an older, incompatible version.
       const adminUser = users.find((u: User) => u.nip === 'admin');
       if (!adminUser || adminUser.password !== 'password-admin') {
-        // Data is stale or corrupted, re-seed.
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
         return initialUsersData;
       }
       return users;
     } else {
-      // First time seeding
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
       return initialUsersData;
     }
   } catch (error) {
     console.error("Error accessing localStorage:", error);
-    // Fallback to initial data if localStorage fails
     return initialUsersData;
   }
 };
@@ -149,17 +144,20 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  login: async (nip, password) => {
-    const users = getStoredUsers();
-    const user = users.find(u => u.nip === nip && u.password === password);
-    if (user && user.status === 'Aktif') {
-      set({ activeUser: user });
-      return user;
-    }
-    if (user && user.status !== 'Aktif') {
-      throw new Error("Akun Anda tidak aktif. Silakan hubungi administrator.");
-    }
-    throw new Error("NIP/Username atau password salah.");
+  login: (nip, password) => {
+    return new Promise((resolve, reject) => {
+        const users = getStoredUsers();
+        const user = users.find(u => u.nip === nip && u.password === password);
+
+        if (user && user.status === 'Aktif') {
+            set({ activeUser: user });
+            resolve(user);
+        } else if (user && user.status !== 'Aktif') {
+            reject(new Error("Akun Anda tidak aktif. Silakan hubungi administrator."));
+        } else {
+            reject(new Error("NIP/Username atau password salah."));
+        }
+    });
   },
 
   logout: () => {
