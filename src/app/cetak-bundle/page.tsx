@@ -5,20 +5,23 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Printer, Send } from 'lucide-react';
+import { ArrowLeft, Printer, Send, CheckCircle, HelpCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { roundHalfUp } from '@/lib/utils';
 import { useSuratStore, type Surat } from '@/store/suratStore';
+import { useUserStore } from '@/store/userStore';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Mapping from tipe to a more readable name
 const tipeToLabel: { [key: string]: string } = {
@@ -286,17 +289,45 @@ const RenderBASTB = ({ data }: { data: any }) => {
     );
 };
 
+const VendorActionPanel = ({ onConfirm, onAsk }: { onConfirm: () => void; onAsk: () => void; }) => {
+    return (
+        <Card className="mb-6 print:hidden">
+            <CardHeader>
+                <CardTitle>Panel Aksi Vendor</CardTitle>
+                <CardDescription>
+                    Harap tinjau dokumen di bawah ini. Lakukan konfirmasi jika semua sudah sesuai, atau ajukan pertanyaan jika ada yang perlu direvisi.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-4">
+                <Button className="w-full sm:w-auto" onClick={onConfirm}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Konfirmasi & Setujui Pesanan
+                </Button>
+                <Button variant="outline" className="w-full sm:w-auto" onClick={onAsk}>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Ajukan Pertanyaan / Revisi
+                </Button>
+            </CardContent>
+        </Card>
+    );
+};
+
 export default function CetakBundlePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const { surat, isLoading: isSuratLoading, fetchAllSurat } = useSuratStore();
+    const { surat, isLoading: isSuratLoading, fetchAllSurat, updateSurat } = useSuratStore();
+    const { activeUser } = useUserStore();
     
     const [bundle, setBundle] = useState<Surat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+    const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
     const [vendorEmail, setVendorEmail] = useState('');
     const [isSending, setIsSending] = useState(false);
+
+    const isVendor = activeUser?.jabatan === 'Vendor';
+    const orderStatus = bundle.find(s => s.tipe === 'SP-Vendor')?.status;
 
     useEffect(() => {
         fetchAllSurat();
@@ -322,7 +353,6 @@ export default function CetakBundlePage() {
         let headNomor = startNomor;
         let currentDoc = startingDoc;
         
-        // Traverse backwards to find the head of the chain (SPP or SPU)
         while (currentDoc) {
             const refKey = currentDoc.data.formData?.nomorSuratReferensi || currentDoc.data.nomorSuratReferensi;
             if (!refKey) break;
@@ -336,7 +366,6 @@ export default function CetakBundlePage() {
             }
         }
         
-        // From the head, traverse forward to build the full bundle
         const finalBundle: Surat[] = [];
         let docToAdd = findDocumentByNomor(headNomor);
         const addedNomors = new Set<string>();
@@ -377,7 +406,7 @@ export default function CetakBundlePage() {
                 body: JSON.stringify({
                     to: vendorEmail,
                     vendorName: vendorName,
-                    bundleUrl: window.location.href, // Send a link to the current page
+                    bundleUrl: window.location.href,
                     documentCount: bundle.length
                 }),
             });
@@ -395,6 +424,23 @@ export default function CetakBundlePage() {
             setIsSending(false);
         }
     };
+    
+    const handleVendorConfirm = () => {
+        const vendorOrder = bundle.find(s => s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum');
+        if (vendorOrder) {
+            updateSurat(vendorOrder.nomor, { status: 'Disetujui' });
+            toast({ title: "Pesanan Dikonfirmasi", description: "Terima kasih, tim internal akan segera menindaklanjuti." });
+        }
+    };
+
+    const handleSendQuestion = (e: React.FormEvent) => {
+        e.preventDefault();
+        toast({
+            title: "Pertanyaan Terkirim",
+            description: "Pertanyaan Anda telah dikirim ke tim internal. Mohon tunggu balasan mereka.",
+        });
+        setIsQuestionDialogOpen(false);
+    };
 
     const renderComponent = (item: Surat) => {
         switch (item.tipe) {
@@ -403,7 +449,6 @@ export default function CetakBundlePage() {
             case 'SP-Vendor': return <RenderSuratPesananFinal data={item.data} />;
             case 'BA': return <RenderBeritaAcara data={item.data} />;
             case 'BASTB': return <RenderBASTB data={item.data} />;
-            // Add cases for Pengadaan Umum when components are created
             default: return (
                  <div className="p-8 text-center">
                     <p className="font-bold">Pratinjau tidak tersedia</p>
@@ -439,21 +484,38 @@ export default function CetakBundlePage() {
                         <span className="sr-only">Back</span>
                     </Button>
                     <h1 className="text-xl font-semibold">Cetak Bundle Dokumen</h1>
-                    <div className="ml-auto flex items-center gap-2">
-                        <Button variant="outline" onClick={() => setIsEmailDialogOpen(true)}>
-                            <Send className="mr-2 h-4 w-4" />
-                            Kirim ke Vendor
-                        </Button>
-                        <Button onClick={() => window.print()}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Cetak Semua
-                        </Button>
-                    </div>
+                    {!isVendor && (
+                        <div className="ml-auto flex items-center gap-2">
+                            <Button variant="outline" onClick={() => setIsEmailDialogOpen(true)}>
+                                <Send className="mr-2 h-4 w-4" />
+                                Kirim ke Vendor
+                            </Button>
+                            <Button onClick={() => window.print()}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Cetak Semua
+                            </Button>
+                        </div>
+                    )}
                 </header>
-                <main>
+                <main className="p-4 sm:p-6">
+                    {isVendor && orderStatus === 'Terkirim' && (
+                        <VendorActionPanel 
+                            onConfirm={handleVendorConfirm} 
+                            onAsk={() => setIsQuestionDialogOpen(true)}
+                        />
+                    )}
+                     {isVendor && orderStatus === 'Disetujui' && (
+                        <Alert variant="default" className="mb-6 bg-green-50 border-green-200 print:hidden">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <AlertTitle className="text-green-800">Pesanan Dikonfirmasi</AlertTitle>
+                            <AlertDescription className="text-green-700">
+                                Anda telah mengonfirmasi pesanan ini. Tim internal akan melanjutkan proses.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     {bundle.length > 0 ? (
-                        bundle.map((item, index) => (
-                            <Card key={item.nomor} className="my-4 mx-auto w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0 print:w-full">
+                        bundle.map((item) => (
+                            <Card key={item.nomor} className="my-4 mx-auto w-full max-w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:border-none print:m-0">
                                 <CardContent className="p-0">
                                     {renderComponent(item)}
                                 </CardContent>
@@ -483,9 +545,9 @@ export default function CetakBundlePage() {
                        .print\\:m-0 {
                         margin: 0;
                       }
-                      .print\\:w-full {
+                       .print\\:w-full {
                         width: 100%;
-                      }
+                       }
                       .page-break {
                           page-break-after: always;
                       }
@@ -521,15 +583,38 @@ export default function CetakBundlePage() {
                             />
                         </div>
                         <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">Batal</Button>
-                            </DialogClose>
-                            <Button type="submit" disabled={isSending}>
-                                {isSending ? 'Mengirim...' : 'Kirim Email'}
-                            </Button>
+                            <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
+                            <Button type="submit" disabled={isSending}>{isSending ? 'Mengirim...' : 'Kirim Email'}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
+            </Dialog>
+
+            <Dialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen}>
+                 <form onSubmit={handleSendQuestion}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Ajukan Pertanyaan atau Revisi</DialogTitle>
+                            <DialogDescription>
+                                Kirim pesan ke tim internal terkait pesanan ini. Mereka akan dihubungi untuk menindaklanjuti.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="question-subject">Subjek</Label>
+                                <Input id="question-subject" placeholder="Contoh: Revisi harga pada item X" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="question-body">Pesan Anda</Label>
+                                <Textarea id="question-body" placeholder="Jelaskan pertanyaan atau permintaan revisi Anda secara detail di sini..." rows={6} required />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
+                            <Button type="submit">Kirim Pertanyaan</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                 </form>
             </Dialog>
         </>
     );
