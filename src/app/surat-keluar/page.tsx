@@ -15,6 +15,7 @@ import {
   Trash2,
   FileArchive,
   Pencil,
+  MessageSquareWarning,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
@@ -108,6 +109,8 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Selesai: "default",
   Baru: "secondary",
   Didisposisikan: "outline",
+  Disetujui: "default",
+  'Revisi Diminta': 'destructive'
 };
 
 export default function SuratKeluarPage() {
@@ -155,6 +158,18 @@ export default function SuratKeluarPage() {
             break;
         case 'BASTB':
             path = '/buat-bastb';
+            break;
+        case 'SPU':
+             path = '/buat-surat-perintah-umum';
+            break;
+        case 'BAH':
+             path = '/buat-berita-acara-hasil';
+            break;
+        case 'SP-Umum':
+             path = '/buat-surat-pesanan-umum';
+            break;
+        case 'BA-Umum':
+            path = '/buat-berita-acara-umum';
             break;
         default:
             toast({
@@ -223,9 +238,10 @@ export default function SuratKeluarPage() {
   const filteredSurat = useMemo(() => suratList.filter(surat => {
     if (activeTab === "semua") return true;
     if (activeTab === "draft") return surat.status === "Draft";
-    if (activeTab === "terkirim") return surat.status === "Terkirim";
+    if (activeTab === "terkirim") return surat.status === "Terkirim" || surat.status === "Disetujui";
     if (activeTab === "diarsipkan") return surat.status === "Diarsipkan";
     if (activeTab === "ditolak") return surat.status === "Ditolak";
+    if (activeTab === "revisi") return surat.status === "Revisi Diminta";
     return true;
   }), [suratList, activeTab]);
 
@@ -257,7 +273,7 @@ export default function SuratKeluarPage() {
           header: "Status",
           cell: ({ row }) => {
               const status = row.getValue("status") as keyof typeof statusVariant;
-              return <Badge variant={statusVariant[status]}>{status}</Badge>
+              return <Badge variant={statusVariant[status] || 'default'}>{status}</Badge>
           }
       },
       {
@@ -278,9 +294,9 @@ export default function SuratKeluarPage() {
                               <FileSearch className="mr-2 h-4 w-4" />
                               Lihat Detail
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditClick(surat)} disabled={surat.status !== 'Draft'}>
+                          <DropdownMenuItem onClick={() => handleEditClick(surat)} disabled={surat.status !== 'Draft' && surat.status !== 'Revisi Diminta'}>
                               <Pencil className="mr-2 h-4 w-4" />
-                              Edit Draf
+                              {surat.status === 'Revisi Diminta' ? 'Revisi Draf' : 'Edit Draf'}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleActionClick(surat, 'kirim')} disabled={surat.status !== 'Draft'}>
                               <Send className="mr-2 h-4 w-4" />
@@ -293,7 +309,6 @@ export default function SuratKeluarPage() {
                           <DropdownMenuSeparator />
                            <DropdownMenuItem
                             onClick={() => router.push(`/cetak-bundle?nomor=${surat.nomor}&tipe=${surat.tipe}`)}
-                            disabled={!['SPP', 'SP', 'SP-Vendor', 'BA', 'BASTB'].includes(surat.tipe)}
                             >
                                 <FileArchive className="mr-2 h-4 w-4" />
                                 Cetak Bundle
@@ -328,6 +343,10 @@ export default function SuratKeluarPage() {
           <TabsList>
             <TabsTrigger value="semua">Semua</TabsTrigger>
             <TabsTrigger value="draft">Draft</TabsTrigger>
+            <TabsTrigger value="revisi">
+                <MessageSquareWarning className="mr-2 h-4 w-4" />
+                Revisi Diminta
+            </TabsTrigger>
             <TabsTrigger value="terkirim">Terkirim</TabsTrigger>
             <TabsTrigger value="diarsipkan">Diarsipkan</TabsTrigger>
             <TabsTrigger value="ditolak" className="text-destructive">Ditolak</TabsTrigger>
@@ -367,7 +386,8 @@ export default function SuratKeluarPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedSurat && (
-            <div className="grid gap-4 py-4">
+            <ScrollArea className="max-h-[60vh]">
+            <div className="grid gap-4 py-4 pr-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="nomor" className="text-right">Nomor</Label>
                 <Input id="nomor" value={selectedSurat.nomor} readOnly className="col-span-3" />
@@ -388,7 +408,26 @@ export default function SuratKeluarPage() {
                 <Label htmlFor="status" className="text-right">Status</Label>
                 <Input id="status" value={selectedSurat.status} readOnly className="col-span-3" />
               </div>
+
+               {selectedSurat.revisionHistory && selectedSurat.revisionHistory.length > 0 && (
+                 <div className="col-span-4 mt-4">
+                    <Label>Riwayat Revisi</Label>
+                    <div className="mt-2 space-y-3 rounded-md border p-4">
+                        {selectedSurat.revisionHistory.map((rev, index) => (
+                             <div key={index} className="flex gap-3">
+                                <MessageSquareWarning className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />
+                                <div>
+                                    <p className="text-sm font-semibold">{rev.by}</p>
+                                    <p className="text-xs text-muted-foreground">{new Date(rev.date).toLocaleString('id-ID')}</p>
+                                    <p className="text-sm mt-1">{rev.message}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+               )}
             </div>
+            </ScrollArea>
           )}
           <DialogFooter>
             <DialogClose asChild>

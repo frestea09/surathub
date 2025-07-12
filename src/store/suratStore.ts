@@ -7,12 +7,13 @@ export type Surat = {
     judul: string;
     jenis: "Surat Masuk" | "Surat Keluar";
     tipe: string;
-    status: 'Draft' | 'Terkirim' | 'Diarsipkan' | 'Ditolak' | 'Baru' | 'Didisposisikan' | 'Selesai' | 'Disetujui';
+    status: 'Draft' | 'Terkirim' | 'Diarsipkan' | 'Ditolak' | 'Baru' | 'Didisposisikan' | 'Selesai' | 'Disetujui' | 'Revisi Diminta';
     tanggal: string;
     unit: string;
     penanggungJawab: string;
     dariKe: string;
     data: any; // Original form data
+    revisionHistory?: { by: string; date: string; message: string }[];
 };
 
 type SuratState = {
@@ -21,8 +22,9 @@ type SuratState = {
     error: string | null;
     fetchAllSurat: (activeUser?: User | null) => void;
     addSurat: (listKey: string, suratData: any) => void;
-    updateSurat: (nomor: string, updatedData: Partial<Surat>) => void;
+    updateSurat: (nomor: string, updatedData: Partial<Omit<Surat, 'data' | 'nomor' | 'tipe' | 'jenis'>>) => void;
     deleteSurat: (nomor: string) => void;
+    addRevisionNote: (nomor: string, note: { by: string; date: string; message: string }) => void;
 }
 
 const getUnitForSurat = (surat: any): string => {
@@ -52,6 +54,7 @@ const mapToUnifiedFormat = (item: any, jenis: 'Surat Keluar' | 'Surat Masuk', ti
         penanggungJawab: base.namaPenandaTangan || base.pejabatNama || base.disposisi || 'Admin',
         dariKe: base.penerima || base.pengirim || base.vendorNama || 'Internal',
         data: item,
+        revisionHistory: base.revisionHistory || [],
     };
 };
 
@@ -100,7 +103,7 @@ const suratTipeMap: { [key: string]: string } = {
 
 // --- DEMO DATA SEEDING ---
 const seedInitialData = () => {
-    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v5')) {
+    if (typeof window === 'undefined' || localStorage.getItem('surat_data_seeded_v6')) {
         return;
     }
     
@@ -113,7 +116,7 @@ const seedInitialData = () => {
     const itemsDataObatWithKeterangan = itemsDataObat.map(item => ({...item, keterangan: "Baik sesuai dengan SP"}));
     localStorage.setItem('suratPerintahList', JSON.stringify([{ nomor: "000.3/PPK-RSUD OTISTA/IV/2025", status: "Terkirim", perihal: "Perintah Pengadaan Barang Farmasi", tanggalSurat: new Date("2025-04-08T00:00:00"), penerima: "Pejabat Pengadaan Barang Jasa", namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt"}]));
     localStorage.setItem('suratPesananList', JSON.stringify([{ formData: { nomor: "000.3/PPBJ-RSUD OTISTA/IV/2025", perihal: "Penerbitan Surat Pesanan", tanggalSurat: new Date("2025-04-09T00:00:00"), nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025", status: "Terkirim"}, items: itemsDataObat}]));
-    localStorage.setItem('suratPesananFinalList', JSON.stringify([{ formData: { nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", perihal: "Pesanan Barang Farmasi", tanggalSurat: new Date("2025-04-10T00:00:00"), penerima: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/PPBJ-RSUD OTISTA/IV/2025", status: "Terkirim"}, items: itemsDataObat}]));
+    localStorage.setItem('suratPesananFinalList', JSON.stringify([{ formData: { nomor: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", perihal: "Pesanan Barang Farmasi", tanggalSurat: new Date("2025-04-10T00:00:00"), penerima: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/PPBJ-RSUD OTISTA/IV/2025", status: "Terkirim", revisionHistory: []}, items: itemsDataObat}]));
     localStorage.setItem('beritaAcaraList', JSON.stringify([{ formData: { nomor: "06/PPK-FAR/RSUDO/IV/2025", vendorNama: "PT Intisumber Hasil Sempurna Global", nomorSuratReferensi: "000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Selesai", perihal: "BA Pemeriksaan untuk PT Intisumber", tanggalSuratReferensi: new Date("2025-04-11T00:00:00")}, items: itemsDataObatWithKeterangan}]));
     localStorage.setItem('bastbList', JSON.stringify([{ formData: { nomor: 'BASTB/06/FAR/IV/2025', nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025', status: 'Selesai', perihal: "BASTB untuk PT Intisumber", tanggalBeritaAcara: new Date("2025-04-12T00:00:00") }}]));
 
@@ -128,11 +131,11 @@ const seedInitialData = () => {
     const itemsDataUmumWithKeterangan = itemsDataUmum.map(item => ({...item, keterangan: "Baik Sesuai dengan SP"}));
     localStorage.setItem('suratPerintahUmumList', JSON.stringify([{ nomor: "02/Alat Listrik/PPK/V/2025", perihal: "Pengadaan Belanja Alat Listrik Bulan Mei 2025", tanggalSurat: new Date("2025-05-19T00:00:00"), status: "Terkirim"}]));
     localStorage.setItem('beritaAcaraHasilList', JSON.stringify([{ formData: { nomor: '02/Alat Listrik/PP/V/2025', namaPaket: 'Pengadaan Belanja Alat Listrik Bulan Mei 2025', tanggalSurat: new Date('2025-05-20T00:00:00'), status: 'Terkirim', nomorSuratReferensi: '02/Alat Listrik/PPK/V/2025'}, peserta: [{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }]}]));
-    localStorage.setItem('suratPesananUmumList', JSON.stringify([{ formData: { nomor: "000.3/02-Alat Listrik/RSUDO/V/2025", hal: "Surat Pesanan", tanggalSurat: new Date("2025-05-21T00:00:00"), penerima: "TB. Doa Sepuh", nomorSuratReferensi: "02/Alat Listrik/PP/V/2025", status: "Terkirim"}, items: itemsDataUmum}]));
+    localStorage.setItem('suratPesananUmumList', JSON.stringify([{ formData: { nomor: "000.3/02-Alat Listrik/RSUDO/V/2025", hal: "Surat Pesanan", tanggalSurat: new Date("2025-05-21T00:00:00"), penerima: "TB. Doa Sepuh", nomorSuratReferensi: "02/Alat Listrik/PP/V/2025", status: "Terkirim", revisionHistory: []}, items: itemsDataUmum}]));
     localStorage.setItem('beritaAcaraUmumList', JSON.stringify([{ formData: { nomor: "02/BAP-Alat Listrik/V/2025", perihal: "BA Pemeriksaan untuk TB. Doa Sepuh", vendorNama: "TB. Doa Sepuh", nomorSuratReferensi: "000.3/02-Alat Listrik/RSUDO/V/2025", tanggalSurat: new Date("2025-05-22T00:00:00"), narasiRealisasi: "Sebagai realisasi dari Surat Pesanan dari Pejabat Pembuat Komitmen Nomor: 000.3/02-Alat Listrik/RSUDO/V/2025, tanggal 20 Mei 2025 dengan jumlah dan jenis barang sebagai berikut:", status: "Selesai"}, items: itemsDataUmumWithKeterangan}]));
     
-    localStorage.setItem('surat_data_seeded_v5', 'true');
-    console.log("Demo surat data seeded into localStorage (v5).");
+    localStorage.setItem('surat_data_seeded_v6', 'true');
+    console.log("Demo surat data seeded into localStorage (v6).");
 };
 
 
@@ -210,24 +213,45 @@ export const useSuratStore = create<SuratState>((set, get) => ({
             const newSuratList = state.surat.map(s => {
                 if (s.nomor === nomor) {
                     const newSurat = { ...s, ...updatedData };
-                    // Also update the underlying data object
-                    newSurat.data.status = newSurat.status;
-                    if (newSurat.data.formData) {
-                        newSurat.data.formData.status = newSurat.status;
-                    }
+                    const dataTarget = newSurat.data.formData || newSurat.data;
 
-                    // Find the correct localStorage key and update it
+                    // Update the underlying data object
+                    Object.assign(dataTarget, updatedData);
+
                     const key = Object.keys(suratTipeMap).find(k => suratTipeMap[k] === newSurat.tipe);
                     if (key && typeof window !== 'undefined') {
                         const list = JSON.parse(localStorage.getItem(key) || '[]'
                         );
                         const index = list.findIndex((item: any) => (item.formData || item).nomor === nomor);
                         if (index > -1) {
-                            if(list[index].formData) {
-                                list[index].formData.status = newSurat.status;
-                            } else {
-                                list[index].status = newSurat.status;
-                            }
+                            const itemTarget = list[index].formData || list[index];
+                            Object.assign(itemTarget, updatedData);
+                            localStorage.setItem(key, JSON.stringify(list));
+                        }
+                    }
+                    return newSurat;
+                }
+                return s;
+            });
+            return { surat: newSuratList };
+        });
+    },
+
+    addRevisionNote: (nomor, note) => {
+        set(state => {
+            const newSuratList = state.surat.map(s => {
+                if (s.nomor === nomor) {
+                    const newHistory = [...(s.revisionHistory || []), note];
+                    const newSurat = { ...s, revisionHistory: newHistory };
+                    
+                    const key = Object.keys(suratTipeMap).find(k => suratTipeMap[k] === s.tipe);
+                    if (key && typeof window !== 'undefined') {
+                        const list = JSON.parse(localStorage.getItem(key) || '[]'
+                        );
+                        const index = list.findIndex((item: any) => (item.formData || item).nomor === nomor);
+                        if (index > -1) {
+                            const itemTarget = list[index].formData || list[index];
+                            itemTarget.revisionHistory = newHistory;
                             localStorage.setItem(key, JSON.stringify(list));
                         }
                     }

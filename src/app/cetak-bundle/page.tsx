@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Printer, Send, CheckCircle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Printer, Send, CheckCircle, HelpCircle, MessageSquareWarning } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -352,7 +352,7 @@ export default function CetakBundlePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    const { surat, isLoading: isSuratLoading, fetchAllSurat, updateSurat } = useSuratStore();
+    const { surat, isLoading: isSuratLoading, fetchAllSurat, updateSurat, addRevisionNote } = useSuratStore();
     const { activeUser } = useUserStore();
     
     const [bundle, setBundle] = useState<Surat[]>([]);
@@ -360,6 +360,7 @@ export default function CetakBundlePage() {
     const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
     const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
     const [vendorEmail, setVendorEmail] = useState('');
+    const [revisionMessage, setRevisionMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
 
     const isVendor = activeUser?.jabatan === 'Vendor';
@@ -380,36 +381,46 @@ export default function CetakBundlePage() {
         }
 
         const suratMap = new Map(surat.map(s => [s.nomor, s]));
-
-        const findHead = (doc: Surat): Surat => {
-            const refKey = doc.data.formData?.nomorSuratReferensi || doc.data.nomorSuratReferensi;
-            if (!refKey) return doc;
-            const prevDoc = suratMap.get(refKey);
-            return prevDoc ? findHead(prevDoc) : doc;
+        const forwardLinks: { [key: string]: string[] } = {
+            'SPP': ['SP'], 'SP': ['SP-Vendor'], 'SP-Vendor': ['BA'], 'BA': ['BASTB'],
+            'SPU': ['BAH'], 'BAH': ['SP-Umum'], 'SP-Umum': ['BA-Umum']
+        };
+        const backwardLinks: { [key: string]: string } = {
+            'SP': 'SPP', 'SP-Vendor': 'SP', 'BA': 'SP-Vendor', 'BASTB': 'BA',
+            'BAH': 'SPU', 'SP-Umum': 'BAH', 'BA-Umum': 'SP-Umum'
         };
 
-        const buildChain = (head: Surat): Surat[] => {
-            const chain: Surat[] = [];
-            const addedNomors = new Set<string>();
-            let current: Surat | undefined = head;
+        const findChainRecursive = (doc: Surat, chain: Set<Surat>) => {
+            if (!doc || chain.has(doc)) return;
+            chain.add(doc);
 
-            while (current && !addedNomors.has(current.nomor)) {
-                chain.push(current);
-                addedNomors.add(current.nomor);
-                const nextDocNomor = current.nomor;
-                current = surat.find(s => (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === nextDocNomor);
+            // Forward search
+            const nextTypes = forwardLinks[doc.tipe] || [];
+            const children = surat.filter(s =>
+                nextTypes.includes(s.tipe) &&
+                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === doc.nomor
+            );
+            children.forEach(child => findChainRecursive(child, chain));
+
+            // Backward search
+            const prevType = backwardLinks[doc.tipe];
+            if (prevType) {
+                const refNomor = doc.data.formData?.nomorSuratReferensi || doc.data.nomorSuratReferensi;
+                const parent = surat.find(s => s.tipe === prevType && s.nomor === refNomor);
+                if (parent) findChainRecursive(parent, chain);
             }
-            return chain;
         };
-        
+
         const startingDoc = suratMap.get(startNomor);
         if (!startingDoc) {
             setIsLoading(false);
             return;
         }
+
+        const fullChain = new Set<Surat>();
+        findChainRecursive(startingDoc, fullChain);
         
-        const headDoc = findHead(startingDoc);
-        const finalBundle = buildChain(headDoc);
+        const finalBundle = Array.from(fullChain);
         
         const typeOrder = ['SPP', 'SPU', 'BAH', 'SP', 'SP-Vendor', 'SP-Umum', 'BA', 'BA-Umum', 'BASTB'];
         finalBundle.sort((a, b) => typeOrder.indexOf(a.tipe) - typeOrder.indexOf(b.tipe));
@@ -419,7 +430,6 @@ export default function CetakBundlePage() {
 
     }, [searchParams, isSuratLoading, surat]);
     
-
     const handleSendEmail = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!vendorEmail) {
@@ -465,12 +475,28 @@ export default function CetakBundlePage() {
 
     const handleSendQuestion = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!vendorOrder || !revisionMessage.trim()) {
+            toast({ variant: "destructive", title: "Gagal", description: "Pesan revisi tidak boleh kosong." });
+            return;
+        }
+
+        const note = {
+            by: activeUser?.nama || "Vendor",
+            date: new Date().toISOString(),
+            message: revisionMessage,
+        };
+
+        addRevisionNote(vendorOrder.nomor, note);
+        updateSurat(vendorOrder.nomor, { status: 'Revisi Diminta' });
+
         toast({
-            title: "Pertanyaan Terkirim",
-            description: "Pertanyaan Anda telah dikirim ke tim internal. Mohon tunggu balasan mereka.",
+            title: "Permintaan Revisi Terkirim",
+            description: "Permintaan Anda telah dicatat dan dikirim ke tim internal.",
         });
         setIsQuestionDialogOpen(false);
+        setRevisionMessage('');
     };
+
 
     const renderComponent = (item: Surat) => {
         const { tipe, data } = item;
@@ -488,9 +514,11 @@ export default function CetakBundlePage() {
                 return <RenderBASTB data={data} />;
             case 'BA-Umum':
                  return <RenderBeritaAcaraUmum data={data} />;
+            case 'BAH': // Need to add a renderer for BAH
+            case 'SP-Umum': // Need to add a renderer for SP-Umum
             default:
                 return (
-                    <div className="p-8 text-center">
+                    <div className="p-8 text-center bg-white page-break">
                         <p className="font-bold">Pratinjau tidak tersedia</p>
                         <p className="text-muted-foreground text-sm">Pratinjau untuk tipe surat '{tipeToLabel[tipe] || tipe}' belum diimplementasikan di halaman bundle ini.</p>
                     </div>
@@ -550,6 +578,15 @@ export default function CetakBundlePage() {
                             <AlertTitle className="text-green-800">Pesanan Dikonfirmasi</AlertTitle>
                             <AlertDescription className="text-green-700">
                                 Anda telah mengonfirmasi pesanan ini. Tim internal akan melanjutkan proses.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    {isVendor && orderStatus === 'Revisi Diminta' && (
+                        <Alert variant="destructive" className="mb-6 print:hidden">
+                            <MessageSquareWarning className="h-4 w-4" />
+                            <AlertTitle>Permintaan Revisi Terkirim</AlertTitle>
+                            <AlertDescription>
+                                Anda telah mengirimkan permintaan revisi. Mohon tunggu balasan dari tim internal.
                             </AlertDescription>
                         </Alert>
                     )}
@@ -636,22 +673,18 @@ export default function CetakBundlePage() {
                         <DialogHeader>
                             <DialogTitle>Ajukan Pertanyaan atau Revisi</DialogTitle>
                             <DialogDescriptionComponent>
-                                Kirim pesan ke tim internal terkait pesanan ini. Mereka akan dihubungi untuk menindaklanjuti.
+                                Kirim pesan ke tim internal terkait pesanan ini. Pesan Anda akan dicatat dalam sistem.
                             </DialogDescriptionComponent>
                         </DialogHeader>
                         <div className="py-4 space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="question-subject">Subjek</Label>
-                                <Input id="question-subject" placeholder="Contoh: Revisi harga pada item X" required />
-                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="question-body">Pesan Anda</Label>
-                                <Textarea id="question-body" placeholder="Jelaskan pertanyaan atau permintaan revisi Anda secara detail di sini..." rows={6} required />
+                                <Textarea id="question-body" placeholder="Jelaskan pertanyaan atau permintaan revisi Anda secara detail di sini..." rows={6} required value={revisionMessage} onChange={e => setRevisionMessage(e.target.value)} />
                             </div>
                         </div>
                         <DialogFooter>
                             <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
-                            <Button type="submit">Kirim Pertanyaan</Button>
+                            <Button type="submit">Kirim Permintaan</Button>
                         </DialogFooter>
                     </DialogContent>
                  </form>
