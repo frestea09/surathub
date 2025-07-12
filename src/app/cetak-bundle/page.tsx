@@ -359,7 +359,6 @@ export default function CetakBundlePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
     const [revisionMessage, setRevisionMessage] = useState('');
-    const [isSending, setIsSending] = useState(false);
 
     const isVendor = activeUser?.jabatan === 'Vendor';
     const vendorOrder = bundle.find(s => s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum');
@@ -396,7 +395,7 @@ export default function CetakBundlePage() {
             const nextTypes = forwardLinks[doc.tipe] || [];
             const children = surat.filter(s =>
                 nextTypes.includes(s.tipe) &&
-                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi || s.data.formData?.nomor) === doc.nomor
+                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi || s.data.formData?.nomorSuratReferensi) === doc.nomor
             );
             children.forEach(child => findChainRecursive(child, chain));
 
@@ -610,14 +609,14 @@ export default function CetakBundlePage() {
             </div>
 
             <Dialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen}>
-                 <form onSubmit={handleSendQuestion}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Ajukan Pertanyaan atau Revisi</DialogTitle>
-                            <DialogDescriptionComponent>
-                                Kirim pesan ke tim internal terkait pesanan ini. Pesan Anda akan dicatat dalam sistem.
-                            </DialogDescriptionComponent>
-                        </DialogHeader>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Ajukan Pertanyaan atau Revisi</DialogTitle>
+                        <DialogDescriptionComponent>
+                            Kirim pesan ke tim internal terkait pesanan ini. Pesan Anda akan dicatat dalam sistem.
+                        </DialogDescriptionComponent>
+                    </DialogHeader>
+                    <form onSubmit={handleSendQuestion}>
                         <div className="py-4 space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="question-body">Pesan Anda</Label>
@@ -628,8 +627,8 @@ export default function CetakBundlePage() {
                             <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
                             <Button type="submit">Kirim Permintaan</Button>
                         </DialogFooter>
-                    </DialogContent>
-                 </form>
+                    </form>
+                </DialogContent>
             </Dialog>
         </>
     );
