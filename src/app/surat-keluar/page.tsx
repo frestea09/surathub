@@ -65,13 +65,12 @@ import {
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserStore } from "@/store/userStore";
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Terkirim: "default",
@@ -91,6 +90,7 @@ export default function SuratKeluarPage() {
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab');
   const { surat, isLoading, fetchAllSurat, updateSurat, deleteSurat } = useSuratStore();
+  const { users } = useUserStore();
 
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState< 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus' | null>(null);
@@ -99,6 +99,12 @@ export default function SuratKeluarPage() {
   useEffect(() => {
     fetchAllSurat();
   }, [fetchAllSurat]);
+
+  const isKirimKeVendor = useMemo(() => {
+    if (!selectedSurat) return false;
+    const vendorUsers = users.filter(u => u.jabatan === 'Vendor').map(u => u.nama);
+    return vendorUsers.includes(selectedSurat.dariKe);
+  }, [selectedSurat, users]);
 
   const suratList = useMemo(() => surat.filter(s => s.jenis === 'Surat Keluar'), [surat]);
 
@@ -188,8 +194,8 @@ export default function SuratKeluarPage() {
     if (!selectedSurat) return;
     updateSurat(selectedSurat.nomor, { status: 'Terkirim' });
     toast({
-        title: "Berhasil Diterbitkan",
-        description: `Surat nomor ${selectedSurat.nomor} telah diterbitkan ke portal vendor.`,
+        title: `Berhasil ${isKirimKeVendor ? 'Diterbitkan' : 'Terkirim'}`,
+        description: `Surat nomor ${selectedSurat.nomor} telah ${isKirimKeVendor ? 'diterbitkan ke portal vendor' : 'dikirim'}.`,
     });
     closeDialog();
   };
@@ -465,13 +471,17 @@ export default function SuratKeluarPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {dialogAction === 'kirim' && 'Konfirmasi Penerbitan Surat'}
+              {dialogAction === 'kirim' && `Konfirmasi ${isKirimKeVendor ? 'Penerbitan' : 'Pengiriman'} Surat`}
               {dialogAction === 'arsip' && 'Konfirmasi Arsip Surat'}
               {dialogAction === 'tolak' && 'Konfirmasi Penolakan Surat'}
               {dialogAction === 'hapus' && 'Konfirmasi Hapus Surat'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {dialogAction === 'kirim' && `Apakah Anda yakin ingin menerbitkan surat nomor ${selectedSurat?.nomor}? Surat ini akan dapat dilihat oleh vendor di portal mereka.`}
+              {dialogAction === 'kirim' && (
+                isKirimKeVendor 
+                  ? <>Apakah Anda yakin ingin <strong>menerbitkan</strong> surat ini ke portal vendor <strong>{selectedSurat?.dariKe}</strong>?</>
+                  : <>Apakah Anda yakin ingin <strong>mengirim</strong> surat ini secara internal kepada <strong>{selectedSurat?.dariKe}</strong>?</>
+              )}
               {dialogAction === 'arsip' && 'Apakah Anda yakin ingin mengarsipkan surat ini? Status akan diubah menjadi "Diarsipkan".'}
               {dialogAction === 'tolak' && 'Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi "Ditolak".'}
               {dialogAction === 'hapus' && `Apakah Anda yakin ingin menghapus surat nomor ${selectedSurat?.nomor}? Tindakan ini tidak dapat dibatalkan.`}
@@ -488,7 +498,7 @@ export default function SuratKeluarPage() {
               }}
               className={buttonVariants({ variant: (dialogAction === 'tolak' || dialogAction === 'hapus') ? 'destructive' : 'default' })}
             >
-              {dialogAction === 'kirim' && 'Ya, Terbitkan'}
+              {dialogAction === 'kirim' && (isKirimKeVendor ? 'Ya, Terbitkan' : 'Ya, Kirim')}
               {dialogAction === 'arsip' && 'Ya, Arsipkan'}
               {dialogAction === 'tolak' && 'Ya, Tolak'}
               {dialogAction === 'hapus' && 'Ya, Hapus'}
