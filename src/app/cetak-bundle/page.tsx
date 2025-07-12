@@ -357,9 +357,7 @@ export default function CetakBundlePage() {
     
     const [bundle, setBundle] = useState<Surat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
     const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
-    const [vendorEmail, setVendorEmail] = useState('');
     const [revisionMessage, setRevisionMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
 
@@ -398,7 +396,7 @@ export default function CetakBundlePage() {
             const nextTypes = forwardLinks[doc.tipe] || [];
             const children = surat.filter(s =>
                 nextTypes.includes(s.tipe) &&
-                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === doc.nomor
+                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi || s.data?.nomor) === doc.nomor
             );
             children.forEach(child => findChainRecursive(child, chain));
 
@@ -430,40 +428,10 @@ export default function CetakBundlePage() {
 
     }, [searchParams, isSuratLoading, surat]);
     
-    const handleSendEmail = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!vendorEmail) {
-            toast({ variant: "destructive", title: "Email tidak valid", description: "Harap masukkan alamat email vendor." });
-            return;
-        }
-        setIsSending(true);
-
-        const vendorName = vendorOrder?.dariKe || 'Rekan Vendor';
-
-        try {
-            const response = await fetch('/api/kirim-bundle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    to: vendorEmail,
-                    vendorName: vendorName,
-                    bundleUrl: window.location.href,
-                    documentCount: bundle.length
-                }),
-            });
-
-            const responseData = await response.json();
-            if (!response.ok) {
-                throw new Error(responseData.error || 'Gagal mengirim email.');
-            }
-            
-            toast({ title: "Email Terkirim", description: `Bundle dokumen berhasil dikirim ke ${vendorEmail}.` });
-            setIsEmailDialogOpen(false);
-        } catch (error: any) {
-            toast({ variant: "destructive", title: "Gagal Mengirim Email", description: error.message });
-        } finally {
-            setIsSending(false);
-        }
+    const handleSendToVendor = () => {
+        if (!vendorOrder) return;
+        updateSurat(vendorOrder.nomor, { status: 'Terkirim' });
+        toast({ title: "Dokumen Diterbitkan", description: `Dokumen pesanan telah diterbitkan ke portal vendor.` });
     };
     
     const handleVendorConfirm = () => {
@@ -554,11 +522,13 @@ export default function CetakBundlePage() {
                     <h1 className="text-xl font-semibold">Cetak Bundle Dokumen</h1>
                     {!isVendor && (
                         <div className="ml-auto flex items-center gap-2">
-                            <Button variant="outline" onClick={() => setIsEmailDialogOpen(true)}>
-                                <Send className="mr-2 h-4 w-4" />
-                                Kirim ke Vendor
-                            </Button>
-                            <Button onClick={() => window.print()}>
+                             {vendorOrder && vendorOrder.status === 'Draft' && (
+                                <Button onClick={handleSendToVendor}>
+                                    <Send className="mr-2 h-4 w-4" />
+                                    Terbitkan ke Vendor
+                                </Button>
+                            )}
+                            <Button onClick={() => window.print()} variant="outline">
                                 <Printer className="mr-2 h-4 w-4" />
                                 Cetak Semua
                             </Button>
@@ -639,34 +609,6 @@ export default function CetakBundlePage() {
                 `}</style>
             </div>
 
-            <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                <form onSubmit={handleSendEmail}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Kirim Bundle Dokumen ke Vendor</DialogTitle>
-                            <DialogDescriptionComponent>
-                                Masukkan alamat email vendor untuk mengirim tautan ke bundle dokumen ini.
-                            </DialogDescriptionComponent>
-                        </DialogHeader>
-                        <div className="py-4">
-                            <Label htmlFor="vendor-email">Email Vendor</Label>
-                            <Input
-                                id="vendor-email"
-                                type="email"
-                                placeholder="contoh@vendor.com"
-                                value={vendorEmail}
-                                onChange={(e) => setVendorEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
-                            <Button type="submit" disabled={isSending}>{isSending ? 'Mengirim...' : 'Kirim Email'}</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </form>
-            </Dialog>
-
             <Dialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen}>
                  <form onSubmit={handleSendQuestion}>
                     <DialogContent>
@@ -692,3 +634,4 @@ export default function CetakBundlePage() {
         </>
     );
 }
+
