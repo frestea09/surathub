@@ -22,6 +22,7 @@ import { roundHalfUp } from '@/lib/utils';
 import { useSuratStore, type Surat } from '@/store/suratStore';
 import { useUserStore } from '@/store/userStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { terbilang } from '@/lib/terbilang';
 
 // Mapping from tipe to a more readable name
 const tipeToLabel: { [key: string]: string } = {
@@ -289,6 +290,41 @@ const RenderBASTB = ({ data }: { data: any }) => {
     );
 };
 
+const RenderBeritaAcaraUmum = ({ data }: { data: any }) => {
+    const { formData, items } = data;
+    return (
+        <div className="bg-white text-black p-8 font-serif text-sm page-break">
+            <div className="flex items-center justify-center text-center border-b-[3px] border-black pb-2 mb-4">
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo"/>
+                <div>
+                <h1 className="font-bold uppercase text-base">Pemerintah Kabupaten Bandung</h1>
+                <h2 className="font-bold uppercase text-xl">Rumah Sakit Umum Daerah Oto Iskandar Di Nata</h2>
+                <p className="text-xs">Jalan Raya Gading Tutuka, Desa Cingcin, Kec. Soreang, Kab. Bandung, Prov. Jawa Barat.</p>
+                <p className="text-xs">Telp. (022) 5891355 Email: rsudotista@bandungkab.go.id Website: rsudotista@bandungkab.go.id</p>
+                </div>
+            </div>
+            <div className="text-center mb-4"><h2 className="font-bold underline text-base uppercase">Berita Acara Penerima dan Pemeriksaan Barang</h2><p>Nomor: {formData.nomor}</p></div>
+            <p className="mb-4 text-justify indent-8">{formData.narasiPembuka}</p>
+            <div className="mb-4 ml-8 grid grid-cols-[12rem_auto_1fr] gap-x-2 gap-y-1">
+                <span>Nama Perusahaan</span><span>:</span><span>{formData.vendorNama}</span>
+                <span>Alamat Perusahaan</span><span>:</span><span>{formData.vendorAlamat}</span>
+            </div>
+            <p className="mb-4 text-justify">{formData.narasiRealisasi}</p>
+            <Table className="mb-4 text-[10pt]">
+                <TableHeader className="bg-gray-100"><TableRow><TableHead className="border border-black text-black text-center font-bold">NO</TableHead><TableHead className="border border-black text-black text-center font-bold w-2/5">Jenis pekerjaan</TableHead><TableHead className="border border-black text-black text-center font-bold">Volume</TableHead><TableHead className="border border-black text-black text-center font-bold">Satuan</TableHead><TableHead className="border border-black text-black text-center font-bold">Keterangan</TableHead></TableRow></TableHeader>
+                <TableBody>
+                {items.map((item: any, index: number) => (<TableRow key={item.id}><TableCell className="border border-black text-center">{index + 1}</TableCell><TableCell className="border border-black">{item.nama}</TableCell><TableCell className="border border-black text-center">{item.volume}</TableCell><TableCell className="border border-black text-center">{item.satuan}</TableCell><TableCell className="border border-black">{item.keterangan}</TableCell></TableRow>))}
+                </TableBody>
+            </Table>
+            <p className="mb-8 text-justify">{formData.narasiPenutup}</p>
+            <div className="flex justify-between">
+                <div className="text-center w-1/2"><p>Penyedia Barang /Jasa</p><p>{formData.penyediaNama}</p><div className="h-20"></div><p className="font-bold underline">{formData.penyediaPemilik}</p><p>Pemilik</p></div>
+                <div className="text-center w-1/2"><p>{formData.tempatTanggal}</p>{formData.pejabatJabatan.split('\n').map((line: string, i: number) => <p key={i}>{line}</p>)}<div className="h-20"></div><p className="font-bold underline">{formData.pejabatNama}</p><p>{formData.pejabatNip}</p></div>
+            </div>
+        </div>
+    );
+};
+
 const VendorActionPanel = ({ onConfirm, onAsk }: { onConfirm: () => void; onAsk: () => void; }) => {
     return (
         <Card className="mb-6 print:hidden">
@@ -327,7 +363,8 @@ export default function CetakBundlePage() {
     const [isSending, setIsSending] = useState(false);
 
     const isVendor = activeUser?.jabatan === 'Vendor';
-    const orderStatus = bundle.find(s => s.tipe === 'SP-Vendor')?.status;
+    const vendorOrder = bundle.find(s => s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum');
+    const orderStatus = vendorOrder?.status;
 
     useEffect(() => {
         fetchAllSurat();
@@ -337,47 +374,42 @@ export default function CetakBundlePage() {
         if (isSuratLoading) return;
 
         const startNomor = searchParams.get('nomor');
-        if (!startNomor) {
+        if (!startNomor || surat.length === 0) {
             setIsLoading(false);
             return;
         }
 
-        const findDocumentByNomor = (nomor: string) => surat.find(s => s.nomor === nomor);
+        const suratMap = new Map(surat.map(s => [s.nomor, s]));
+
+        const findHead = (doc: Surat): Surat => {
+            const refKey = doc.data.formData?.nomorSuratReferensi || doc.data.nomorSuratReferensi;
+            if (!refKey) return doc;
+            const prevDoc = suratMap.get(refKey);
+            return prevDoc ? findHead(prevDoc) : doc;
+        };
+
+        const buildChain = (head: Surat): Surat[] => {
+            const chain: Surat[] = [];
+            const addedNomors = new Set<string>();
+            let current: Surat | undefined = head;
+
+            while (current && !addedNomors.has(current.nomor)) {
+                chain.push(current);
+                addedNomors.add(current.nomor);
+                const nextDocNomor = current.nomor;
+                current = surat.find(s => (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === nextDocNomor);
+            }
+            return chain;
+        };
         
-        const startingDoc = findDocumentByNomor(startNomor);
+        const startingDoc = suratMap.get(startNomor);
         if (!startingDoc) {
             setIsLoading(false);
             return;
         }
         
-        let headNomor = startNomor;
-        let currentDoc = startingDoc;
-        
-        while (currentDoc) {
-            const refKey = currentDoc.data.formData?.nomorSuratReferensi || currentDoc.data.nomorSuratReferensi;
-            if (!refKey) break;
-
-            const prevDoc = findDocumentByNomor(refKey);
-            if (prevDoc) {
-                headNomor = prevDoc.nomor;
-                currentDoc = prevDoc;
-            } else {
-                break;
-            }
-        }
-        
-        const finalBundle: Surat[] = [];
-        let docToAdd = findDocumentByNomor(headNomor);
-        const addedNomors = new Set<string>();
-
-        while (docToAdd && !addedNomors.has(docToAdd.nomor)) {
-            finalBundle.push(docToAdd);
-            addedNomors.add(docToAdd.nomor);
-
-            const nextRefKey = docToAdd.nomor;
-            const nextDoc = surat.find(s => (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi) === nextRefKey);
-            docToAdd = nextDoc;
-        }
+        const headDoc = findHead(startingDoc);
+        const finalBundle = buildChain(headDoc);
         
         const typeOrder = ['SPP', 'SPU', 'BAH', 'SP', 'SP-Vendor', 'SP-Umum', 'BA', 'BA-Umum', 'BASTB'];
         finalBundle.sort((a, b) => typeOrder.indexOf(a.tipe) - typeOrder.indexOf(b.tipe));
@@ -396,8 +428,7 @@ export default function CetakBundlePage() {
         }
         setIsSending(true);
 
-        const vendorSurat = bundle.find(item => item.tipe === 'SP-Vendor' || item.tipe === 'SP-Umum');
-        const vendorName = vendorSurat?.dariKe || 'Rekan Vendor';
+        const vendorName = vendorOrder?.dariKe || 'Rekan Vendor';
 
         try {
             const response = await fetch('/api/kirim-bundle', {
@@ -426,7 +457,6 @@ export default function CetakBundlePage() {
     };
     
     const handleVendorConfirm = () => {
-        const vendorOrder = bundle.find(s => s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum');
         if (vendorOrder) {
             updateSurat(vendorOrder.nomor, { status: 'Disetujui' });
             toast({ title: "Pesanan Dikonfirmasi", description: "Terima kasih, tim internal akan segera menindaklanjuti." });
@@ -443,18 +473,28 @@ export default function CetakBundlePage() {
     };
 
     const renderComponent = (item: Surat) => {
-        switch (item.tipe) {
-            case 'SPP': return <RenderSuratPerintah data={item.data} />;
-            case 'SP': return <RenderSuratPesanan data={item.data} />;
-            case 'SP-Vendor': return <RenderSuratPesananFinal data={item.data} />;
-            case 'BA': return <RenderBeritaAcara data={item.data} />;
-            case 'BASTB': return <RenderBASTB data={item.data} />;
-            default: return (
-                 <div className="p-8 text-center">
-                    <p className="font-bold">Pratinjau tidak tersedia</p>
-                    <p className="text-muted-foreground text-sm">Pratinjau untuk tipe surat '{tipeToLabel[item.tipe] || item.tipe}' belum diimplementasikan di halaman bundle ini.</p>
-                </div>
-            );
+        const { tipe, data } = item;
+        switch (tipe) {
+            case 'SPP':
+            case 'SPU':
+                return <RenderSuratPerintah data={data} />;
+            case 'SP':
+                return <RenderSuratPesanan data={data} />;
+            case 'SP-Vendor':
+                return <RenderSuratPesananFinal data={data} />;
+            case 'BA':
+                return <RenderBeritaAcara data={data} />;
+            case 'BASTB':
+                return <RenderBASTB data={data} />;
+            case 'BA-Umum':
+                 return <RenderBeritaAcaraUmum data={data} />;
+            default:
+                return (
+                    <div className="p-8 text-center">
+                        <p className="font-bold">Pratinjau tidak tersedia</p>
+                        <p className="text-muted-foreground text-sm">Pratinjau untuk tipe surat '{tipeToLabel[tipe] || tipe}' belum diimplementasikan di halaman bundle ini.</p>
+                    </div>
+                );
         }
     };
     
@@ -563,8 +603,8 @@ export default function CetakBundlePage() {
             </div>
 
             <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                <DialogContent>
-                    <form onSubmit={handleSendEmail}>
+                <form onSubmit={handleSendEmail}>
+                    <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Kirim Bundle Dokumen ke Vendor</DialogTitle>
                             <DialogDescription>
@@ -586,8 +626,8 @@ export default function CetakBundlePage() {
                             <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
                             <Button type="submit" disabled={isSending}>{isSending ? 'Mengirim...' : 'Kirim Email'}</Button>
                         </DialogFooter>
-                    </form>
-                </DialogContent>
+                    </DialogContent>
+                </form>
             </Dialog>
 
             <Dialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen}>
