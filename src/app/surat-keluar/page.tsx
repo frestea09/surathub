@@ -371,7 +371,7 @@ export default function SuratKeluarPage() {
                {selectedSurat.revisionHistory && selectedSurat.revisionHistory.length > 0 && (
                  <div className="col-span-4 mt-4">
                     <Label>Riwayat Revisi</Label>
-                    <div className="mt-2 space-y-3 rounded-md border p-4">
+                    <div className="mt-2 space-y-3 rounded-md border p-4 bg-yellow-50/50">
                         {selectedSurat.revisionHistory.map((rev, index) => (
                              <div key={index} className="flex gap-3">
                                 <MessageSquareWarning className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />
