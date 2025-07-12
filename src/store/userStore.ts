@@ -107,7 +107,7 @@ const getStoredUsers = (): User[] => {
     if (storedUsers) {
       const users = JSON.parse(storedUsers);
       const adminUser = users.find((u: User) => u.nip === 'admin');
-      if (!adminUser || adminUser.password !== 'password-admin') {
+      if (!adminUser || !users.find((u: User) => u.nip === 'vendor')) {
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialUsersData));
         return initialUsersData;
       }
@@ -130,7 +130,7 @@ const setStoredUsers = (users: User[]) => {
 
 export const useUserStore = create<UserState>((set, get) => ({
   users: [],
-  activeUser: null,
+  activeUser: typeof window !== 'undefined' ? JSON.parse(sessionStorage.getItem('activeUser') || 'null') : null,
   isLoading: true,
   error: null,
 
@@ -151,6 +151,9 @@ export const useUserStore = create<UserState>((set, get) => ({
 
         if (user && user.status === 'Aktif') {
             set({ activeUser: user });
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('activeUser', JSON.stringify(user));
+            }
             resolve(user);
         } else if (user && user.status !== 'Aktif') {
             reject(new Error("Akun Anda tidak aktif. Silakan hubungi administrator."));
@@ -162,6 +165,9 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   logout: () => {
     set({ activeUser: null });
+     if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('activeUser');
+     }
   },
 
   addUser: async (data) => {
