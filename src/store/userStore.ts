@@ -1,5 +1,5 @@
 
-import create from 'zustand';
+import { create } from 'zustand';
 import { USERS_STORAGE_KEY } from '@/lib/constants';
 
 export type User = {

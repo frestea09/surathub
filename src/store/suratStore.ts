@@ -1,5 +1,5 @@
 
-import create from 'zustand';
+import { create } from 'zustand';
 import type { User } from './userStore';
 
 export type Surat = {
