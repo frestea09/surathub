@@ -396,7 +396,7 @@ export default function CetakBundlePage() {
             const nextTypes = forwardLinks[doc.tipe] || [];
             const children = surat.filter(s =>
                 nextTypes.includes(s.tipe) &&
-                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi || s.data?.nomor) === doc.nomor
+                (s.data.formData?.nomorSuratReferensi || s.data.nomorSuratReferensi || s.data.formData?.nomor) === doc.nomor
             );
             children.forEach(child => findChainRecursive(child, chain));
 
@@ -471,7 +471,7 @@ export default function CetakBundlePage() {
         switch (tipe) {
             case 'SPP':
             case 'SPU':
-                return <RenderSuratPerintah data={data} />;
+                return <RenderSuratPerintah data={data.formData || data} />;
             case 'SP':
                 return <RenderSuratPesanan data={data} />;
             case 'SP-Vendor':
