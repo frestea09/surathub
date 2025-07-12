@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function VendorLayout({
   children,
@@ -29,20 +30,23 @@ export default function VendorLayout({
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    const user = useUserStore.getState().activeUser;
-    if (!user && pathname !== '/vendor/login') {
-       const timer = setTimeout(() => {
-         // Re-check after a brief moment to allow state to potentially update
-         if (!useUserStore.getState().activeUser) {
-           router.replace('/vendor/login');
-         } else {
-            setIsAuthCheckComplete(true);
-         }
-       }, 100);
-       return () => clearTimeout(timer);
-    } else {
+    // This effect ensures that the user is authenticated.
+    // It will redirect to the login page if no active user is found after a brief delay.
+    const checkAuth = () => {
+      if (!useUserStore.getState().activeUser) {
+        if (pathname !== '/vendor/login') {
+          router.replace('/vendor/login');
+        } else {
+          setIsAuthCheckComplete(true);
+        }
+      } else {
         setIsAuthCheckComplete(true);
-    }
+      }
+    };
+
+    // A small delay helps ensure the state is hydrated from storage before checking.
+    const timer = setTimeout(checkAuth, 50);
+    return () => clearTimeout(timer);
   }, [pathname, router]);
 
   const handleLogout = () => {
@@ -50,7 +54,7 @@ export default function VendorLayout({
     router.push('/vendor/login');
   };
 
-  if (!isAuthCheckComplete || !activeUser) {
+  if (!isAuthCheckComplete) {
     // Show a skeleton loader while auth check is in progress, but only if not on the login page itself
     if (pathname === '/vendor/login') return <>{children}</>;
     
@@ -68,6 +72,16 @@ export default function VendorLayout({
         </div>
     );
   }
+  
+  if (!activeUser && pathname !== '/vendor/login') {
+    return null; // Render nothing while redirecting
+  }
+  
+  // If on login page, just render children without the layout
+  if (pathname === '/vendor/login') {
+      return <>{children}</>;
+  }
+
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -92,28 +106,40 @@ export default function VendorLayout({
               <path d="M22 12h-6l-2 3h-4l-2-3H2" />
               <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
             </svg>
-            <span>Portal Vendor SuratHub</span>
+            <span className="hidden md:inline-block">Portal Vendor SuratHub</span>
+          </Link>
+          <Link
+            href="/vendor/dashboard"
+            className={cn(
+              "text-muted-foreground transition-colors hover:text-foreground",
+              pathname === "/vendor/dashboard" && "text-foreground font-semibold"
+            )}
+          >
+            Dashboard
           </Link>
         </nav>
-        <div className="ml-auto flex-1 sm:flex-initial" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{activeUser.nama.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{activeUser.nama}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Keluar</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="ml-auto flex items-center gap-4">
+          {activeUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{activeUser.nama.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="sr-only">Toggle user menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{activeUser.nama}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Keluar</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         {children}
