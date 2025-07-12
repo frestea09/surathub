@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +27,7 @@ import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
 import { ROLES } from '@/lib/constants';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const [nip, setNip] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [role, setRole] = React.useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     // Redirect if user is already logged in
@@ -108,7 +110,24 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Masukkan password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Masukkan password" 
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>

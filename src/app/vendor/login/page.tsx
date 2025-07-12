@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function VendorLoginPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function VendorLoginPage() {
   const { toast } = useToast();
   const [username, setUsername] = React.useState('vendor');
   const [password, setPassword] = React.useState('password-vendor');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +68,24 @@ export default function VendorLoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Masukkan password" required value={password} onChange={e => setPassword(e.target.value)} />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Masukkan password" 
+                  required 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">
