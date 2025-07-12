@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,11 +30,22 @@ import { ROLES } from '@/lib/constants';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useUserStore();
+  const { login, activeUser } = useUserStore();
   const { toast } = useToast();
   const [nip, setNip] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [role, setRole] = React.useState('');
+
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (activeUser) {
+      if (activeUser.jabatan === 'Vendor') {
+        router.replace('/vendor/dashboard');
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [activeUser, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -56,7 +67,13 @@ export default function LoginPage() {
             title: "Login Berhasil",
             description: `Selamat datang, ${user.nama}!`
         });
-        router.push('/dashboard');
+
+        if (user.jabatan === 'Vendor') {
+          router.push('/vendor/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
+
     } catch(error: any) {
         toast({
             variant: "destructive",
@@ -65,6 +82,11 @@ export default function LoginPage() {
         });
     }
   };
+  
+  // Render nothing or a loading spinner while redirecting
+  if (activeUser) {
+    return null; 
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
