@@ -10,10 +10,10 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -607,9 +607,9 @@ export default function CetakBundlePage() {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Kirim Bundle Dokumen ke Vendor</DialogTitle>
-                            <DialogDescription>
+                            <DialogDescriptionComponent>
                                 Masukkan alamat email vendor untuk mengirim tautan ke bundle dokumen ini.
-                            </DialogDescription>
+                            </DialogDescriptionComponent>
                         </DialogHeader>
                         <div className="py-4">
                             <Label htmlFor="vendor-email">Email Vendor</Label>
@@ -635,9 +635,9 @@ export default function CetakBundlePage() {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Ajukan Pertanyaan atau Revisi</DialogTitle>
-                            <DialogDescription>
+                            <DialogDescriptionComponent>
                                 Kirim pesan ke tim internal terkait pesanan ini. Mereka akan dihubungi untuk menindaklanjuti.
-                            </DialogDescription>
+                            </DialogDescriptionComponent>
                         </DialogHeader>
                         <div className="py-4 space-y-4">
                              <div className="space-y-2">
@@ -659,3 +659,6 @@ export default function CetakBundlePage() {
         </>
     );
 }
+
+
+    
