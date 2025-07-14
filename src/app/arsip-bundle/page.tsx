@@ -104,7 +104,13 @@ export default function ArsipBundlePage() {
         return bundles.filter(bundle => {
             if (bundle.length === 0) return false;
 
-            const matchesSearchTerm = searchTerm === '' || bundle.some(doc => doc.nomor.toLowerCase().includes(searchTerm.toLowerCase()) || doc.judul.toLowerCase().includes(searchTerm.toLowerCase()));
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            const matchesSearchTerm = lowerCaseSearchTerm === '' || bundle.some(doc => 
+                doc.nomor.toLowerCase().includes(lowerCaseSearchTerm) || 
+                doc.judul.toLowerCase().includes(lowerCaseSearchTerm) ||
+                // Search by parts of the number, e.g., "06-Far", "ppkrsud", "2025"
+                doc.nomor.toLowerCase().split(/[\/\.-]/).some(part => part.includes(lowerCaseSearchTerm))
+            );
 
             const matchesDateRange = !date?.from || bundle.some(doc => {
                  const docDate = new Date(doc.tanggal);
@@ -160,7 +166,7 @@ export default function ArsipBundlePage() {
                 </CardHeader>
                 <CardContent className="flex flex-wrap items-center gap-4">
                     <Input
-                        placeholder="Cari nomor atau perihal surat..."
+                        placeholder="Cari no. surat, perihal, atau bagian no. surat (misal: 06-FAR)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-sm"
@@ -257,3 +263,5 @@ export default function ArsipBundlePage() {
         </AppLayout>
     );
 }
+
+    
