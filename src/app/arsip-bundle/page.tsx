@@ -12,10 +12,14 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { PackageSearch, FileText, ChevronRight, ChevronLeft } from 'lucide-react';
+import { PackageSearch, FileText, ChevronRight, ChevronLeft, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DataTable } from '@/components/ui/data-table';
+import type { ColumnDef } from '@tanstack/react-table';
+import { roundHalfUp } from '@/lib/utils';
 
 // Mapping from tipe to a more readable name
 const tipeToLabel: { [key: string]: string } = {
@@ -53,6 +57,18 @@ const forwardLinks: { [key: string]: { nextType: string[]; refKey: string; sourc
     'SP-Umum': { nextType: ['BA-Umum'], refKey: 'nomorSuratReferensi', sourceKey: 'nomor' },
 };
 
+const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+
+const calculateTotal = (surat: Surat): number => {
+    if (!surat.data || !surat.data.items) return 0;
+    const { items, formData } = surat.data;
+    const ppn = formData?.ppn || 11;
+    const subtotal = items.reduce((sum: number, item: any) => sum + (item.volume || item.jumlah) * item.hargaSatuan, 0);
+    const totalDiskon = items.reduce((sum: number, item: any) => sum + (item.volume || item.jumlah) * item.hargaSatuan * ((item.diskon || 0) / 100), 0);
+    const totalAfterDiskon = subtotal - totalDiskon;
+    const ppnValue = totalAfterDiskon * (ppn / 100);
+    return roundHalfUp(totalAfterDiskon + ppnValue);
+};
 
 export default function ArsipBundlePage() {
     const { surat, isLoading, fetchAllSurat } = useSuratStore();
@@ -60,15 +76,16 @@ export default function ArsipBundlePage() {
     const [date, setDate] = useState<DateRange | undefined>();
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
+    const [activeTab, setActiveTab] = useState("bundle");
 
     useEffect(() => {
         fetchAllSurat();
     }, [fetchAllSurat]);
 
-    const bundles = useMemo(() => {
+    // Memoized calculation for all bundles
+    const allBundles = useMemo(() => {
         if (isLoading || surat.length === 0) return [];
         
-        const suratMap = new Map(surat.map(s => [s.nomor, s]));
         const bundlesMap = new Map<string, Surat[]>();
 
         const findChildrenRecursive = (doc: Surat, chain: Surat[]) => {
@@ -100,19 +117,26 @@ export default function ArsipBundlePage() {
         return Array.from(bundlesMap.values());
     }, [surat, isLoading]);
 
-    const filteredBundles = useMemo(() => {
-        return bundles.filter(bundle => {
-            if (bundle.length === 0) return false;
+    // Memoized calculation for vendor orders only
+    const vendorOrders = useMemo(() => {
+        return surat.filter(s => s.tipe === 'SP-Vendor' || s.tipe === 'SP-Umum');
+    }, [surat]);
+    
+    // Generic filtering logic
+    const filterItems = (items: any[], isBundle: boolean) => {
+        return items.filter(item => {
+            const documents = isBundle ? item : [item];
+            if (documents.length === 0) return false;
 
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            const matchesSearchTerm = lowerCaseSearchTerm === '' || bundle.some(doc => 
+            const matchesSearchTerm = lowerCaseSearchTerm === '' || documents.some((doc: Surat) => 
                 doc.nomor.toLowerCase().includes(lowerCaseSearchTerm) || 
                 doc.judul.toLowerCase().includes(lowerCaseSearchTerm) ||
-                // Search by parts of the number, e.g., "06-Far", "ppkrsud", "2025"
+                doc.dariKe.toLowerCase().includes(lowerCaseSearchTerm) ||
                 doc.nomor.toLowerCase().split(/[\/\.-]/).some(part => part.includes(lowerCaseSearchTerm))
             );
 
-            const matchesDateRange = !date?.from || bundle.some(doc => {
+            const matchesDateRange = !date?.from || documents.some((doc: Surat) => {
                  const docDate = new Date(doc.tanggal);
                  const from = date.from!;
                  const to = date.to ? new Date(date.to.setHours(23, 59, 59, 999)) : new Date(from.setHours(23, 59, 59, 999));
@@ -121,11 +145,14 @@ export default function ArsipBundlePage() {
 
             return matchesSearchTerm && matchesDateRange;
         });
-    }, [bundles, searchTerm, date]);
+    };
     
+    const filteredBundles = useMemo(() => filterItems(allBundles, true), [allBundles, searchTerm, date]);
+    const filteredVendorOrders = useMemo(() => filterItems(vendorOrders, false), [vendorOrders, searchTerm, date]);
+
     useEffect(() => {
       setCurrentPage(1);
-    }, [searchTerm, date]);
+    }, [searchTerm, date, activeTab]);
 
     const paginatedBundles = useMemo(() => {
       const startIndex = (currentPage - 1) * itemsPerPage;
@@ -134,6 +161,21 @@ export default function ArsipBundlePage() {
 
     const totalPages = Math.ceil(filteredBundles.length / itemsPerPage);
 
+    const vendorOrderColumns: ColumnDef<Surat>[] = useMemo(() => [
+        { accessorKey: "nomor", header: "Nomor Surat Pesanan" },
+        { accessorKey: "judul", header: "Perihal" },
+        { accessorKey: "dariKe", header: "Nama Vendor" },
+        { accessorKey: "tanggal", header: "Tanggal Pesanan", cell: ({ row }) => format(new Date(row.original.tanggal), 'dd MMMM yyyy', { locale: id }) },
+        { id: "total", header: "Total Nilai", cell: ({ row }) => formatCurrency(calculateTotal(row.original)) },
+        { accessorKey: "status", header: "Status", cell: ({ row }) => <Badge variant={statusVariant[row.original.status as keyof typeof statusVariant] || 'secondary'}>{row.original.status}</Badge> },
+        { id: "actions", header: "Aksi", cell: ({ row }) => (
+            <Button asChild variant="outline" size="sm">
+                <Link href={`/cetak-bundle?nomor=${row.original.nomor}&tipe=${row.original.tipe}`}>
+                    <Eye className="h-4 w-4 mr-2" /> Lihat Bundle
+                </Link>
+            </Button>
+        )},
+    ], []);
 
     if (isLoading) {
         return (
@@ -157,16 +199,16 @@ export default function ArsipBundlePage() {
     return (
         <AppLayout>
             <div className="flex items-center justify-between">
-                <h1 className="text-lg font-semibold md:text-2xl">Arsip Bundle Dokumen</h1>
+                <h1 className="text-lg font-semibold md:text-2xl">Arsip Dokumen</h1>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Filter Bundle</CardTitle>
-                    <CardDescription>Cari bundle berdasarkan nomor surat, perihal, atau bagian no. surat (misal: 06-FAR, ppkrsud, 2025).</CardDescription>
+                    <CardTitle>Filter Dokumen</CardTitle>
+                    <CardDescription>Cari berdasarkan nomor surat, perihal, nama vendor, atau bagian no. surat (misal: 06-FAR, ppkrsud, 2025).</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap items-center gap-4">
                     <Input
-                        placeholder="Cari no. surat, perihal, atau bagian no. surat..."
+                        placeholder="Cari no. surat, perihal, vendor..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-sm"
@@ -175,91 +217,110 @@ export default function ArsipBundlePage() {
                 </CardContent>
             </Card>
 
-            <div className="mt-6">
-                {filteredBundles.length > 0 ? (
-                    <>
-                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                            {paginatedBundles.map(bundle => {
-                                const head = bundle[0];
-                                const firstDate = new Date(bundle[0].tanggal);
-                                const lastDate = new Date(bundle[bundle.length - 1].tanggal);
-                                const dateRange = format(firstDate, "dd MMM", { locale: id }) + (firstDate.getTime() !== lastDate.getTime() ? ` - ${format(lastDate, "dd MMM yyyy", { locale: id })}` : ` ${format(lastDate, "yyyy", { locale: id })}`);
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+                <TabsList>
+                    <TabsTrigger value="bundle">Bundle Lengkap</TabsTrigger>
+                    <TabsTrigger value="vendor">Pesanan Vendor</TabsTrigger>
+                </TabsList>
+                <TabsContent value="bundle">
+                    <div className="mt-6">
+                        {filteredBundles.length > 0 ? (
+                            <>
+                                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                    {paginatedBundles.map(bundle => {
+                                        const head = bundle[0];
+                                        const firstDate = new Date(bundle[0].tanggal);
+                                        const lastDate = new Date(bundle[bundle.length - 1].tanggal);
+                                        const dateRange = format(firstDate, "dd MMM", { locale: id }) + (firstDate.getTime() !== lastDate.getTime() ? ` - ${format(lastDate, "dd MMM yyyy", { locale: id })}` : ` ${format(lastDate, "yyyy", { locale: id })}`);
 
-                                return (
-                                    <Card key={head.nomor} className="flex flex-col">
-                                        <CardHeader>
-                                            <div className="flex items-start gap-4">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                    <PackageSearch className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <CardTitle className="text-base">{head.judul}</CardTitle>
-                                                    <CardDescription>{dateRange} • {bundle.length} Dokumen</CardDescription>
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="flex-grow">
-                                            <ul className="space-y-2">
-                                                {bundle.map(doc => (
-                                                    <li key={doc.nomor} className="flex items-center justify-between text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <FileText className="h-4 w-4 text-muted-foreground" />
-                                                            <span className="text-muted-foreground">{tipeToLabel[doc.tipe] || doc.tipe}</span>
+                                        return (
+                                            <Card key={head.nomor} className="flex flex-col">
+                                                <CardHeader>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                            <PackageSearch className="h-6 w-6" />
                                                         </div>
-                                                        <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </CardContent>
-                                        <div className="p-6 pt-0">
-                                            <Button asChild className="w-full">
-                                                <Link href={`/cetak-bundle?nomor=${head.nomor}&tipe=${head.tipe}`}>
-                                                    Lihat & Cetak Bundle
-                                                    <ChevronRight className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                )
-                            })}
-                        </div>
+                                                        <div>
+                                                            <CardTitle className="text-base">{head.judul}</CardTitle>
+                                                            <CardDescription>{dateRange} • {bundle.length} Dokumen</CardDescription>
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="flex-grow">
+                                                    <ul className="space-y-2">
+                                                        {bundle.map(doc => (
+                                                            <li key={doc.nomor} className="flex items-center justify-between text-sm">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                                                    <span className="text-muted-foreground">{tipeToLabel[doc.tipe] || doc.tipe}</span>
+                                                                </div>
+                                                                <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </CardContent>
+                                                <div className="p-6 pt-0">
+                                                    <Button asChild className="w-full">
+                                                        <Link href={`/cetak-bundle?nomor=${head.nomor}&tipe=${head.tipe}`}>
+                                                            Lihat & Cetak Bundle
+                                                            <ChevronRight className="h-4 w-4" />
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </div>
 
-                         {totalPages > 1 && (
-                            <div className="flex items-center justify-center space-x-4 py-4 mt-4">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    <ChevronLeft className="h-4 w-4 mr-2" />
-                                    Sebelumnya
-                                </Button>
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    Halaman {currentPage} dari {totalPages}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Selanjutnya
-                                    <ChevronRight className="h-4 w-4 ml-2" />
-                                </Button>
-                            </div>
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center space-x-4 py-4 mt-4">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                        >
+                                            <ChevronLeft className="h-4 w-4 mr-2" />
+                                            Sebelumnya
+                                        </Button>
+                                        <span className="text-sm font-medium text-muted-foreground">
+                                            Halaman {currentPage} dari {totalPages}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                        >
+                                            Selanjutnya
+                                            <ChevronRight className="h-4 w-4 ml-2" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <Alert className="mt-6">
+                                <PackageSearch className="h-4 w-4" />
+                                <AlertTitle>Tidak Ada Bundle Ditemukan</AlertTitle>
+                                <AlertDescription>
+                                    Tidak ada bundle dokumen yang cocok dengan kriteria filter Anda. Coba sesuaikan pencarian atau rentang tanggal Anda.
+                                </AlertDescription>
+                            </Alert>
                         )}
-                    </>
-                ) : (
-                    <Alert>
-                        <PackageSearch className="h-4 w-4" />
-                        <AlertTitle>Tidak Ada Bundle Ditemukan</AlertTitle>
-                        <AlertDescription>
-                            Tidak ada bundle dokumen yang cocok dengan kriteria filter Anda. Coba sesuaikan pencarian atau rentang tanggal Anda.
-                        </AlertDescription>
-                    </Alert>
-                )}
-            </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="vendor">
+                     <Card className="mt-6">
+                        <CardHeader>
+                            <CardTitle>Daftar Surat Pesanan ke Vendor</CardTitle>
+                            <CardDescription>Tabel ini berisi daftar semua surat pesanan yang dikirimkan ke vendor. Klik tombol "Lihat Bundle" untuk melihat seluruh dokumen terkait.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable columns={vendorOrderColumns} data={filteredVendorOrders} />
+                        </CardContent>
+                     </Card>
+                </TabsContent>
+            </Tabs>
         </AppLayout>
     );
 }
