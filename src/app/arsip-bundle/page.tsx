@@ -162,11 +162,11 @@ export default function ArsipBundlePage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Filter Bundle</CardTitle>
-                    <CardDescription>Cari bundle berdasarkan nomor surat, perihal, atau rentang tanggal.</CardDescription>
+                    <CardDescription>Cari bundle berdasarkan nomor surat, perihal, atau bagian no. surat (misal: 06-FAR, ppkrsud, 2025).</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap items-center gap-4">
                     <Input
-                        placeholder="Cari no. surat, perihal, atau bagian no. surat (misal: 06-FAR)..."
+                        placeholder="Cari no. surat, perihal, atau bagian no. surat..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-sm"
@@ -263,5 +263,3 @@ export default function ArsipBundlePage() {
         </AppLayout>
     );
 }
-
-    
