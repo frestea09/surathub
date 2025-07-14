@@ -40,7 +40,7 @@ const tipeToLabel: { [key: string]: string } = {
 const RenderSuratPerintah = ({ data }: { data: any }) => (
     <div className="bg-white text-black p-8 font-serif text-sm page-break">
         <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-            <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+            <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
             <div>
                 <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                 <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -88,7 +88,7 @@ const RenderSuratPesanan = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -154,7 +154,7 @@ const RenderSuratPesananFinal = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                 <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                 <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -211,7 +211,7 @@ const RenderBeritaAcara = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -250,7 +250,7 @@ const RenderBASTB = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-[11pt] page-break">
             <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
                 <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -295,7 +295,7 @@ const RenderBeritaAcaraUmum = ({ data }: { data: any }) => {
     return (
         <div className="bg-white text-black p-8 font-serif text-sm page-break">
             <div className="flex items-center justify-center text-center border-b-[3px] border-black pb-2 mb-4">
-                <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo"/>
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo"/>
                 <div>
                 <h1 className="font-bold uppercase text-base">Pemerintah Kabupaten Bandung</h1>
                 <h2 className="font-bold uppercase text-xl">Rumah Sakit Umum Daerah Oto Iskandar Di Nata</h2>
@@ -633,4 +633,3 @@ export default function CetakBundlePage() {
         </>
     );
 }
-

@@ -265,7 +265,7 @@ export default function BuatSuratPesananUmumPage() {
             <CardContent>
               <div className="bg-white text-black p-4 sm:p-8 font-serif text-[11pt] print:shadow-none print:p-0" id="surat-preview">
                 <div className="flex items-center justify-center text-center border-b-[3px] border-black pb-2 mb-4">
-                  <Image src="/assets/logo-rs.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="hospital logo"/>
+                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="hospital logo"/>
                   <div>
                     <h1 className="font-bold uppercase text-base">Pemerintah Kabupaten Bandung</h1>
                     <h2 className="font-bold uppercase text-xl">Rumah Sakit Umum Daerah Oto Iskandar Di Nata</h2>
