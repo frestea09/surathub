@@ -51,6 +51,12 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
     },
+    filterFns: {
+        fuzzy: (row, columnId, value, addMeta) => {
+            const item = row.getValue(columnId);
+            return String(item).toLowerCase().includes(String(value).toLowerCase());
+        },
+    },
   })
 
   React.useEffect(() => {
@@ -85,7 +91,7 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-wrap items-center gap-2 py-4">
         {filterableColumns.nomor && (
             <Input
-            placeholder="Filter Nomor..."
+            placeholder="Cari No. Surat..."
             value={(filterableColumns.nomor.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.nomor?.setFilterValue(event.target.value)
@@ -95,7 +101,7 @@ export function DataTable<TData, TValue>({
         )}
          {filterableColumns.perihal && (
             <Input
-            placeholder="Filter Perihal/Judul..."
+            placeholder="Cari Perihal/Judul..."
             value={(filterableColumns.perihal.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.perihal?.setFilterValue(event.target.value)
@@ -105,7 +111,7 @@ export function DataTable<TData, TValue>({
         )}
          {filterableColumns.nama && (
             <Input
-            placeholder="Filter Nama..."
+            placeholder="Cari Nama..."
             value={(filterableColumns.nama.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.nama?.setFilterValue(event.target.value)
@@ -115,7 +121,7 @@ export function DataTable<TData, TValue>({
         )}
         {filterableColumns.pengguna && (
           <Input
-            placeholder="Filter Pengguna..."
+            placeholder="Cari Pengguna..."
             value={
               (filterableColumns.pengguna.getFilterValue() as string) ?? ""
             }
@@ -127,7 +133,7 @@ export function DataTable<TData, TValue>({
         )}
         {filterableColumns.aksi && (
           <Input
-            placeholder="Filter Aksi..."
+            placeholder="Cari Aksi..."
             value={(filterableColumns.aksi.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               filterableColumns.aksi?.setFilterValue(event.target.value)
