@@ -44,7 +44,7 @@ import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore } from "@/store/suratStore";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { terbilang } from "@/lib/terbilang";
 import { roundHalfUp } from "@/lib/utils";
 
@@ -56,25 +56,8 @@ type Item = {
   hargaSatuan: number;
 };
 
-type BeritaAcaraHasil = {
-  formData: any;
-  peserta: any[];
-};
-
 const initialItems: Item[] = [
   { id: 1, nama: "Lampu 8 Watt Bulat 4\"", volume: 5, satuan: "Bh", hargaSatuan: 30600 },
-  { id: 2, nama: "Steker", volume: 5, satuan: "Bh", hargaSatuan: 12800 },
-  { id: 3, nama: "Stop kontak", volume: 5, satuan: "Bh", hargaSatuan: 17400 },
-  { id: 4, nama: "Lampu downlight", volume: 50, satuan: "Bh", hargaSatuan: 46000 },
-  { id: 5, nama: "Fiting Gantung", volume: 2, satuan: "Bh", hargaSatuan: 8500 },
-  { id: 6, nama: "Lampu 15 watt", volume: 2, satuan: "Bh", hargaSatuan: 20500 },
-  { id: 7, nama: "Kabel 0,75", volume: 1, satuan: "Rol", hargaSatuan: 429000 },
-  { id: 8, nama: "Solasi Nito", volume: 5, satuan: "Bh", hargaSatuan: 12400 },
-  { id: 9, nama: "Lampu Neon", volume: 2, satuan: "Bh", hargaSatuan: 46000 },
-  { id: 10, nama: "Lampu 8 Watt", volume: 15, satuan: "Bh", hargaSatuan: 56000 },
-  { id: 11, nama: "Termial 3L Broco", volume: 10, satuan: "Bh", hargaSatuan: 46000 },
-  { id: 12, nama: "Steker Broco", volume: 5, satuan: "Bh", hargaSatuan: 12500 },
-  { id: 13, nama: "Stop Kontak Broco", volume: 10, satuan: "Bh", hargaSatuan: 17500 },
 ];
 
 export default function BuatSuratPesananUmumPage() {
@@ -100,10 +83,14 @@ export default function BuatSuratPesananUmumPage() {
     namaPenandaTangan: "Heru Heriyanto, S.Kep, Ners",
     nipPenandaTangan: "NIP.19741215 200604 1 014",
     ppn: 11,
+    revisionHistory: [],
   });
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<BeritaAcaraHasil[]>([]);
+  
+  const availableSurat = useMemo(() => {
+      return allSurat.filter(s => s.tipe === 'BAH');
+  }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -159,26 +146,19 @@ export default function BuatSuratPesananUmumPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== "undefined") {
-        const dataString = localStorage.getItem("beritaAcaraHasilList");
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({ variant: "destructive", title: "Gagal Membaca Data", description: "Gagal memuat daftar Berita Acara Hasil Pengadaan." });
-    }
     setIsImportDialogOpen(true);
   };
 
-  const handleImportSelection = (importData: BeritaAcaraHasil) => {
+  const handleImportSelection = (importData: Surat) => {
+    const { formData: fd } = importData.data;
     setFormData((prev) => ({
       ...prev,
-      penerima: importData.peserta?.[0]?.nama || prev.penerima,
-      nomorSuratReferensi: importData.formData?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: importData.formData?.tanggalSurat ? new Date(importData.formData.tanggalSurat) : prev.tanggalSuratReferensi,
+      penerima: importData.data.peserta?.[0]?.nama || prev.penerima,
+      nomorSuratReferensi: fd?.nomor || prev.nomorSuratReferensi,
+      tanggalSuratReferensi: fd?.tanggalSurat ? new Date(fd.tanggalSurat) : prev.tanggalSuratReferensi,
     }));
     setIsImportDialogOpen(false);
-    toast({ title: "Berhasil", description: `Data dari surat ${importData.formData.nomor} berhasil dimuat.` });
+    toast({ title: "Berhasil", description: `Data dari surat ${fd.nomor} berhasil dimuat.` });
   };
 
   const handleSave = () => {
@@ -187,8 +167,22 @@ export default function BuatSuratPesananUmumPage() {
       return;
     }
     try {
-      const dataToSave = { formData: { ...formData, status: "Draft" }, items };
-      addSurat('suratPesananUmumList', dataToSave);
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: formData.hal,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalSurat.toISOString(),
+        penanggungJawab: formData.namaPenandaTangan,
+        dariKe: formData.penerima,
+        tipe: 'SP-Umum',
+        data: {
+          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          items,
+        }
+      };
+
+      addSurat(suratToSave);
+      
       toast({ title: "Berhasil", description: isEditMode ? "Draf berhasil diperbarui." : "Data berhasil disimpan sebagai draf." });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -360,17 +354,17 @@ export default function BuatSuratPesananUmumPage() {
           <DialogHeader><DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription></DialogHeader>
           <ScrollArea className="max-h-96 pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: BeritaAcaraHasil, i: number) => (
-                  <div key={`${surat.formData.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                availableSurat.map((surat: Surat, i: number) => (
+                  <div key={`${surat.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
                     <div>
-                      <p className="font-semibold">{surat.formData.nomor}</p>
-                      <p className="text-sm text-muted-foreground">{surat.formData.namaPaket}</p>
+                      <p className="font-semibold">{surat.nomor}</p>
+                      <p className="text-sm text-muted-foreground">{surat.judul}</p>
                     </div>
                     <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara Hasil Pengadaan yang tersimpan.</p>
+                <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara Hasil Pengadaan yang tersedia.</p>
               )}
           </ScrollArea>
         </DialogContent>

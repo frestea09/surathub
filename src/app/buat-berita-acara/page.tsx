@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +26,6 @@ import Image from "next/image";
 import {
   ArrowLeft,
   Printer,
-  Sparkles,
   PlusCircle,
   Trash2,
   Download,
@@ -46,7 +45,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore } from "@/store/suratStore";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 
 type Item = {
   id: number;
@@ -55,11 +54,6 @@ type Item = {
   merk: string;
   jumlah: number;
   keterangan: string;
-};
-
-type SuratPesananFinal = {
-  formData: any;
-  items: Omit<Item, "keterangan">[];
 };
 
 const initialItems: Item[] = [
@@ -77,10 +71,7 @@ export default function BuatBeritaAcaraPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore(state => ({
-    addSurat: state.addSurat,
-    surat: state.surat,
-  }));
+  const { addSurat, surat: allSurat } = useSuratStore();
   
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -102,7 +93,10 @@ export default function BuatBeritaAcaraPage() {
   });
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<SuratPesananFinal[]>([]);
+  
+  const availableSurat = useMemo(() => {
+    return allSurat.filter(s => s.tipe === 'SP-Vendor');
+  }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -160,35 +154,22 @@ export default function BuatBeritaAcaraPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== "undefined") {
-        const dataString = localStorage.getItem("suratPesananFinalList");
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Membaca Data",
-        description: "Gagal memuat daftar surat pesanan vendor.",
-      });
-    }
     setIsImportDialogOpen(true);
   };
 
-  const handleImportSelection = (importData: SuratPesananFinal) => {
+  const handleImportSelection = (importData: Surat) => {
+    const { formData: fd, items: i } = importData.data;
     setFormData((prev) => ({
       ...prev,
-      vendorNama: importData.formData?.penerima || prev.vendorNama,
-      penyediaNama: importData.formData?.penerima || prev.penyediaNama,
-      nomorSuratReferensi:
-        importData.formData?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi
-        ? new Date(importData.formData.tanggalSuratReferensi)
-        : prev.tanggalSuratReferensi,
+      vendorNama: fd?.penerima || prev.vendorNama,
+      penyediaNama: fd?.penerima || prev.penyediaNama,
+      nomorSuratReferensi: fd?.nomor || prev.nomorSuratReferensi,
+      tanggalSuratReferensi: fd?.tanggalSurat ? new Date(fd.tanggalSurat) : prev.tanggalSuratReferensi,
     }));
 
-    const mappedItems: Item[] = (importData.items || []).map((item) => ({
+    const mappedItems: Item[] = (i || []).map((item: any, index: number) => ({
       ...item,
+      id: index + 1,
       keterangan: "Baik sesuai dengan SP", // Default value
     }));
     setItems(mappedItems);
@@ -196,7 +177,7 @@ export default function BuatBeritaAcaraPage() {
     setIsImportDialogOpen(false);
     toast({
       title: "Berhasil",
-      description: `Data dari surat ${importData.formData.nomor} berhasil dimuat.`,
+      description: `Data dari surat ${fd.nomor} berhasil dimuat.`,
     });
   };
 
@@ -211,11 +192,22 @@ export default function BuatBeritaAcaraPage() {
     }
 
     try {
-      const dataToSave = {
-        formData: { ...formData, status: "Draft" },
-        items,
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: `Berita Acara untuk ${formData.vendorNama}`,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: new Date().toISOString(),
+        penanggungJawab: formData.pejabatNama,
+        dariKe: formData.vendorNama,
+        tipe: 'BA',
+        data: {
+          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          items,
+        }
       };
-      addSurat('beritaAcaraList', dataToSave);
+
+      addSurat(suratToSave);
+
       toast({
         title: "Berhasil",
         description: isEditMode ? "Draf berita acara berhasil diperbarui." : "Data berita acara berhasil disimpan sebagai draft.",
@@ -619,15 +611,15 @@ export default function BuatBeritaAcaraPage() {
           <ScrollArea className="max-h-96">
             <div className="pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: SuratPesananFinal) => (
+                availableSurat.map((surat: Surat) => (
                   <div
-                    key={surat.formData.nomor}
+                    key={surat.nomor}
                     className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"
                   >
                     <div>
-                      <p className="font-semibold">{surat.formData.nomor}</p>
+                      <p className="font-semibold">{surat.nomor}</p>
                       <p className="text-sm text-muted-foreground">
-                        {surat.formData.perihal}
+                        {surat.judul}
                       </p>
                     </div>
                     <Button onClick={() => handleImportSelection(surat)}>
@@ -637,7 +629,7 @@ export default function BuatBeritaAcaraPage() {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center p-4">
-                  Tidak ada data Surat Pesanan (Vendor) yang tersimpan.
+                  Tidak ada data Surat Pesanan (Vendor) yang tersedia.
                 </p>
               )}
             </div>

@@ -25,7 +25,6 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Printer,
-  Sparkles,
   PlusCircle,
   Trash2,
   Download,
@@ -46,7 +45,7 @@ import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore } from "@/store/suratStore";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { terbilang } from "@/lib/terbilang";
 import { roundHalfUp } from "@/lib/utils";
 
@@ -58,12 +57,6 @@ type Item = {
   jumlah: number;
   hargaSatuan: number;
   diskon: number; // percentage
-};
-
-type SuratPerintah = {
-  nomor: string;
-  perihal: string;
-  tanggalSurat: string;
 };
 
 const initialItems: Item[] = [
@@ -82,10 +75,7 @@ export default function BuatSuratPesananPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore(state => ({
-    addSurat: state.addSurat,
-    surat: state.surat,
-  }));
+  const { addSurat, surat: allSurat } = useSuratStore();
 
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -99,8 +89,7 @@ export default function BuatSuratPesananPage() {
     penerimaTempat: "Tempat",
     nomorSuratReferensi: "000.3/PPK-RSUD OTISTA/IV/2025",
     tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
-    terbilang:
-      "",
+    terbilang: "",
     jabatanPenandaTangan: "Pejabat Pengadaan Barang Jasa",
     namaPenandaTangan: "Deti Hapitri, A.Md.Gz",
     nipPenandaTangan: "NIP. 197711042005042013",
@@ -108,7 +97,10 @@ export default function BuatSuratPesananPage() {
   });
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<SuratPerintah[]>([]);
+  
+  const availableSurat = useMemo(() => {
+    return allSurat.filter(s => s.tipe === 'SPP');
+  }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -207,27 +199,15 @@ export default function BuatSuratPesananPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== "undefined") {
-        const dataString = localStorage.getItem("suratPerintahList");
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Membaca Data",
-        description: "Gagal memuat daftar surat perintah.",
-      });
-    }
     setIsImportDialogOpen(true);
   };
 
-  const handleImportSelection = (importData: SuratPerintah) => {
+  const handleImportSelection = (importData: Surat) => {
     setFormData((prev) => ({
       ...prev,
       nomorSuratReferensi: importData.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: importData.tanggalSurat
-        ? new Date(importData.tanggalSurat)
+      tanggalSuratReferensi: importData.tanggal
+        ? new Date(importData.tanggal)
         : prev.tanggalSuratReferensi,
     }));
     setIsImportDialogOpen(false);
@@ -248,11 +228,22 @@ export default function BuatSuratPesananPage() {
     }
 
     try {
-      const dataToSave = {
-        formData: { ...formData, status: "Draft" },
-        items,
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: formData.perihal,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalSurat.toISOString(),
+        penanggungJawab: formData.namaPenandaTangan,
+        dariKe: formData.penerima,
+        tipe: 'SP',
+        data: {
+          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          items,
+        }
       };
-      addSurat('suratPesananList', dataToSave);
+      
+      addSurat(suratToSave);
+      
       toast({
         title: "Berhasil",
         description: isEditMode ? "Draf surat pesanan berhasil diperbarui." : "Data surat pesanan berhasil disimpan sebagai draft.",
@@ -742,7 +733,7 @@ export default function BuatSuratPesananPage() {
           <ScrollArea className="max-h-96">
             <div className="pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: SuratPerintah) => (
+                availableSurat.map((surat: Surat) => (
                   <div
                     key={surat.nomor}
                     className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"
@@ -750,7 +741,7 @@ export default function BuatSuratPesananPage() {
                     <div>
                       <p className="font-semibold">{surat.nomor}</p>
                       <p className="text-sm text-muted-foreground">
-                        {surat.perihal}
+                        {surat.judul}
                       </p>
                     </div>
                     <Button onClick={() => handleImportSelection(surat)}>
@@ -760,7 +751,7 @@ export default function BuatSuratPesananPage() {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center p-4">
-                  Tidak ada data Surat Perintah yang tersimpan.
+                  Tidak ada data Surat Perintah yang tersedia.
                 </p>
               )}
             </div>

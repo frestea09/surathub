@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning'
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useSuratStore } from '@/store/suratStore';
+import { useSuratStore, type Surat } from '@/store/suratStore';
 import { terbilang } from "@/lib/terbilang";
 
 type Peserta = {
@@ -27,12 +27,6 @@ type Peserta = {
   nama: string;
   pemilik: string;
   hasilEvaluasi: string;
-};
-
-type SuratPerintahUmum = {
-  nomor: string;
-  perihal: string;
-  tanggalSurat: string;
 };
 
 export default function BuatBeritaAcaraHasilPage() {
@@ -67,7 +61,10 @@ export default function BuatBeritaAcaraHasilPage() {
     { id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }
   ]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<SuratPerintahUmum[]>([]);
+  
+  const availableSurat = useMemo(() => {
+    return allSurat.filter(s => s.tipe === 'SPU');
+  }, [allSurat]);
 
    useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -102,8 +99,22 @@ export default function BuatBeritaAcaraHasilPage() {
     }
     
     try {
-      const dataToSave = { formData: { ...formData, status: 'Draft' }, peserta };
-      addSurat('beritaAcaraHasilList', dataToSave);
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: formData.namaPaket,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalSurat.toISOString(),
+        penanggungJawab: formData.pejabatNama,
+        dariKe: peserta.map(p => p.nama).join(', '),
+        tipe: 'BAH',
+        data: { 
+          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' }, 
+          peserta 
+        },
+      };
+
+      addSurat(suratToSave);
+
       toast({ title: "Berhasil", description: isEditMode ? "Draf berhasil diperbarui." : "Data berhasil disimpan sebagai draf." });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -112,21 +123,13 @@ export default function BuatBeritaAcaraHasilPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== 'undefined') {
-        const dataString = localStorage.getItem('suratPerintahUmumList');
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({ variant: "destructive", title: "Gagal Membaca Data", description: "Gagal memuat daftar Surat Perintah." });
-    }
     setIsImportDialogOpen(true);
   };
   
-  const handleImportSelection = (surat: SuratPerintahUmum) => {
+  const handleImportSelection = (surat: Surat) => {
     setFormData(prev => ({
       ...prev,
-      namaPaket: surat.perihal,
+      namaPaket: surat.judul,
       nomorSuratReferensi: surat.nomor,
     }));
     setIsImportDialogOpen(false);
@@ -261,7 +264,7 @@ export default function BuatBeritaAcaraHasilPage() {
         </div>
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
           <DialogContent><DialogHeader><DialogTitle>Pilih Surat Perintah untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi untuk mengisi data.</DialogDescription></DialogHeader>
-            <ScrollArea className="max-h-96 pr-4">{availableSurat.length > 0 ? (availableSurat.map((s, i) => (<div key={`${s.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.perihal}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersimpan.</p>)}</ScrollArea>
+            <ScrollArea className="max-h-96 pr-4">{availableSurat.length > 0 ? (availableSurat.map((s, i) => (<div key={`${s.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.judul}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersedia.</p>)}</ScrollArea>
           </DialogContent>
         </Dialog>
       </main>

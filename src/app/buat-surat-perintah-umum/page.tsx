@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import { ArrowLeft, Printer, Sparkles, Save } from "lucide-react";
+import { ArrowLeft, Printer, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -27,10 +27,7 @@ export default function BuatSuratPerintahUmumPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore(state => ({
-    addSurat: state.addSurat,
-    surat: state.surat,
-  }));
+  const { addSurat, surat: allSurat } = useSuratStore();
   
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -93,8 +90,19 @@ export default function BuatSuratPerintahUmumPage() {
     }
 
     try {
-      const dataToSave = { ...formData, status: "Draft" };
-      addSurat('suratPerintahUmumList', dataToSave);
+      const dataToSave = {
+        nomor: formData.nomor,
+        judul: formData.perihal,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalSurat.toISOString(),
+        penanggungJawab: formData.namaPenandaTangan,
+        dariKe: formData.penerima,
+        tipe: 'SPU',
+        data: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+      };
+
+      addSurat(dataToSave);
+
       toast({
         title: "Berhasil",
         description: isEditMode ? "Draf surat berhasil diperbarui." : "Data surat berhasil disimpan sebagai draft.",

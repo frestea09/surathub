@@ -25,7 +25,6 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Printer,
-  Sparkles,
   PlusCircle,
   Trash2,
   Download,
@@ -46,7 +45,7 @@ import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore } from "@/store/suratStore";
+import { useSuratStore, type Surat } from "@/store/suratStore";
 import { terbilang } from "@/lib/terbilang";
 import { roundHalfUp } from "@/lib/utils";
 
@@ -58,11 +57,6 @@ type Item = {
   jumlah: number;
   hargaSatuan: number;
   diskon: number; // percentage
-};
-
-type SuratPesanan = {
-  formData: any;
-  items: Item[];
 };
 
 const initialItems: Item[] = [
@@ -81,10 +75,7 @@ export default function BuatSuratPesananFinalPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore(state => ({
-    addSurat: state.addSurat,
-    surat: state.surat,
-  }));
+  const { addSurat, surat: allSurat } = useSuratStore();
   
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -98,16 +89,19 @@ export default function BuatSuratPesananFinalPage() {
     penerimaTempat: "Tempat",
     nomorSuratReferensi: "000.3/PPBJ-RSUD OTISTA/IV/2025",
     tanggalSuratReferensi: new Date("2025-04-08T00:00:00"),
-    terbilang:
-      "",
+    terbilang: "",
     jabatanPenandaTangan: "Pejabat Pembuat Komitmen",
     namaPenandaTangan: "Saep Trian Prasetia.S.Si..Apt",
     nipPenandaTangan: "198408272008011005",
     ppn: 11,
+    revisionHistory: [],
   });
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<SuratPesanan[]>([]);
+  
+  const availableSurat = useMemo(() => {
+    return allSurat.filter(s => s.tipe === 'SP');
+  }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -205,37 +199,23 @@ export default function BuatSuratPesananFinalPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== "undefined") {
-        const dataString = localStorage.getItem("suratPesananList");
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Membaca Data",
-        description: "Gagal memuat daftar surat pesanan.",
-      });
-    }
     setIsImportDialogOpen(true);
   };
 
-  const handleImportSelection = (importData: SuratPesanan) => {
+  const handleImportSelection = (importData: Surat) => {
+    const { formData: fd, items: i } = importData.data;
     setFormData((prev) => ({
       ...prev,
-      nomorSuratReferensi:
-        importData.formData?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: importData.formData?.tanggalSuratReferensi
-        ? new Date(importData.formData.tanggalSuratReferensi)
-        : prev.tanggalSuratReferensi,
-      terbilang: importData.formData?.terbilang || prev.terbilang,
-      ppn: importData.formData?.ppn || prev.ppn,
+      nomorSuratReferensi: fd?.nomor || prev.nomorSuratReferensi,
+      tanggalSuratReferensi: fd?.tanggalSurat ? new Date(fd.tanggalSurat) : prev.tanggalSuratReferensi,
+      terbilang: fd?.terbilang || prev.terbilang,
+      ppn: fd?.ppn || prev.ppn,
     }));
-    setItems(importData.items || []);
+    setItems(i || []);
     setIsImportDialogOpen(false);
     toast({
       title: "Berhasil",
-      description: `Data dari surat ${importData.formData.nomor} berhasil dimuat.`,
+      description: `Data dari surat ${fd.nomor} berhasil dimuat.`,
     });
   };
 
@@ -250,11 +230,22 @@ export default function BuatSuratPesananFinalPage() {
     }
 
     try {
-      const dataToSave = {
-        formData: { ...formData, status: "Draft" },
-        items,
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: formData.perihal,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalSurat.toISOString(),
+        penanggungJawab: formData.namaPenandaTangan,
+        dariKe: formData.penerima,
+        tipe: 'SP-Vendor',
+        data: {
+          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          items,
+        }
       };
-      addSurat('suratPesananFinalList', dataToSave);
+
+      addSurat(suratToSave);
+      
       toast({
         title: "Berhasil",
         description: isEditMode ? "Draf surat pesanan (vendor) berhasil diperbarui." : "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
@@ -743,15 +734,15 @@ export default function BuatSuratPesananFinalPage() {
           <ScrollArea className="max-h-96">
             <div className="pr-4">
               {availableSurat.length > 0 ? (
-                availableSurat.map((surat: SuratPesanan) => (
+                availableSurat.map((surat: Surat) => (
                   <div
-                    key={surat.formData.nomor}
+                    key={surat.nomor}
                     className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"
                   >
                     <div>
-                      <p className="font-semibold">{surat.formData.nomor}</p>
+                      <p className="font-semibold">{surat.nomor}</p>
                       <p className="text-sm text-muted-foreground">
-                        {surat.formData.perihal}
+                        {surat.judul}
                       </p>
                     </div>
                     <Button onClick={() => handleImportSelection(surat)}>
@@ -761,7 +752,7 @@ export default function BuatSuratPesananFinalPage() {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center p-4">
-                  Tidak ada data Surat Pesanan yang tersimpan.
+                  Tidak ada data Surat Pesanan yang tersedia.
                 </p>
               )}
             </div>

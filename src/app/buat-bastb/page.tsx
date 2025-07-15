@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Printer, Sparkles, Download, Save } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
@@ -18,21 +18,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useSuratStore } from '@/store/suratStore';
-
-type BeritaAcara = {
-  formData: any;
-  items: any[];
-};
+import { useSuratStore, type Surat } from '@/store/suratStore';
 
 export default function BuatBastbPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addSurat, surat: allSurat } = useSuratStore(state => ({
-    addSurat: state.addSurat,
-    surat: state.surat,
-  }));
+  const { addSurat, surat: allSurat } = useSuratStore();
 
   const editNomor = searchParams.get('edit');
   const isEditMode = !!editNomor;
@@ -55,7 +47,10 @@ export default function BuatBastbPage() {
     narasiPenutup: 'Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.',
   });
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [availableSurat, setAvailableSurat] = useState<BeritaAcara[]>([]);
+  
+  const availableSurat = useMemo(() => {
+    return allSurat.filter(s => s.tipe === 'BA');
+  }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
@@ -88,36 +83,25 @@ export default function BuatBastbPage() {
   };
 
   const handleOpenImportDialog = () => {
-    try {
-      if (typeof window !== 'undefined') {
-        const dataString = localStorage.getItem('beritaAcaraList');
-        setAvailableSurat(dataString ? JSON.parse(dataString) : []);
-      }
-    } catch (error) {
-      toast({
-          variant: "destructive",
-          title: "Gagal Membaca Data",
-          description: "Gagal memuat daftar Berita Acara.",
-      });
-    }
     setIsImportDialogOpen(true);
   };
   
-  const handleImportSelection = (importData: BeritaAcara) => {
+  const handleImportSelection = (importData: Surat) => {
+    const fd = importData.data.formData;
     setFormData(prev => ({
       ...prev,
-      nomorBeritaAcara: importData.formData?.nomor || prev.nomorBeritaAcara,
+      nomorBeritaAcara: fd?.nomor || prev.nomorBeritaAcara,
       tanggalBeritaAcara: new Date(), 
-      nomorSuratPesanan: importData.formData?.nomorSuratReferensi || prev.nomorSuratPesanan,
-      tanggalSuratPesanan: importData.formData?.tanggalSuratReferensi ? new Date(importData.formData.tanggalSuratReferensi) : prev.tanggalSuratPesanan,
-      pihak1Nama: importData.formData?.pejabatNama || prev.pihak1Nama,
-      pihak1Nip: importData.formData?.pejabatNip ? importData.formData.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
+      nomorSuratPesanan: fd?.nomorSuratReferensi || prev.nomorSuratPesanan,
+      tanggalSuratPesanan: fd?.tanggalSuratReferensi ? new Date(fd.tanggalSuratReferensi) : prev.tanggalSuratPesanan,
+      pihak1Nama: fd?.pejabatNama || prev.pihak1Nama,
+      pihak1Nip: fd?.pejabatNip ? fd.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
     }));
 
     setIsImportDialogOpen(false);
     toast({
       title: "Berhasil",
-      description: `Data dari berita acara ${importData.formData.nomor} berhasil dimuat.`,
+      description: `Data dari berita acara ${fd.nomor} berhasil dimuat.`,
     });
   };
 
@@ -128,8 +112,19 @@ export default function BuatBastbPage() {
     }
     
     try {
-      const dataToSave = { formData: { ...formData, status: 'Draft' } };
-      addSurat('bastbList', dataToSave);
+      const suratToSave = {
+        nomor: formData.nomor,
+        judul: `BASTB untuk ${formData.pihak1Nama}`,
+        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        tanggal: formData.tanggalBeritaAcara.toISOString(),
+        penanggungJawab: formData.pihak1Nama,
+        dariKe: formData.pihak2Nama,
+        tipe: 'BASTB',
+        data: { formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' } },
+      };
+
+      addSurat(suratToSave);
+
       toast({ 
         title: "Berhasil", 
         description: isEditMode ? "Draf BASTB berhasil diperbarui." : "Data BASTB berhasil disimpan sebagai draft." 
@@ -336,17 +331,17 @@ export default function BuatBastbPage() {
             <ScrollArea className="max-h-96">
                 <div className="pr-4">
                   {availableSurat.length > 0 ? (
-                      availableSurat.map((surat: BeritaAcara) => (
-                          <div key={surat.formData.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
+                      availableSurat.map((surat: Surat) => (
+                          <div key={surat.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
                               <div>
-                                  <p className="font-semibold">{surat.formData.nomor}</p>
-                                  <p className="text-sm text-muted-foreground">Vendor: {surat.formData.vendorNama}</p>
+                                  <p className="font-semibold">{surat.nomor}</p>
+                                  <p className="text-sm text-muted-foreground">Vendor: {surat.dariKe}</p>
                               </div>
                               <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
                           </div>
                       ))
                   ) : (
-                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara yang tersimpan.</p>
+                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara yang tersedia.</p>
                   )}
                 </div>
             </ScrollArea>
