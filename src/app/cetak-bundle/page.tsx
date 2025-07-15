@@ -414,7 +414,7 @@ const RenderSuratPesananUmum = ({ data }: { data: any }) => {
             <p className="mb-4">Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
             <div className="flex justify-end">
                 <div className="text-center w-1/2 ml-auto">
-                    {formData.jabatanPenandaTangan.split('\n').map((line: string, index: number) => <p key={index}>{line}</p>)}
+                    {(formData.jabatanPenandaTangan || '').split('\n').map((line: string, index: number) => <p key={index}>{line}</p>)}
                     <div className="h-20"></div><p className="font-bold underline">{formData.namaPenandaTangan}</p><p>{formData.nipPenandaTangan}</p>
                 </div>
             </div>
