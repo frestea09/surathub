@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Mail, Share2, Archive, XCircle, FilePenLine, CheckCircle } from "lucide-react";
+import { Mail, Share2, Archive, XCircle, FilePenLine, CheckCircle, Package, MessageSquareWarning } from "lucide-react";
 
 import {
   Card,
@@ -24,6 +24,14 @@ const allNotifications = [
     isRead: false,
   },
   {
+    icon: MessageSquareWarning,
+    title: "Permintaan Revisi dari Vendor",
+    description: "Vendor 'PT Intisumber' meminta revisi pada Surat Pesanan No. 000.3/06-FAR/...",
+    time: "15 menit lalu",
+    link: "/surat-keluar?tab=revisi",
+    isRead: false,
+  },
+  {
     icon: FilePenLine,
     title: "Draf Perlu Diselesaikan",
     description: "Draf 'Berita Acara Serah Terima' No. BASTB/06/FAR/IV/2025 belum diselesaikan.",
@@ -31,12 +39,20 @@ const allNotifications = [
     link: "/surat-keluar?tab=draft",
     isRead: false,
   },
+    {
+    icon: Package,
+    title: "Pengadaan Umum Baru",
+    description: "Surat Perintah Pengadaan untuk 'Alat Listrik' telah dibuat.",
+    time: "45 menit lalu",
+    link: "/surat-keluar",
+    isRead: true,
+  },
   {
     icon: CheckCircle,
     title: "Proses Pengadaan Selesai",
     description: "Seluruh alur untuk pengadaan 'Barang Farmasi' telah selesai dan diarsipkan.",
     time: "1 jam lalu",
-    link: "/surat-keluar",
+    link: "/arsip-bundle",
     isRead: true,
   },
   {
@@ -45,7 +61,7 @@ const allNotifications = [
     description: "Surat keluar '007/MEMO/RSUD-O/VIII/2024' telah ditolak.",
     time: "2 jam lalu",
     link: "/surat-keluar?tab=ditolak",
-    isRead: false,
+    isRead: true,
   },
   {
     icon: Share2,
@@ -63,7 +79,8 @@ const allNotifications = [
     link: "/surat-masuk",
     isRead: true,
   },
-];
+].sort((a, b) => (a.isRead === b.isRead) ? 0 : a.isRead ? 1 : -1);
+
 
 export default function NotifikasiPage() {
   const router = useRouter();
@@ -106,5 +123,3 @@ export default function NotifikasiPage() {
     </AppLayout>
   );
 }
-
-    

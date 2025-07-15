@@ -3,7 +3,7 @@
 
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ShieldAlert, ShieldCheck, Info } from "lucide-react";
+import { ShieldAlert, ShieldCheck, Info, MessageSquareWarning } from "lucide-react";
 
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
@@ -16,7 +16,7 @@ type LogEntry = {
   pengguna: string;
   aksi: string;
   detail: string;
-  status: "Berhasil" | "Gagal" | "Info";
+  status: "Berhasil" | "Gagal" | "Info" | "Peringatan";
 };
 
 const mockLogData: LogEntry[] = [
@@ -26,7 +26,12 @@ const mockLogData: LogEntry[] = [
   { id: "log4", tanggal: "2024-08-01 10:30:00", pengguna: "ppbj", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Pesanan (Internal)' No. 000.3/PPBJ-RSUD OTISTA/IV/2025", status: "Berhasil" },
   { id: "log5", tanggal: "2024-08-01 10:35:00", pengguna: "ppbj", aksi: "KIRIM_SURAT", detail: "Surat Pesanan (Internal) No. 000.3/PPBJ-RSUD OTISTA/IV/2025 dikirim ke PPK", status: "Berhasil" },
   { id: "log6", tanggal: "2024-08-01 10:45:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Berhasil" },
-  { id: "log7", tanggal: "2024-08-01 10:50:00", pengguna: "ppk", aksi: "KIRIM_SURAT_EMAIL", detail: "Surat Pesanan (Vendor) No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 dikirim ke vendor@example.com", status: "Berhasil" },
+  { id: "log21", tanggal: "2024-08-01 10:48:00", pengguna: "vendor-1", aksi: "REVISI_DIMINTA", detail: "Vendor 'PT Intisumber' meminta revisi untuk pesanan No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Peringatan" },
+  { id: "log22", tanggal: "2024-08-01 10:49:00", pengguna: "ppk", aksi: "EDIT_DRAF_SURAT", detail: "Memperbarui draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 setelah permintaan revisi", status: "Berhasil" },
+  { id: "log7", tanggal: "2024-08-01 10:50:00", pengguna: "ppk", aksi: "TERBITKAN_KE_VENDOR", detail: "Surat Pesanan (Vendor) No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 diterbitkan ke portal vendor", status: "Berhasil" },
+  { id: "log23", tanggal: "2024-08-01 10:55:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Perintah Pengadaan' No. 02/Alat Listrik/PPK/V/2025", status: "Berhasil" },
+  { id: "log24", tanggal: "2024-08-01 11:00:00", pengguna: "ppk", aksi: "KIRIM_SURAT", detail: "Surat No. 02/Alat Listrik/PPK/V/2025 dikirim", status: "Berhasil" },
+  { id: "log25", tanggal: "2024-08-01 11:05:00", pengguna: "ppbj", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'BA Hasil Pengadaan' No. 02/Alat Listrik/PP/V/2025", status: "Berhasil" },
   { id: "log8", tanggal: "2024-08-01 11:00:45", pengguna: "admin", aksi: "TERIMA_SURAT_MASUK", detail: "Surat masuk No. INV/2024/07/998 dari 'CV. ATK Bersama' diterima", status: "Info" },
   { id: "log9", tanggal: "2024-08-01 11:02:15", pengguna: "admin", aksi: "BUAT_DISPOSISI", detail: "Disposisi surat No. INV/2024/07/998 ke 'Kepala Bagian Keuangan'", status: "Berhasil" },
   { id: "log10", tanggal: "2024-08-01 11:30:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Berita Acara Pemeriksaan' No. 06/PPK-FAR/RSUDO/IV/2025", status: "Berhasil" },
@@ -40,12 +45,13 @@ const mockLogData: LogEntry[] = [
   { id: "log18", tanggal: "2024-08-01 15:31:00", pengguna: "direktur", aksi: "EKSPOR_LAPORAN", detail: "Mengekspor laporan ke CSV", status: "Berhasil" },
   { id: "log19", tanggal: "2024-08-01 16:00:00", pengguna: "admin", aksi: "LOGOUT", detail: "Pengguna 'admin' berhasil logout", status: "Info" },
   { id: "log20", tanggal: "2024-08-01 17:00:00", pengguna: "ppk", aksi: "ARSIP_SURAT", detail: "Surat 'BASTB/06/FAR/IV/2025' diarsipkan", status: "Berhasil" },
-];
+].sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
 
 const statusConfig: { [key: string]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ElementType } } = {
   Berhasil: { variant: "default", icon: ShieldCheck },
   Gagal: { variant: "destructive", icon: ShieldAlert },
   Info: { variant: "secondary", icon: Info },
+  Peringatan: { variant: "destructive", icon: MessageSquareWarning }
 };
 
 
@@ -106,5 +112,3 @@ export default function LogAktivitasPage() {
     </AppLayout>
   );
 }
-
-    

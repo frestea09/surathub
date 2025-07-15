@@ -13,6 +13,7 @@ const mockUsers = [
     { id: 'direktur', name: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', role: 'Direktur' },
     { id: 'ppk', name: 'Saep Trian Prasetia.S.Si.Apt', role: 'Pejabat Pembuat Komitmen' },
     { id: 'ppbj', name: 'Deti Hapitri, A.Md.Gz', role: 'Pejabat Pengadaan Barang Jasa' },
+    { id: 'vendor', name: 'Vendor Eksternal', role: 'Vendor' },
     { id: 'staf', name: 'Staf Umum / Pengguna', role: 'Staf/Pengguna' },
 ];
 
@@ -48,36 +49,47 @@ const helpContent: Record<string, HelpContent> = {
     },
     ppk: {
         faq: [
-            { q: "Bagaimana alur lengkap pengadaan barang dari awal sampai akhir?", a: "Alur lengkapnya ada 5 tahap: 1. Surat Perintah, 2. Surat Pesanan (Internal), 3. Surat Pesanan (Vendor), 4. Berita Acara Pemeriksaan, dan 5. Berita Acara Serah Terima. Anda akan lebih banyak terlibat di tahap 1, 3, 4, dan 5." },
-            { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya (misal, membuat Surat Pesanan Vendor dari Surat Pesanan Internal), klik 'Ambil Data' untuk otomatis mengisi informasi dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." },
-            { q: "Bagaimana cara mengirim dokumen ke vendor?", a: "Di halaman Surat Keluar, temukan Surat Pesanan (Vendor) yang sudah jadi. Klik menu aksi (tiga titik) dan pilih 'Cetak Bundle'. Di halaman bundle, klik tombol 'Kirim ke Vendor', masukkan email, dan sistem akan mengirimkannya." },
-            { q: "Di mana saya bisa melihat draf surat yang sedang saya kerjakan dan mengeditnya?", a: "Semua draf yang Anda simpan akan muncul di halaman 'Surat Keluar' di bawah tab 'Draft'. Gunakan menu aksi (tiga titik) dan pilih 'Edit Draf' untuk melanjutkan pekerjaan Anda." }
+            { q: "Apa saja alur kerja pengadaan yang ada?", a: "Ada dua alur utama: 1. Pengadaan Obat & BMHP (5 tahap: SPP, SP, SP-Vendor, BA, BASTB). 2. Pengadaan Barang Jasa Umum (4 tahap: SPU, BAH, SP-Umum, BA-Umum). Anda akan terlibat di sebagian besar tahap, terutama yang berhubungan dengan Vendor." },
+            { q: "Vendor meminta revisi pada surat pesanan, di mana saya bisa melihat pesannya?", a: "Buka menu 'Surat Keluar', lalu klik tab 'Revisi Diminta'. Temukan suratnya, klik menu aksi (tiga titik), dan pilih 'Lihat Detail'. Pesan dari vendor akan terlihat jelas di dalam dialog pada bagian 'Riwayat Revisi'." },
+            { q: "Bagaimana cara mengirim dokumen ke vendor?", a: "Di halaman Surat Keluar, temukan Surat Pesanan (Vendor/Umum) yang sudah jadi. Klik menu aksi (tiga titik) dan pilih 'Cetak Bundle'. Di halaman bundle, klik tombol 'Terbitkan ke Vendor'. Ini akan membuat dokumen dapat diakses oleh vendor melalui portal mereka." },
+            { q: "Apa fungsi tombol 'Ambil Data'?", a: "Tombol ini adalah kunci efisiensi. Saat membuat surat di tahap selanjutnya, klik 'Ambil Data' untuk otomatis mengisi informasi dari surat sebelumnya, mengurangi input manual dan potensi kesalahan." }
         ],
         guide: [
-            { title: "Memulai Alur Surat Pengadaan (Surat Perintah)", steps: ["Klik 'Buat Surat', lalu pilih 'Surat Perintah' dan isi detailnya.", "Surat ini ditujukan untuk Pejabat Pengadaan (PPBJ) sebagai dasar untuk proses selanjutnya.", "Simpan sebagai draf atau langsung kirim."] },
-            { title: "Membuat Surat Pesanan ke Vendor", steps: ["Setelah PPBJ membuat Surat Pesanan Internal, Anda bisa melanjutkan dengan membuat 'Surat Pesanan (Vendor)'.", "Gunakan fitur 'Ambil Data' untuk menarik detail dari Surat Pesanan Internal yang dibuat PPBJ.", "Lengkapi detail vendor dan informasi lain yang diperlukan, lalu kirim."] },
-            { title: "Membuat Berita Acara", steps: ["Setelah barang diterima, buat 'Berita Acara Pemeriksaan'. Ambil data dari 'Surat Pesanan (Vendor)' untuk konsistensi.", "Lanjutkan dengan 'Berita Acara Serah Terima' untuk menyelesaikan proses. Gunakan 'Ambil Data' dari Berita Acara Pemeriksaan."] },
-            { title: "Menyelesaikan & Mengirim Bundle", steps: ["Setelah semua 5 dokumen selesai, buka 'Surat Keluar'.", "Cari salah satu dokumen dari alur tersebut, lalu klik menu aksi dan pilih 'Cetak Bundle'.", "Di halaman Bundle, Anda bisa mencetak semua dokumen sekaligus atau mengirimkannya via email ke vendor."] }
+            { title: "Memulai Alur Surat Pengadaan (Obat & Umum)", steps: ["Klik 'Buat Surat', lalu pilih jenis pengadaan.", "Pilih 'Surat Perintah' (untuk Obat) atau 'Surat Perintah Pengadaan' (untuk Umum).", "Surat ini ditujukan untuk Pejabat Pengadaan (PPBJ) sebagai dasar untuk proses selanjutnya.", "Simpan sebagai draf atau langsung kirim."] },
+            { title: "Membuat Surat Pesanan ke Vendor", steps: ["Setelah PPBJ membuat Surat Pesanan Internal (alur obat) atau BA Hasil Pengadaan (alur umum), Anda bisa melanjutkan membuat 'Surat Pesanan (Vendor)' atau 'Surat Pesanan (Umum)'.", "Gunakan fitur 'Ambil Data' untuk menarik detail dari surat sebelumnya.", "Lengkapi detail vendor dan informasi lain yang diperlukan, lalu terbitkan."] },
+            { title: "Menanggapi Permintaan Revisi", steps: ["Jika vendor meminta revisi, surat akan muncul di tab 'Revisi Diminta' pada halaman Surat Keluar.", "Buka detail surat untuk melihat catatan revisi dari vendor.", "Klik 'Edit Draf' atau 'Revisi Draf' untuk memperbaiki surat sesuai permintaan, lalu terbitkan kembali."] },
+            { title: "Menyelesaikan & Mengarsipkan Bundle", steps: ["Setelah semua dokumen dalam satu alur selesai, Anda bisa melihatnya sebagai satu kesatuan di halaman 'Arsip Bundle'.", "Gunakan pencarian di 'Arsip Bundle' untuk menemukan bundle lengkap berdasarkan fragmen nomor surat (misal: '06-FAR' atau 'Alat Listrik')."] }
         ]
     },
     ppbj: {
         faq: [
-            { q: "Apa tugas utama saya dalam alur pengadaan?", a: "Tugas utama Anda adalah membuat 'Surat Pesanan (Internal)' setelah menerima 'Surat Perintah' dari Pejabat Pembuat Komitmen (PPK)." },
-            { q: "Bagaimana cara memulai pembuatan Surat Pesanan Internal?", a: "Buka halaman 'Buat Surat', pilih 'Surat Pesanan (Internal)'. Gunakan tombol 'Ambil Data' untuk mengimpor detail dari Surat Perintah yang relevan." },
+            { q: "Apa tugas utama saya dalam alur pengadaan?", a: "Dalam alur obat, tugas Anda adalah membuat 'Surat Pesanan (Internal)' setelah menerima 'Surat Perintah'. Dalam alur umum, tugas Anda adalah membuat 'BA Hasil Pengadaan' setelah menerima 'Surat Perintah Pengadaan'." },
+            { q: "Bagaimana cara memulai pekerjaan saya?", a: "Periksa 'Surat Masuk' untuk melihat Surat Perintah baru. Setelah itu, buka 'Buat Surat', pilih alur yang sesuai, dan pilih dokumen yang menjadi tugas Anda (misal: Surat Pesanan Internal). Gunakan tombol 'Ambil Data' untuk mengimpor detail dari Surat Perintah yang relevan." },
             { q: "Di mana saya bisa melihat Surat Perintah yang masuk?", a: "Surat Perintah yang ditujukan kepada Anda akan muncul di halaman 'Surat Masuk'." }
         ],
         guide: [
-            { title: "Menindaklanjuti Surat Perintah", steps: ["Buka 'Surat Masuk' untuk melihat Surat Perintah baru dari PPK.", "Buka halaman 'Buat Surat', pilih 'Surat Pesanan (Internal)'.", "Gunakan tombol 'Ambil Data' dan pilih Surat Perintah yang sesuai. Sebagian besar formulir akan terisi otomatis.", "Lengkapi detail barang, harga, dan informasi lainnya. Kirim surat ini kembali ke PPK."] }
+            { title: "Menindaklanjuti Surat Perintah", steps: ["Buka 'Surat Masuk' untuk melihat Surat Perintah baru dari PPK.", "Buka halaman 'Buat Surat', pilih alur yang relevan, lalu pilih dokumen yang harus Anda buat.", "Gunakan tombol 'Ambil Data' dan pilih Surat Perintah yang sesuai. Sebagian besar formulir akan terisi otomatis.", "Lengkapi detail yang diperlukan, lalu kirim surat kembali."] }
+        ]
+    },
+    vendor: {
+        faq: [
+            { q: "Di mana saya bisa melihat pesanan baru?", a: "Semua pesanan baru dari RSUD akan muncul di halaman 'Dashboard' Anda. Dashboard adalah halaman utama setelah Anda login." },
+            { q: "Bagaimana cara saya menyetujui pesanan?", a: "Di dashboard, cari pesanan yang ingin Anda proses. Klik tombol 'Lihat Bundle'. Setelah meninjau dokumen, jika semua sudah sesuai, klik tombol 'Konfirmasi & Setujui Pesanan' di bagian atas halaman." },
+            { q: "Bagaimana jika ada yang salah atau saya punya pertanyaan tentang pesanan?", a: "Di halaman 'Lihat Bundle', klik tombol 'Ajukan Pertanyaan / Revisi'. Tulis pesan Anda di formulir yang muncul. Pesanan akan otomatis dikembalikan ke tim internal dengan status 'Revisi Diminta'." },
+            { q: "Apa yang terjadi setelah saya menyetujui pesanan?", a: "Setelah Anda menyetujui, status pesanan akan berubah menjadi 'Disetujui'. Tim internal RSUD akan melanjutkan proses pengadaan berdasarkan konfirmasi Anda." },
+        ],
+        guide: [
+            { title: "Mengelola Pesanan Baru", steps: ["Login ke Portal Vendor.", "Periksa tabel di Dashboard untuk melihat semua pesanan yang dikirimkan kepada Anda.", "Status 'Terkirim' menandakan pesanan baru yang memerlukan tindakan Anda."] },
+            { title: "Meninjau dan Merespon Pesanan", steps: ["Klik tombol 'Lihat Bundle' untuk melihat semua dokumen terkait pesanan.", "Tinjau detail, jumlah, dan spesifikasi barang/jasa yang diminta.", "Jika sesuai, klik 'Konfirmasi & Setujui Pesanan'.", "Jika ada pertanyaan atau perlu koreksi, klik 'Ajukan Pertanyaan / Revisi' dan kirimkan catatan Anda."] }
         ]
     },
     staf: {
         faq: [
-            { q: "Bagaimana cara membuat surat baru?", a: "Klik tombol 'Buat Surat' di pojok kanan atas. Pilih jenis surat yang ingin dibuat dari daftar yang tersedia. Jika Anda bagian dari tim pengadaan, pastikan mengikuti alur yang benar." },
-            { q: "Di mana saya bisa menemukan draf yang belum selesai?", a: "Semua draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'. Anda bisa melanjutkannya dari sana." },
+            { q: "Bagaimana cara membuat surat umum (di luar alur pengadaan)?", a: "Untuk saat ini, fitur 'Buat Surat' difokuskan pada alur pengadaan. Untuk surat umum, silakan koordinasikan dengan atasan atau administrator sistem." },
+            { q: "Di mana saya bisa menemukan draf yang belum selesai?", a: "Jika Anda terlibat dalam alur pengadaan, draf Anda tersimpan di halaman 'Surat Keluar' di bawah tab 'Draft'. Anda bisa melanjutkannya dari sana." },
             { q: "Bagaimana saya tahu jika ada surat atau tugas baru untuk saya?", a: "Periksa halaman 'Surat Masuk' dan menu 'Notifikasi' (ikon lonceng) secara berkala. Surat yang didisposisikan kepada Anda akan muncul di sana." }
         ],
         guide: [
-            { title: "Membuat Surat Umum", steps: ["Klik 'Buat Surat', lalu pilih template yang sesuai (misal: Surat Perintah jika Anda memiliki wewenang).", "Isi semua detail yang diperlukan pada formulir.", "Gunakan panel 'Preview' di sebelah kanan untuk memastikan format surat sudah benar sebelum 'Simpan' atau 'Cetak'."] },
             { title: "Menindaklanjuti Disposisi", steps: ["Buka 'Surat Masuk', cari surat yang statusnya 'Didisposisikan' kepada Anda.", "Baca instruksi pada disposisi.", "Setelah tindakan selesai, gunakan menu aksi (tiga titik) dan pilih 'Selesaikan Proses' untuk mengubah statusnya menjadi 'Selesai'."] }
         ]
     }
@@ -154,5 +166,3 @@ export default function BantuanPage() {
         </AppLayout>
     );
 }
-
-    
