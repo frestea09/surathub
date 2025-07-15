@@ -499,7 +499,7 @@ export default function BuatSuratPesananFinalPage() {
                             Harga Satuan
                           </Label>
                           <Input
-                            type="text"
+                            type="number"
                             id={`harga-${item.id}`}
                             value={item.hargaSatuan}
                             onChange={(e) =>
