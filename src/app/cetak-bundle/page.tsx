@@ -319,7 +319,7 @@ const RenderBeritaAcaraUmum = ({ data }: { data: any }) => {
             <p className="mb-8 text-justify">{formData.narasiPenutup}</p>
             <div className="flex justify-between">
                 <div className="text-center w-1/2"><p>Penyedia Barang /Jasa</p><p>{formData.penyediaNama}</p><div className="h-20"></div><p className="font-bold underline">{formData.penyediaPemilik}</p><p>Pemilik</p></div>
-                <div className="text-center w-1/2"><p>{formData.tempatTanggal}</p>{formData.pejabatJabatan.split('\n').map((line: string, i: number) => <p key={i}>{line}</p>)}<div className="h-20"></div><p className="font-bold underline">{formData.pejabatNama}</p><p>{formData.pejabatNip}</p></div>
+                <div className="text-center w-1/2"><p>{formData.tempatTanggal}</p>{(formData.pejabatJabatan || '').split('\n').map((line: string, i: number) => <p key={i}>{line}</p>)}<div className="h-20"></div><p className="font-bold underline">{formData.pejabatNama}</p><p>{formData.pejabatNip}</p></div>
             </div>
         </div>
     );
