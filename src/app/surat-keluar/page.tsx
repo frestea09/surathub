@@ -70,7 +70,9 @@ import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { useSuratStore, type Surat } from "@/store/suratStore";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore, type User } from "@/store/userStore";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   Terkirim: "default",
@@ -90,15 +92,18 @@ export default function SuratKeluarPage() {
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab');
   const { surat, isLoading, fetchAllSurat, updateSurat, deleteSurat } = useSuratStore();
-  const { users } = useUserStore();
+  const { users, fetchUsers: fetchUserStoreUsers } = useUserStore();
 
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [dialogAction, setDialogAction] = useState< 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus' | null>(null);
   const [activeTab, setActiveTab] = useState(tabQuery || "semua");
+  const [penerima, setPenerima] = useState<string[]>([]);
+  const [kirimSearchTerm, setKirimSearchTerm] = useState("");
 
   useEffect(() => {
     fetchAllSurat();
-  }, [fetchAllSurat]);
+    fetchUserStoreUsers();
+  }, [fetchAllSurat, fetchUserStoreUsers]);
 
   const isKirimKeVendor = useMemo(() => {
     if (!selectedSurat) return false;
@@ -106,11 +111,17 @@ export default function SuratKeluarPage() {
     return vendorUsers.includes(selectedSurat.dariKe);
   }, [selectedSurat, users]);
 
+  const internalUsers = useMemo(() => users.filter(u => u.jabatan !== 'Vendor'), [users]);
+
   const suratList = useMemo(() => surat.filter(s => s.jenis === 'Surat Keluar'), [surat]);
 
   const handleActionClick = (surat: Surat, action: 'detail' | 'lacak' | 'arsip' | 'kirim' | 'tolak' | 'hapus') => {
     setSelectedSurat(surat);
     setDialogAction(action);
+     if (action === 'kirim') {
+        setPenerima([]);
+        setKirimSearchTerm("");
+    }
   };
 
   const handleEditClick = (surat: Surat) => {
@@ -192,11 +203,28 @@ export default function SuratKeluarPage() {
 
   const handleKirimConfirm = () => {
     if (!selectedSurat) return;
-    updateSurat(selectedSurat.nomor, { status: 'Terkirim' });
-    toast({
-        title: `Berhasil ${isKirimKeVendor ? 'Diterbitkan' : 'Terkirim'}`,
-        description: `Surat nomor ${selectedSurat.nomor} telah ${isKirimKeVendor ? 'diterbitkan ke portal vendor' : 'dikirim'}.`,
-    });
+
+    if(isKirimKeVendor) {
+        updateSurat(selectedSurat.nomor, { status: 'Terkirim' });
+        toast({
+            title: 'Berhasil Diterbitkan',
+            description: `Surat nomor ${selectedSurat.nomor} telah diterbitkan ke portal vendor.`,
+        });
+    } else {
+        if (penerima.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "Gagal Mengirim",
+                description: "Silakan pilih setidaknya satu penerima internal.",
+            });
+            return;
+        }
+        updateSurat(selectedSurat.nomor, { status: 'Terkirim', dariKe: penerima.join(', ') });
+        toast({
+            title: `Berhasil Terkirim`,
+            description: `Surat nomor ${selectedSurat.nomor} telah dikirim ke ${penerima.length} penerima.`,
+        });
+    }
     closeDialog();
   };
   
@@ -209,6 +237,12 @@ export default function SuratKeluarPage() {
     if (activeTab === "revisi") return surat.status === "Revisi Diminta";
     return true;
   }), [suratList, activeTab]);
+
+  const filteredUsers = internalUsers.filter(
+    user =>
+      user.nama.toLowerCase().includes(kirimSearchTerm.toLowerCase()) ||
+      user.jabatan.toLowerCase().includes(kirimSearchTerm.toLowerCase())
+  );
   
   const columns: ColumnDef<Surat>[] = [
       {
@@ -466,22 +500,78 @@ export default function SuratKeluarPage() {
         </DialogContent>
       </Dialog>
       
+      {/* Kirim Surat Dialog (Internal) */}
+      <Dialog open={dialogAction === 'kirim' && !isKirimKeVendor} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Kirim Surat Internal</DialogTitle>
+            <DialogDescription>
+              Pilih penerima surat nomor <span className="font-semibold">{selectedSurat?.nomor}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Pilih Penerima</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari nama atau jabatan..."
+                  value={kirimSearchTerm}
+                  onChange={(e) => setKirimSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <ScrollArea className="h-48 w-full rounded-md border p-4">
+                <div className="space-y-2">
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <div key={user.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`user-${user.id}`}
+                          checked={penerima.includes(user.nama)}
+                          onCheckedChange={(checked) => {
+                            setPenerima((prev) =>
+                              checked
+                                ? [...prev, user.nama]
+                                : prev.filter((p) => p !== user.nama)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={`user-${user.id}`} className="font-normal cursor-pointer">
+                          {user.nama} <span className="text-muted-foreground">({user.jabatan})</span>
+                        </Label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">Pengguna tidak ditemukan.</p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Pesan Tambahan (Opsional)</Label>
+              <Textarea id="message" placeholder="Tambahkan pesan singkat untuk penerima..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline" onClick={closeDialog}>Batal</Button></DialogClose>
+            <Button onClick={handleKirimConfirm}>Kirim Surat</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Confirmation Dialogs */}
-      <AlertDialog open={['kirim', 'arsip', 'tolak', 'hapus'].includes(dialogAction || '')} onOpenChange={(open) => !open && closeDialog()}>
+      <AlertDialog open={dialogAction === 'arsip' || dialogAction === 'tolak' || dialogAction === 'hapus' || (dialogAction === 'kirim' && isKirimKeVendor)} onOpenChange={(open) => !open && closeDialog()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {dialogAction === 'kirim' && `Konfirmasi ${isKirimKeVendor ? 'Penerbitan' : 'Pengiriman'} Surat`}
+              {dialogAction === 'kirim' && 'Konfirmasi Penerbitan ke Vendor'}
               {dialogAction === 'arsip' && 'Konfirmasi Arsip Surat'}
               {dialogAction === 'tolak' && 'Konfirmasi Penolakan Surat'}
               {dialogAction === 'hapus' && 'Konfirmasi Hapus Surat'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {dialogAction === 'kirim' && (
-                isKirimKeVendor 
-                  ? <>Apakah Anda yakin ingin <strong>menerbitkan</strong> surat ini ke portal vendor <strong>{selectedSurat?.dariKe}</strong>?</>
-                  : <>Apakah Anda yakin ingin <strong>mengirim</strong> surat ini secara internal kepada <strong>{selectedSurat?.dariKe}</strong>?</>
-              )}
+              {dialogAction === 'kirim' && `Apakah Anda yakin ingin menerbitkan surat ini ke portal vendor ${selectedSurat?.dariKe}?`}
               {dialogAction === 'arsip' && 'Apakah Anda yakin ingin mengarsipkan surat ini? Status akan diubah menjadi "Diarsipkan".'}
               {dialogAction === 'tolak' && 'Apakah Anda yakin ingin menolak surat ini? Status akan diubah menjadi "Ditolak".'}
               {dialogAction === 'hapus' && `Apakah Anda yakin ingin menghapus surat nomor ${selectedSurat?.nomor}? Tindakan ini tidak dapat dibatalkan.`}
@@ -490,15 +580,10 @@ export default function SuratKeluarPage() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={closeDialog}>Batal</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
-                if (dialogAction === 'kirim') handleKirimConfirm();
-                if (dialogAction === 'arsip') handleArsipConfirm();
-                if (dialogAction === 'tolak') handleTolakConfirm();
-                if (dialogAction === 'hapus') handleHapusConfirm();
-              }}
+              onClick={handleKirimConfirm}
               className={buttonVariants({ variant: (dialogAction === 'tolak' || dialogAction === 'hapus') ? 'destructive' : 'default' })}
             >
-              {dialogAction === 'kirim' && (isKirimKeVendor ? 'Ya, Terbitkan' : 'Ya, Kirim')}
+              {dialogAction === 'kirim' && 'Ya, Terbitkan'}
               {dialogAction === 'arsip' && 'Ya, Arsipkan'}
               {dialogAction === 'tolak' && 'Ya, Tolak'}
               {dialogAction === 'hapus' && 'Ya, Hapus'}
