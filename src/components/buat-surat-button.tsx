@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/popover"
 import { Input } from "./ui/input"
 import { BUAT_SURAT_POPOVER } from "@/lib/constants"
-import { useSuratStore } from "@/store/suratStore"
 import { cn } from "@/lib/utils"
 
 const suratObatItems = [
@@ -101,32 +100,10 @@ const SuratMenu = ({
     onSelect: (href: string) => void
 }) => {
     const [searchTerm, setSearchTerm] = React.useState("");
-    const { surat } = useSuratStore();
-
-    // Filter surat store to only include types relevant to the current menu
-    const relevantTipes = new Set(items.map(item => item.tipe));
-    const existingTipesInFlow = new Set(surat.filter(s => relevantTipes.has(s.tipe)).map(s => s.tipe));
-
-    const lastCreatedIndex = items.findLastIndex(item => existingTipesInFlow.has(item.tipe));
-    const nextStepIndex = (lastCreatedIndex !== -1 && lastCreatedIndex < items.length - 1) ? lastCreatedIndex + 1 : -1; // -1 if all are done
     
     const filteredSurat = items.filter(surat => 
         surat.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const getStatusIcon = (index: number) => {
-        // All steps are completed
-        if (nextStepIndex === -1) {
-            return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />;
-        }
-        if (index < nextStepIndex) {
-            return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />;
-        }
-        if (index === nextStepIndex) {
-            return <ArrowRightCircle className="mr-2 h-4 w-4 text-blue-500" />;
-        }
-        return <Circle className="mr-2 h-4 w-4 text-muted-foreground" />;
-    };
 
     return (
         <div>
@@ -146,23 +123,17 @@ const SuratMenu = ({
             </div>
             <div className="flex flex-col p-1">
                 {filteredSurat.length > 0 ? (
-                    filteredSurat.map((surat) => {
-                         const itemIndexInFullList = items.findIndex(item => item.tipe === surat.tipe);
-                         const statusIcon = getStatusIcon(itemIndexInFullList);
-                         const isNextStep = itemIndexInFullList === nextStepIndex;
-
-                         return (
-                            <Button
-                                key={surat.href}
-                                variant="ghost"
-                                className={cn("w-full justify-start", isNextStep && "bg-blue-50 hover:bg-blue-100")}
-                                onClick={() => onSelect(surat.href)}
-                            >
-                                {statusIcon}
-                                <span>{surat.label}</span>
-                            </Button>
-                         )
-                    })
+                    filteredSurat.map((surat) => (
+                        <Button
+                            key={surat.href}
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => onSelect(surat.href)}
+                        >
+                            <surat.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <span>{surat.label}</span>
+                        </Button>
+                    ))
                 ) : (
                     <p className="p-4 text-center text-sm text-muted-foreground">
                         {BUAT_SURAT_POPOVER.NOT_FOUND}
