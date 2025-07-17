@@ -224,7 +224,7 @@ export default function ArsipBundlePage() {
                 </TabsList>
                 <TabsContent value="bundle">
                     <div className="mt-6">
-                        {filteredBundles.length > 0 ? (
+                        {paginatedBundles.length > 0 ? (
                             <>
                                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                                     {paginatedBundles.map(bundle => {
