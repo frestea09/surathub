@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSuratStore, type Surat } from '@/store/suratStore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { PackageSearch, FileText, ChevronRight, ChevronLeft, Eye } from 'lucide-react';
+import { PackageSearch, FileText, ChevronRight, ChevronLeft, Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -20,6 +20,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/ui/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { roundHalfUp } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+
 
 // Mapping from tipe to a more readable name
 const tipeToLabel: { [key: string]: string } = {
@@ -71,12 +76,16 @@ const calculateTotal = (surat: Surat): number => {
 };
 
 export default function ArsipBundlePage() {
-    const { surat, isLoading, fetchAllSurat } = useSuratStore();
+    const { surat, isLoading, fetchAllSurat, deleteSurat } = useSuratStore();
+    const router = useRouter();
+    const { toast } = useToast();
+
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>();
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 3; // Reduced for demonstration
     const [activeTab, setActiveTab] = useState("bundle");
+    const [suratToDelete, setSuratToDelete] = useState<Surat | null>(null);
 
     useEffect(() => {
         fetchAllSurat();
@@ -160,6 +169,30 @@ export default function ArsipBundlePage() {
     }, [filteredBundles, currentPage, itemsPerPage]);
 
     const totalPages = Math.ceil(filteredBundles.length / itemsPerPage);
+
+    const handleEditClick = (surat: Surat) => {
+        let path = '';
+        switch (surat.tipe) {
+            case 'SPP': path = '/buat-surat'; break;
+            case 'SP': path = '/buat-surat-pesanan'; break;
+            case 'SP-Vendor': path = '/buat-surat-pesanan-final'; break;
+            case 'BA': path = '/buat-berita-acara'; break;
+            case 'BASTB': path = '/buat-bastb'; break;
+            case 'SPU': path = '/buat-surat-perintah-umum'; break;
+            case 'BAH': path = '/buat-berita-acara-hasil'; break;
+            case 'SP-Umum': path = '/buat-surat-pesanan-umum'; break;
+            case 'BA-Umum': path = '/buat-berita-acara-umum'; break;
+            default: toast({ variant: 'destructive', title: 'Gagal', description: 'Tipe surat tidak dikenali untuk diedit.' }); return;
+        }
+        router.push(`${path}?edit=${encodeURIComponent(surat.nomor)}`);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!suratToDelete) return;
+        deleteSurat(suratToDelete.nomor);
+        toast({ title: "Draf Dihapus", description: `Draf surat nomor ${suratToDelete.nomor} telah dihapus.` });
+        setSuratToDelete(null);
+    };
 
     const vendorOrderColumns: ColumnDef<Surat>[] = useMemo(() => [
         { accessorKey: "nomor", header: "Nomor Surat Pesanan" },
@@ -247,14 +280,31 @@ export default function ArsipBundlePage() {
                                                     </div>
                                                 </CardHeader>
                                                 <CardContent className="flex-grow">
-                                                    <ul className="space-y-2">
+                                                    <ul className="space-y-1">
                                                         {bundle.map(doc => (
-                                                            <li key={doc.nomor} className="flex items-center justify-between text-sm">
+                                                            <li key={doc.nomor} className="flex items-center justify-between text-sm group hover:bg-muted/50 rounded-md p-1 -m-1">
                                                                 <div className="flex items-center gap-2">
                                                                     <FileText className="h-4 w-4 text-muted-foreground" />
                                                                     <span className="text-muted-foreground">{tipeToLabel[doc.tipe] || doc.tipe}</span>
                                                                 </div>
-                                                                <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge variant={statusVariant[doc.status as keyof typeof statusVariant] || 'secondary'}>{doc.status}</Badge>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent>
+                                                                            <DropdownMenuItem onClick={() => handleEditClick(doc)} disabled={doc.status !== 'Draft' && doc.status !== 'Revisi Diminta'}>
+                                                                                <Pencil className="mr-2 h-4 w-4" /> Ubah
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem onClick={() => setSuratToDelete(doc)} disabled={doc.status !== 'Draft'} className="text-destructive">
+                                                                                <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
+                                                                </div>
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -321,6 +371,23 @@ export default function ArsipBundlePage() {
                      </Card>
                 </TabsContent>
             </Tabs>
+            
+            <AlertDialog open={!!suratToDelete} onOpenChange={(open) => !open && setSuratToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Konfirmasi Hapus Draf</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Apakah Anda yakin ingin menghapus draf surat nomor <span className="font-bold">{suratToDelete?.nomor}</span>? Tindakan ini tidak dapat dibatalkan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm} className={buttonVariants({ variant: "destructive" })}>
+                            Ya, Hapus
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }
