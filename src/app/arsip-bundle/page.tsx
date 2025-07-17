@@ -48,6 +48,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Baru: "secondary",
   Didisposisikan: "outline",
   Disetujui: "default",
+  'Revisi Diminta': 'destructive',
 };
 
 // Forward chain: to find children
