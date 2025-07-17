@@ -58,16 +58,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserStore, type User } from "@/store/userStore";
 import { getVisibleUsers } from "@/lib/rolesHelper";
 
-const mockUsers: User[] = [
-    { id: 'direktur', nip: '196711022002121001', nama: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes', jabatan: 'Direktur', status: 'Aktif', password: 'password-direktur' },
-    { id: 'admin', nip: 'admin', nama: 'Admin Utama', jabatan: 'Administrator Sistem', status: 'Aktif', password: 'password-admin' },
-    { id: 'ppk', nip: '198408272008011005', nama: 'Saep Trian Prasetia.S.Si.Apt', jabatan: 'Pejabat Pembuat Komitmen', status: 'Aktif', password: 'password-ppk' },
-    { id: 'ppbj', nip: '197711042005042013', nama: 'Deti Hapitri, A.Md.Gz', jabatan: 'Pejabat Pengadaan Barang Jasa', status: 'Aktif', password: 'password-ppbj' },
-    { id: 'keuangan', nip: '198001012005012002', nama: 'Jane Doe', jabatan: 'Kepala Bagian Keuangan', status: 'Aktif', password: 'password-keuangan' },
-    { id: 'yanmed', nip: '197505202003122001', nama: 'Dr. Anisa Fitriani, Sp.A', jabatan: 'Kepala Bidang Pelayanan Medik', status: 'Aktif', password: 'password-yanmed' },
-    { id: 'staf', nip: '199501012020121001', nama: 'Andi Wijaya', jabatan: 'Tim Kerja Bidang Umum & Kepegawaian', status: 'Aktif', password: 'password-staf' },
-];
-
 const COLORS = ["hsl(var(--chart-2))", "hsl(var(--chart-1))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -79,6 +69,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   Disetujui: "default",
   Diarsipkan: "outline",
   Ditolak: "destructive",
+  'Revisi Diminta': 'destructive',
 };
 
 const StatCardSkeleton = () => (
@@ -109,7 +100,7 @@ const ChartSkeleton = () => (
 export default function LaporanPage() {
   const { toast } = useToast();
   const { surat, isLoading, error, fetchAllSurat } = useSuratStore();
-  const { activeUser } = useUserStore();
+  const { activeUser, users: allUsers, fetchUsers } = useUserStore();
 
   const [selectedSurat, setSelectedSurat] = useState<Surat | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -122,7 +113,8 @@ export default function LaporanPage() {
 
   useEffect(() => {
     fetchAllSurat();
-  }, [fetchAllSurat]);
+    fetchUsers();
+  }, [fetchAllSurat, fetchUsers]);
 
   useEffect(() => {
     if (activeUser && !viewAsUser) {
@@ -131,12 +123,12 @@ export default function LaporanPage() {
   }, [activeUser, viewAsUser]);
 
   const visibleUsers = useMemo(() => {
-    if (!activeUser) return [];
-    return getVisibleUsers(activeUser, mockUsers);
-  }, [activeUser]);
+    if (!activeUser || !allUsers) return [];
+    return getVisibleUsers(activeUser, allUsers);
+  }, [activeUser, allUsers]);
 
   const handleViewAsChange = (userId: string) => {
-      const user = mockUsers.find(u => u.id === userId);
+      const user = allUsers.find(u => u.id === userId);
       if(user) {
           setViewAsUser(user);
       }
@@ -168,7 +160,7 @@ export default function LaporanPage() {
       { title: "Total Surat Keluar", value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(), description: "Surat yang dibuat internal", icon: Send },
       { title: "Total Surat Masuk", value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(), description: "Surat yang diterima dari eksternal", icon: Mailbox },
       { title: "Surat Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(), description: "Surat yang prosesnya telah rampung", icon: CheckCircle },
-      { title: "Total Surat Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak').length.toString(), description: "Surat yang pengajuannya ditolak", icon: XCircle },
+      { title: "Total Surat Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak' || s.status === 'Revisi Diminta').length.toString(), description: "Surat yang ditolak atau direvisi", icon: XCircle },
     ];
     
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -180,7 +172,7 @@ export default function LaporanPage() {
     const statusData = [
       { name: "Proses", value: dataByDate.filter(s => ['Draft', 'Baru', 'Didisposisikan', 'Terkirim'].includes(s.status)).length },
       { name: "Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length },
-      { name: "Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak').length },
+      { name: "Ditolak/Revisi", value: dataByDate.filter(s => s.status === 'Ditolak' || s.status === 'Revisi Diminta').length },
     ].filter(item => item.value > 0);
 
     return { filteredData: dataByDate, dynamicStatCards: cards, suratVolumeData: volumeData, statusDistributionData: statusData };
@@ -248,7 +240,7 @@ export default function LaporanPage() {
             <Select value={viewAsUser?.id} onValueChange={handleViewAsChange} disabled={visibleUsers.length <= 1}>
                 <SelectTrigger id="role-switcher-laporan"><SelectValue placeholder="Pilih Peran" /></SelectTrigger>
                 <SelectContent>
-                    {visibleUsers.map(user => <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>)}
+                    {visibleUsers.map(user => <SelectItem key={user.id} value={user.id}>{user.nama} ({user.jabatan})</SelectItem>)}
                 </SelectContent>
             </Select>
         </div>
