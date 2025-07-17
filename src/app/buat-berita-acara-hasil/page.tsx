@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Printer, Download, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Save, Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,8 @@ type Peserta = {
   pemilik: string;
   hasilEvaluasi: string;
 };
+
+const IMPORT_ITEMS_PER_PAGE = 3;
 
 export default function BuatBeritaAcaraHasilPage() {
   const { toast } = useToast();
@@ -60,7 +62,11 @@ export default function BuatBeritaAcaraHasilPage() {
   const [peserta, setPeserta] = useState<Peserta[]>([
     { id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }
   ]);
+  
+  // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importSearchTerm, setImportSearchTerm] = useState("");
+  const [importCurrentPage, setImportCurrentPage] = useState(1);
   
   const availableSurat = useMemo(() => {
     return allSurat.filter(s => s.tipe === 'SPU');
@@ -138,6 +144,21 @@ export default function BuatBeritaAcaraHasilPage() {
   
   const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
   const nilaiHpsTerbilang = terbilang(formData.nilaiHps);
+
+  // Pagination and search for import dialog
+  const filteredImportSurat = useMemo(() => {
+    return availableSurat.filter(s =>
+      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    );
+  }, [availableSurat, importSearchTerm]);
+
+  const paginatedImportSurat = useMemo(() => {
+    const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
+    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+  }, [filteredImportSurat, importCurrentPage]);
+
+  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -264,7 +285,23 @@ export default function BuatBeritaAcaraHasilPage() {
         </div>
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
           <DialogContent><DialogHeader><DialogTitle>Pilih Surat Perintah untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi untuk mengisi data.</DialogDescription></DialogHeader>
-            <ScrollArea className="max-h-96 pr-4">{availableSurat.length > 0 ? (availableSurat.map((s, i) => (<div key={`${s.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.judul}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersedia.</p>)}</ScrollArea>
+            <div className="relative my-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Cari no. surat atau perihal..."
+                    value={importSearchTerm}
+                    onChange={(e) => setImportSearchTerm(e.target.value)}
+                    className="pl-8"
+                />
+            </div>
+            <ScrollArea className="max-h-80 pr-4 space-y-2">{paginatedImportSurat.length > 0 ? (paginatedImportSurat.map((s, i) => (<div key={`${s.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"><div><p className="font-semibold">{s.nomor}</p><p className="text-sm text-muted-foreground">{s.judul}</p></div><Button onClick={() => handleImportSelection(s)}>Pilih</Button></div>))) : (<p className="text-sm text-muted-foreground text-center p-4">Tidak ada Surat Perintah (Umum) yang tersedia.</p>)}</ScrollArea>
+             {totalImportPages > 1 && (
+                <div className="flex items-center justify-center space-x-2 pt-4">
+                    <Button variant="outline" size="sm" onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))} disabled={importCurrentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                    <span className="text-sm text-muted-foreground">Hal {importCurrentPage} dari {totalImportPages}</span>
+                    <Button variant="outline" size="sm" onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))} disabled={importCurrentPage === totalImportPages}><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+            )}
           </DialogContent>
         </Dialog>
       </main>

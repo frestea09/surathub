@@ -29,6 +29,9 @@ import {
   Trash2,
   Download,
   Save,
+  ChevronLeft,
+  ChevronRight,
+  Search,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -71,6 +74,8 @@ const initialItems: Item[] = [
   },
 ];
 
+const IMPORT_ITEMS_PER_PAGE = 3;
+
 export default function BuatSuratPesananFinalPage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -97,7 +102,11 @@ export default function BuatSuratPesananFinalPage() {
     revisionHistory: [],
   });
   const [items, setItems] = useState<Item[]>(initialItems);
+  
+  // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importSearchTerm, setImportSearchTerm] = useState("");
+  const [importCurrentPage, setImportCurrentPage] = useState(1);
   
   const availableSurat = useMemo(() => {
     return allSurat.filter(s => s.tipe === 'SP');
@@ -263,6 +272,21 @@ export default function BuatSuratPesananFinalPage() {
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("id-ID").format(value);
+
+  // Pagination and search for import dialog
+  const filteredImportSurat = useMemo(() => {
+    return availableSurat.filter(s =>
+      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    );
+  }, [availableSurat, importSearchTerm]);
+
+  const paginatedImportSurat = useMemo(() => {
+    const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
+    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+  }, [filteredImportSurat, importCurrentPage]);
+
+  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -495,19 +519,13 @@ export default function BuatSuratPesananFinalPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`harga-${item.id}`}>
-                            Harga Satuan
-                          </Label>
+                          <Label htmlFor={`harga-${item.id}`}>Harga Satuan</Label>
                           <Input
                             type="number"
                             id={`harga-${item.id}`}
                             value={item.hargaSatuan}
                             onChange={(e) =>
-                              handleItemChange(
-                                item.id,
-                                "hargaSatuan",
-                                e.target.value
-                              )
+                              handleItemChange(item.id, 'hargaSatuan', e.target.value)
                             }
                           />
                         </div>
@@ -731,10 +749,19 @@ export default function BuatSuratPesananFinalPage() {
               secara otomatis.
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="max-h-96">
-            <div className="pr-4">
-              {availableSurat.length > 0 ? (
-                availableSurat.map((surat: Surat) => (
+          <div className="relative my-4">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                  placeholder="Cari no. surat atau perihal..."
+                  value={importSearchTerm}
+                  onChange={(e) => setImportSearchTerm(e.target.value)}
+                  className="pl-8"
+              />
+          </div>
+          <ScrollArea className="max-h-80">
+            <div className="pr-4 space-y-2">
+              {paginatedImportSurat.length > 0 ? (
+                paginatedImportSurat.map((surat: Surat) => (
                   <div
                     key={surat.nomor}
                     className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"
@@ -757,6 +784,29 @@ export default function BuatSuratPesananFinalPage() {
               )}
             </div>
           </ScrollArea>
+           {totalImportPages > 1 && (
+            <div className="flex items-center justify-center space-x-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))}
+                disabled={importCurrentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Hal {importCurrentPage} dari {totalImportPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))}
+                disabled={importCurrentPage === totalImportPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

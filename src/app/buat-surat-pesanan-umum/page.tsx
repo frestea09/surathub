@@ -28,6 +28,9 @@ import {
   Trash2,
   Download,
   Save,
+  ChevronLeft,
+  ChevronRight,
+  Search,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -60,6 +63,8 @@ const initialItems: Item[] = [
   { id: 1, nama: "Lampu 8 Watt Bulat 4\"", volume: 5, satuan: "Bh", hargaSatuan: 30600 },
 ];
 
+const IMPORT_ITEMS_PER_PAGE = 3;
+
 export default function BuatSuratPesananUmumPage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -86,7 +91,11 @@ export default function BuatSuratPesananUmumPage() {
     revisionHistory: [],
   });
   const [items, setItems] = useState<Item[]>(initialItems);
+
+  // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importSearchTerm, setImportSearchTerm] = useState("");
+  const [importCurrentPage, setImportCurrentPage] = useState(1);
   
   const availableSurat = useMemo(() => {
       return allSurat.filter(s => s.tipe === 'BAH');
@@ -191,6 +200,21 @@ export default function BuatSuratPesananUmumPage() {
   };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID").format(value);
+
+  // Pagination and search for import dialog
+  const filteredImportSurat = useMemo(() => {
+    return availableSurat.filter(s =>
+      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    );
+  }, [availableSurat, importSearchTerm]);
+
+  const paginatedImportSurat = useMemo(() => {
+    const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
+    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+  }, [filteredImportSurat, importCurrentPage]);
+
+  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -352,9 +376,18 @@ export default function BuatSuratPesananUmumPage() {
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle><DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription></DialogHeader>
-          <ScrollArea className="max-h-96 pr-4">
-              {availableSurat.length > 0 ? (
-                availableSurat.map((surat: Surat, i: number) => (
+          <div className="relative my-4">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                  placeholder="Cari no. surat atau perihal..."
+                  value={importSearchTerm}
+                  onChange={(e) => setImportSearchTerm(e.target.value)}
+                  className="pl-8"
+              />
+          </div>
+          <ScrollArea className="max-h-80 pr-4 space-y-2">
+              {paginatedImportSurat.length > 0 ? (
+                paginatedImportSurat.map((surat: Surat, i: number) => (
                   <div key={`${surat.nomor}-${i}`} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
                     <div>
                       <p className="font-semibold">{surat.nomor}</p>
@@ -367,6 +400,29 @@ export default function BuatSuratPesananUmumPage() {
                 <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara Hasil Pengadaan yang tersedia.</p>
               )}
           </ScrollArea>
+           {totalImportPages > 1 && (
+            <div className="flex items-center justify-center space-x-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))}
+                disabled={importCurrentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Hal {importCurrentPage} dari {totalImportPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))}
+                disabled={importCurrentPage === totalImportPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <style jsx global>{`@media print { body * { visibility: hidden; } #surat-preview, #surat-preview * { visibility: visible; } #surat-preview { position: absolute; left: 0; top: 0; width: 100%; font-size: 10pt; } } @page { size: A4; margin: 1in; }`}</style>
