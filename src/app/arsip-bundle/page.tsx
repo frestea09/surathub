@@ -75,7 +75,7 @@ export default function ArsipBundlePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>();
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 3; // Reduced for demonstration
     const [activeTab, setActiveTab] = useState("bundle");
 
     useEffect(() => {
