@@ -103,15 +103,22 @@ const SuratMenu = ({
     const [searchTerm, setSearchTerm] = React.useState("");
     const { surat } = useSuratStore();
 
-    const existingTipes = new Set(surat.map(s => s.tipe));
-    const lastCreatedIndex = items.findLastIndex(item => existingTipes.has(item.tipe));
-    const nextStepIndex = (lastCreatedIndex !== -1 && lastCreatedIndex < items.length - 1) ? lastCreatedIndex + 1 : 0;
+    // Filter surat store to only include types relevant to the current menu
+    const relevantTipes = new Set(items.map(item => item.tipe));
+    const existingTipesInFlow = new Set(surat.filter(s => relevantTipes.has(s.tipe)).map(s => s.tipe));
+
+    const lastCreatedIndex = items.findLastIndex(item => existingTipesInFlow.has(item.tipe));
+    const nextStepIndex = (lastCreatedIndex !== -1 && lastCreatedIndex < items.length - 1) ? lastCreatedIndex + 1 : -1; // -1 if all are done
     
     const filteredSurat = items.filter(surat => 
         surat.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const getStatusIcon = (index: number) => {
+        // All steps are completed
+        if (nextStepIndex === -1) {
+            return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />;
+        }
         if (index < nextStepIndex) {
             return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />;
         }
@@ -139,7 +146,7 @@ const SuratMenu = ({
             </div>
             <div className="flex flex-col p-1">
                 {filteredSurat.length > 0 ? (
-                    filteredSurat.map((surat, index) => {
+                    filteredSurat.map((surat) => {
                          const itemIndexInFullList = items.findIndex(item => item.tipe === surat.tipe);
                          const statusIcon = getStatusIcon(itemIndexInFullList);
                          const isNextStep = itemIndexInFullList === nextStepIndex;
