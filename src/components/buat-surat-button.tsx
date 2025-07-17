@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt } from "lucide-react"
+import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt, CheckCircle, Circle, ArrowRightCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,33 +13,39 @@ import {
 } from "@/components/ui/popover"
 import { Input } from "./ui/input"
 import { BUAT_SURAT_POPOVER } from "@/lib/constants"
-import { Separator } from "./ui/separator"
+import { useSuratStore } from "@/store/suratStore"
+import { cn } from "@/lib/utils"
 
 const suratObatItems = [
   {
     label: BUAT_SURAT_POPOVER.SURAT_PERINTAH,
     href: "/buat-surat",
     icon: FileText,
+    tipe: "SPP",
   },
   {
     label: BUAT_SURAT_POPOVER.SURAT_PESANAN_INTERNAL,
     href: "/buat-surat-pesanan",
     icon: FileText,
+    tipe: "SP",
   },
   {
     label: BUAT_SURAT_POPOVER.SURAT_PESANAN_VENDOR,
     href: "/buat-surat-pesanan-final",
     icon: FileText,
+    tipe: "SP-Vendor",
   },
   {
     label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN,
     href: "/buat-berita-acara",
     icon: FileSignature,
+    tipe: "BA",
   },
   {
     label: BUAT_SURAT_POPOVER.BERITA_ACARA_SERAH_TERIMA,
     href: "/buat-bastb",
     icon: FileSignature,
+    tipe: "BASTB",
   },
 ];
 
@@ -48,21 +54,25 @@ const suratUmumItems = [
         label: BUAT_SURAT_POPOVER.SURAT_PERINTAH_PENGADAAN,
         href: "/buat-surat-perintah-umum",
         icon: FileText,
+        tipe: "SPU"
     },
     {
         label: BUAT_SURAT_POPOVER.BERITA_ACARA_HASIL_PENGADAAN,
         href: "/buat-berita-acara-hasil",
         icon: FileSignature,
+        tipe: "BAH"
     },
     {
         label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM,
         href: "/buat-surat-pesanan-umum",
         icon: Receipt,
+        tipe: "SP-Umum"
     },
     {
         label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN_UMUM,
         href: "/buat-berita-acara-umum",
         icon: FileSignature,
+        tipe: "BA-Umum"
     },
 ];
 
@@ -91,9 +101,25 @@ const SuratMenu = ({
     onSelect: (href: string) => void
 }) => {
     const [searchTerm, setSearchTerm] = React.useState("");
+    const { surat } = useSuratStore();
+
+    const existingTipes = new Set(surat.map(s => s.tipe));
+    const lastCreatedIndex = items.findLastIndex(item => existingTipes.has(item.tipe));
+    const nextStepIndex = (lastCreatedIndex !== -1 && lastCreatedIndex < items.length - 1) ? lastCreatedIndex + 1 : 0;
+    
     const filteredSurat = items.filter(surat => 
         surat.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const getStatusIcon = (index: number) => {
+        if (index < nextStepIndex) {
+            return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />;
+        }
+        if (index === nextStepIndex) {
+            return <ArrowRightCircle className="mr-2 h-4 w-4 text-blue-500" />;
+        }
+        return <Circle className="mr-2 h-4 w-4 text-muted-foreground" />;
+    };
 
     return (
         <div>
@@ -113,17 +139,23 @@ const SuratMenu = ({
             </div>
             <div className="flex flex-col p-1">
                 {filteredSurat.length > 0 ? (
-                    filteredSurat.map((surat) => (
-                        <Button
-                            key={surat.href}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => onSelect(surat.href)}
-                        >
-                            <surat.icon className="mr-2 h-4 w-4" />
-                            <span>{surat.label}</span>
-                        </Button>
-                    ))
+                    filteredSurat.map((surat, index) => {
+                         const itemIndexInFullList = items.findIndex(item => item.tipe === surat.tipe);
+                         const statusIcon = getStatusIcon(itemIndexInFullList);
+                         const isNextStep = itemIndexInFullList === nextStepIndex;
+
+                         return (
+                            <Button
+                                key={surat.href}
+                                variant="ghost"
+                                className={cn("w-full justify-start", isNextStep && "bg-blue-50 hover:bg-blue-100")}
+                                onClick={() => onSelect(surat.href)}
+                            >
+                                {statusIcon}
+                                <span>{surat.label}</span>
+                            </Button>
+                         )
+                    })
                 ) : (
                     <p className="p-4 text-center text-sm text-muted-foreground">
                         {BUAT_SURAT_POPOVER.NOT_FOUND}
@@ -188,5 +220,3 @@ export function BuatSuratButton() {
     </Popover>
   )
 }
-
-    
