@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { JABATAN_PLACEHOLDER } from "@/lib/constants";
+import { JABATAN_PLACEHOLDER, ROLES } from "@/lib/constants";
 
 interface RoleComboboxProps {
   value: string;
@@ -36,7 +36,6 @@ export function RoleCombobox({
 }: RoleComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
-  // Flatten the roles into a structure that the combobox can use easily.
   const roleGroups = React.useMemo(() => {
     let roleEntries = Object.entries(roles);
     if (filterExternal) {
@@ -60,7 +59,7 @@ export function RoleCombobox({
         >
           <span className="truncate">
             {value
-              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase())
+              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase()) || JABATAN_PLACEHOLDER
               : JABATAN_PLACEHOLDER}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -78,8 +77,6 @@ export function RoleCombobox({
                     key={role}
                     value={role}
                     onSelect={(currentValue) => {
-                      // This logic is now correct. It sets the value if it's different,
-                      // or clears it if the same item is selected again.
                       onValueChange(currentValue.toLowerCase() === value.toLowerCase() ? "" : currentValue);
                       setOpen(false);
                     }}
