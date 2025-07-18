@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
 import { useUserStore, type User } from '@/store/userStore';
@@ -40,7 +40,6 @@ import {
   CANCEL_AND_BACK_LINK_TEXT,
   JABATAN_PLACEHOLDER,
 } from '@/lib/constants';
-import { RoleCombobox } from '../ui/role-combobox';
 
 interface UserFormProps {
   user?: User;
@@ -164,13 +163,27 @@ export function UserForm({ user }: UserFormProps) {
               </FormItem>
             )} />
             <FormField control={form.control} name="jabatan" render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>{JABATAN_ROLE_LABEL}</FormLabel>
-                <RoleCombobox 
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder={JABATAN_PLACEHOLDER}
-                />
+                 <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={JABATAN_PLACEHOLDER} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(ROLES).map(([group, groupRoles]) => (
+                        <SelectGroup key={group}>
+                          <SelectLabel>{group}</SelectLabel>
+                          {groupRoles.map((roleItem) => (
+                            <SelectItem key={roleItem} value={roleItem}>
+                              {roleItem}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 <FormMessage />
               </FormItem>
             )} />
