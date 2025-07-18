@@ -45,10 +45,6 @@ export function RoleCombobox({
     return roleEntries.flatMap(([, roleList]) => roleList);
   }, [roles, filterExternal]);
 
-  const currentRoleLabel = allRolesFlat.find(
-    (role) => role.toLowerCase() === value.toLowerCase()
-  ) || value || JABATAN_PLACEHOLDER;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -58,7 +54,11 @@ export function RoleCombobox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          <span className="truncate">{currentRoleLabel}</span>
+          <span className="truncate">
+            {value
+              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase()) || value
+              : JABATAN_PLACEHOLDER}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -71,22 +71,28 @@ export function RoleCombobox({
               if (filterExternal && group === "Pihak Eksternal") {
                 return null;
               }
+              const filteredGroupRoles = groupRoles.filter(role => allRolesFlat.includes(role));
+              if (filteredGroupRoles.length === 0) return null;
+
               return (
                 <React.Fragment key={group}>
                   {index > 0 && <CommandSeparator />}
                   <CommandGroup heading={group}>
-                    {groupRoles.map((role) => (
+                    {filteredGroupRoles.map((role) => (
                       <CommandItem
                         key={role}
-                        onSelect={() => {
-                          onValueChange(role);
+                        value={role}
+                        onSelect={(currentValue) => {
+                          onValueChange(currentValue === value ? "" : currentValue);
                           setOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            value.toLowerCase() === role.toLowerCase() ? "opacity-100" : "opacity-0"
+                            value.toLowerCase() === role.toLowerCase()
+                              ? "opacity-100"
+                              : "opacity-0"
                           )}
                         />
                         {role}
