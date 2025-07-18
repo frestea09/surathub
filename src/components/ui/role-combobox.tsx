@@ -78,9 +78,8 @@ export function RoleCombobox({
                     {groupRoles.map((role) => (
                       <CommandItem
                         key={role}
-                        value={role}
-                        onSelect={(currentValue) => {
-                          onValueChange(currentValue === value ? "" : currentValue);
+                        onSelect={() => {
+                          onValueChange(role);
                           setOpen(false);
                         }}
                       >
