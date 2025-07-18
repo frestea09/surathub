@@ -37,6 +37,7 @@ export function RoleCombobox({
 }: RoleComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
+  // Flatten the roles into a single array for searching and finding the label
   const allRolesFlat = React.useMemo(() => {
     let roleEntries = Object.entries(roles);
     if (filterExternal) {
@@ -52,11 +53,11 @@ export function RoleCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between font-normal"
         >
           <span className="truncate">
             {value
-              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase()) || value
+              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase()) || JABATAN_PLACEHOLDER
               : JABATAN_PLACEHOLDER}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -75,31 +76,26 @@ export function RoleCombobox({
               if (filteredGroupRoles.length === 0) return null;
 
               return (
-                <React.Fragment key={group}>
-                  {index > 0 && <CommandSeparator />}
-                  <CommandGroup heading={group}>
-                    {filteredGroupRoles.map((role) => (
-                      <CommandItem
-                        key={role}
-                        value={role}
-                        onSelect={(currentValue) => {
-                          onValueChange(role.toLowerCase() === value.toLowerCase() ? "" : role);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value.toLowerCase() === role.toLowerCase()
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {role}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </React.Fragment>
+                <CommandGroup key={group} heading={group}>
+                  {filteredGroupRoles.map((role) => (
+                    <CommandItem
+                      key={role}
+                      value={role}
+                      onSelect={(currentValue) => {
+                        onValueChange(currentValue === value ? "" : currentValue);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === role ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {role}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               );
             })}
           </CommandList>
