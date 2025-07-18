@@ -33,7 +33,7 @@ export default function EditUserPage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4 -mt-16">
+        <div className="flex flex-1 items-center justify-center p-4">
             <Card className="w-full max-w-md">
             <CardHeader>
                 <Skeleton className="h-8 w-48 mx-auto" />
@@ -69,7 +69,7 @@ export default function EditUserPage() {
 
   return (
     <AppLayout>
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4 -mt-16">
+      <div className="flex flex-1 items-center justify-center p-4">
         <UserForm user={user} />
       </div>
     </AppLayout>

@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/templates/AppLayout";
 export default function RegisterPage() {
   return (
     <AppLayout>
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4 -mt-16">
+      <div className="flex flex-1 items-center justify-center p-4">
         <UserForm />
       </div>
     </AppLayout>
