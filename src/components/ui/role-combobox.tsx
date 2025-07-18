@@ -83,7 +83,7 @@ export function RoleCombobox({
                         key={role}
                         value={role}
                         onSelect={(currentValue) => {
-                          onValueChange(currentValue === value ? "" : currentValue);
+                          onValueChange(role.toLowerCase() === value.toLowerCase() ? "" : role);
                           setOpen(false);
                         }}
                       >
