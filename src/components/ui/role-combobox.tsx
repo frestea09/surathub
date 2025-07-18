@@ -47,7 +47,7 @@ export function RoleCombobox({
 
   const currentRoleLabel = allRolesFlat.find(
     (role) => role.toLowerCase() === value.toLowerCase()
-  ) || JABATAN_PLACEHOLDER;
+  ) || value || JABATAN_PLACEHOLDER;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -80,9 +80,7 @@ export function RoleCombobox({
                         key={role}
                         value={role}
                         onSelect={(currentValue) => {
-                          // This is the corrected logic.
-                          // It directly sets the value to the selected role.
-                          onValueChange(role);
+                          onValueChange(currentValue === value ? "" : currentValue);
                           setOpen(false);
                         }}
                       >
