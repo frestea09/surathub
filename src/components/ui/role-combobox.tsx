@@ -80,7 +80,9 @@ export function RoleCombobox({
                         key={role}
                         value={role}
                         onSelect={(currentValue) => {
-                          onValueChange(currentValue.toLowerCase() === value.toLowerCase() ? "" : role);
+                          // This is the corrected logic.
+                          // It directly sets the value to the selected role.
+                          onValueChange(role);
                           setOpen(false);
                         }}
                       >
