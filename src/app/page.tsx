@@ -13,21 +13,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
 import { ROLES } from '@/lib/constants';
 import { Eye, EyeOff } from 'lucide-react';
+import { RoleCombobox } from '@/components/ui/role-combobox';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,11 +44,11 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nip || !password) {
+    if (!nip || !password || !role) {
         toast({
             variant: "destructive",
             title: "Login Gagal",
-            description: "NIP dan Password tidak boleh kosong."
+            description: "NIP, Password, dan Jabatan tidak boleh kosong."
         });
         return;
     }
@@ -131,21 +123,12 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
-              <Select required onValueChange={setRole} value={role}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Pilih jabatan Anda" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(ROLES).filter(([group]) => group !== "Pihak Eksternal").map(([group, groupRoles]) => (
-                    <SelectGroup key={group}>
-                      <SelectLabel>{group}</SelectLabel>
-                      {groupRoles.map((role) => (
-                        <SelectItem key={role} value={role}>{role}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
+               <RoleCombobox
+                  value={role}
+                  onValueChange={setRole}
+                  roles={ROLES}
+                  filterExternal={true}
+                />
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">

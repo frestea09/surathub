@@ -11,10 +11,11 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
 import { useUserStore, type User } from '@/store/userStore';
+import { RoleCombobox } from '@/components/ui/role-combobox';
 import {
   ROLES,
   STATUS_OPTIONS,
@@ -33,7 +34,6 @@ import {
   PASSWORD_PLACEHOLDER,
   PASSWORD_EDIT_PLACEHOLDER,
   CONFIRM_PASSWORD_PLACEHOLDER,
-  JABATAN_PLACEHOLDER,
   STATUS_PLACEHOLDER,
   SAVE_USER_BUTTON_LABEL,
   UPDATE_USER_BUTTON_LABEL,
@@ -163,21 +163,15 @@ export function UserForm({ user }: UserFormProps) {
               </FormItem>
             )} />
             <FormField control={form.control} name="jabatan" render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>{JABATAN_ROLE_LABEL}</FormLabel>
-                 <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder={JABATAN_PLACEHOLDER} /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.entries(ROLES).map(([group, groupRoles]) => (
-                      <SelectGroup key={group}>
-                        <SelectLabel>{group}</SelectLabel>
-                        {groupRoles.map((role) => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                      </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <RoleCombobox
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    roles={ROLES}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )} />
