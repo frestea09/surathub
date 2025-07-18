@@ -17,9 +17,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
-import { ROLES } from '@/lib/constants';
 import { Eye, EyeOff } from 'lucide-react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RoleCombobox } from '@/components/ui/role-combobox';
 import { JABATAN_PLACEHOLDER } from '@/lib/constants';
 
 export default function LoginPage() {
@@ -124,25 +123,11 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Jabatan / Role</Label>
-               <Select onValueChange={setRole} value={role}>
-                <SelectTrigger>
-                  <SelectValue placeholder={JABATAN_PLACEHOLDER} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(ROLES)
-                    .filter(([group]) => group !== "Pihak Eksternal")
-                    .map(([group, groupRoles]) => (
-                      <SelectGroup key={group}>
-                        <SelectLabel>{group}</SelectLabel>
-                        {groupRoles.map((roleItem) => (
-                          <SelectItem key={roleItem} value={roleItem}>
-                            {roleItem}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                </SelectContent>
-              </Select>
+              <RoleCombobox
+                value={role}
+                onValueChange={setRole}
+                placeholder={JABATAN_PLACEHOLDER}
+              />
             </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">
