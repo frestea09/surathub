@@ -13,7 +13,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -37,14 +36,18 @@ export function RoleCombobox({
 }: RoleComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
-  // Flatten the roles into a single array for searching and finding the label
-  const allRolesFlat = React.useMemo(() => {
+  // Flatten the roles into a structure that the combobox can use easily.
+  const roleGroups = React.useMemo(() => {
     let roleEntries = Object.entries(roles);
     if (filterExternal) {
       roleEntries = roleEntries.filter(([group]) => group !== "Pihak Eksternal");
     }
-    return roleEntries.flatMap(([, roleList]) => roleList);
+    return roleEntries;
   }, [roles, filterExternal]);
+
+  const allRolesFlat = React.useMemo(() => {
+    return roleGroups.flatMap(([, groupRoles]) => groupRoles);
+  }, [roleGroups]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -57,7 +60,7 @@ export function RoleCombobox({
         >
           <span className="truncate">
             {value
-              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase()) || JABATAN_PLACEHOLDER
+              ? allRolesFlat.find((role) => role.toLowerCase() === value.toLowerCase())
               : JABATAN_PLACEHOLDER}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -68,36 +71,30 @@ export function RoleCombobox({
           <CommandInput placeholder="Cari jabatan..." />
           <CommandList>
             <CommandEmpty>Jabatan tidak ditemukan.</CommandEmpty>
-            {Object.entries(roles).map(([group, groupRoles], index) => {
-              if (filterExternal && group === "Pihak Eksternal") {
-                return null;
-              }
-              const filteredGroupRoles = groupRoles.filter(role => allRolesFlat.includes(role));
-              if (filteredGroupRoles.length === 0) return null;
-
-              return (
-                <CommandGroup key={group} heading={group}>
-                  {filteredGroupRoles.map((role) => (
-                    <CommandItem
-                      key={role}
-                      value={role}
-                      onSelect={(currentValue) => {
-                        onValueChange(currentValue === value ? "" : currentValue);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === role ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {role}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              );
-            })}
+            {roleGroups.map(([group, groupRoles]) => (
+              <CommandGroup key={group} heading={group}>
+                {groupRoles.map((role) => (
+                  <CommandItem
+                    key={role}
+                    value={role}
+                    onSelect={(currentValue) => {
+                      // This logic is now correct. It sets the value if it's different,
+                      // or clears it if the same item is selected again.
+                      onValueChange(currentValue.toLowerCase() === value.toLowerCase() ? "" : currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value.toLowerCase() === role.toLowerCase() ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {role}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>
