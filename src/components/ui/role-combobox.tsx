@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { JABATAN_PLACEHOLDER, ROLES } from "@/lib/constants";
+import { JABATAN_PLACEHOLDER } from "@/lib/constants";
 
 interface RoleComboboxProps {
   value: string;
@@ -36,17 +36,13 @@ export function RoleCombobox({
 }: RoleComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
-  const roleGroups = React.useMemo(() => {
+  const allRolesFlat = React.useMemo(() => {
     let roleEntries = Object.entries(roles);
     if (filterExternal) {
       roleEntries = roleEntries.filter(([group]) => group !== "Pihak Eksternal");
     }
-    return roleEntries;
+    return roleEntries.flatMap(([, groupRoles]) => groupRoles);
   }, [roles, filterExternal]);
-
-  const allRolesFlat = React.useMemo(() => {
-    return roleGroups.flatMap(([, groupRoles]) => groupRoles);
-  }, [roleGroups]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,28 +66,29 @@ export function RoleCombobox({
           <CommandInput placeholder="Cari jabatan..." />
           <CommandList>
             <CommandEmpty>Jabatan tidak ditemukan.</CommandEmpty>
-            {roleGroups.map(([group, groupRoles]) => (
-              <CommandGroup key={group} heading={group}>
-                {groupRoles.map((role) => (
-                  <CommandItem
-                    key={role}
-                    value={role}
-                    onSelect={(currentValue) => {
-                      onValueChange(currentValue.toLowerCase() === value.toLowerCase() ? "" : currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value.toLowerCase() === role.toLowerCase() ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {role}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            ))}
+            {Object.entries(roles)
+              .filter(([group]) => !filterExternal || group !== "Pihak Eksternal")
+              .map(([group, groupRoles]) => (
+                <CommandGroup key={group} heading={group}>
+                  {groupRoles.map((role) => (
+                    <CommandItem
+                      key={role}
+                      onSelect={() => {
+                        onValueChange(role);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value.toLowerCase() === role.toLowerCase() ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {role}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ))}
           </CommandList>
         </Command>
       </PopoverContent>
