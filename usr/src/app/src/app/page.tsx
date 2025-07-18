@@ -17,10 +17,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
-import { ROLES } from '@/lib/constants';
+import { ROLES, JABATAN_PLACEHOLDER } from '@/lib/constants';
 import { Eye, EyeOff } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { JABATAN_PLACEHOLDER } from '@/lib/constants';
+
 
 export default function LoginPage() {
   const router = useRouter();
