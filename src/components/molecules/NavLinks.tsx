@@ -14,6 +14,10 @@ import {
   History,
   HelpCircle,
   PackageSearch,
+  Mailbox,
+  Send,
+  BarChart2,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
@@ -30,17 +34,17 @@ const navGroups = [
     title: "Manajemen Surat",
     icon: FileText,
     subItems: [
-      { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK },
-      { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR },
-      { href: "/arsip-bundle", label: NAV_LINKS.ARSIP_BUNDLE },
+      { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK, icon: Mailbox },
+      { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR, icon: Send },
+      { href: "/arsip-bundle", label: NAV_LINKS.ARSIP_BUNDLE, icon: PackageSearch },
     ],
   },
   {
     title: "Laporan & Analitik",
     icon: LineChart,
     subItems: [
-      { href: "/laporan", label: NAV_LINKS.LAPORAN },
-      { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS },
+      { href: "/laporan", label: NAV_LINKS.LAPORAN, icon: BarChart2 },
+      { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
     ],
   },
   {
@@ -52,8 +56,8 @@ const navGroups = [
     title: "Administrasi",
     icon: UserCog,
     subItems: [
-      { href: "/admin", label: NAV_LINKS.ADMIN },
-      { href: "/pengaturan", label: NAV_LINKS.PENGATURAN },
+      { href: "/admin", label: NAV_LINKS.ADMIN, icon: Users },
+      { href: "/pengaturan", label: NAV_LINKS.PENGATURAN, icon: Settings },
     ],
   },
   {
@@ -96,7 +100,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
   if (isMobile) {
     const allItems = visibleNavGroups.flatMap(group => 
       group.href ? [{ href: group.href, label: group.title, icon: group.icon }] : 
-      (group.subItems ? group.subItems.map(item => ({...item, icon: group.icon})) : [])
+      (group.subItems ? group.subItems.map(item => ({...item, icon: item.icon})) : [])
     );
     return (
       <nav className="grid gap-2 text-lg font-medium">
@@ -152,7 +156,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
                      <group.icon className="h-5 w-5" />
                      {group.title}
                   </AccordionTrigger>
-                  <AccordionContent className="pl-9 pt-1 pb-1">
+                  <AccordionContent className="pl-6 pt-1 pb-1">
                     <nav className="grid items-start gap-1">
                       {group.subItems.map(item => (
                          <Link
@@ -163,6 +167,7 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
                             isActive(item.href) && "bg-muted text-primary font-semibold"
                           )}
                         >
+                          <item.icon className="h-4 w-4" />
                           {item.label}
                         </Link>
                       ))}
