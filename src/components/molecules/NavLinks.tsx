@@ -146,13 +146,13 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
               group.subItems ? (
                 <AccordionItem key={group.title} value={group.title} className="border-b-0">
                   <AccordionTrigger className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:no-underline",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground transition-all hover:text-primary hover:no-underline",
                     group.subItems.some(item => isActive(item.href)) && "text-primary"
                   )}>
-                     <group.icon className="h-4 w-4" />
+                     <group.icon className="h-5 w-5" />
                      {group.title}
                   </AccordionTrigger>
-                  <AccordionContent className="pl-8 pt-1 pb-1">
+                  <AccordionContent className="pl-9 pt-1 pb-1">
                     <nav className="grid items-start gap-1">
                       {group.subItems.map(item => (
                          <Link
@@ -174,11 +174,11 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
                   key={group.href}
                   href={group.href || "/"}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground transition-all hover:text-primary",
                     isActive(group.href || "/") && "bg-muted text-primary"
                   )}
                 >
-                  <group.icon className="h-4 w-4" />
+                  <group.icon className="h-5 w-5" />
                   {group.title}
                 </Link>
               )
