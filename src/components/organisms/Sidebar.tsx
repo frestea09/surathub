@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -30,7 +31,11 @@ export function Sidebar() {
             <span className="">SuratHub</span>
           </Link>
         </div>
-        <NavLinks />
+        <div className="flex-1 py-2">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                 <NavLinks />
+            </nav>
+        </div>
       </div>
     </aside>
   );

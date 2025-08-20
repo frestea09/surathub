@@ -18,20 +18,50 @@ import {
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
 import { useUserStore } from "@/store/userStore";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const mainNavItems = [
-  { href: "/dashboard", label: NAV_LINKS.DASHBOARD, icon: Home },
-  { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK, icon: FileText },
-  { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR, icon: Package },
-  { href: "/laporan", label: NAV_LINKS.LAPORAN, icon: LineChart },
-  { href: "/arsip-bundle", label: NAV_LINKS.ARSIP_BUNDLE, icon: PackageSearch },
-  { href: "/notifikasi", label: NAV_LINKS.NOTIFIKASI, icon: Bell },
-  { href: "/admin", label: NAV_LINKS.ADMIN, icon: UserCog },
-  { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
-  { href: "/bantuan", label: NAV_LINKS.BANTUAN, icon: HelpCircle },
+const navGroups = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: Home,
+  },
+  {
+    title: "Manajemen Surat",
+    icon: FileText,
+    subItems: [
+      { href: "/surat-masuk", label: NAV_LINKS.SURAT_MASUK },
+      { href: "/surat-keluar", label: NAV_LINKS.SURAT_KELUAR },
+      { href: "/arsip-bundle", label: NAV_LINKS.ARSIP_BUNDLE },
+    ],
+  },
+  {
+    title: "Laporan & Analitik",
+    icon: LineChart,
+    subItems: [
+      { href: "/laporan", label: NAV_LINKS.LAPORAN },
+      { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS },
+    ],
+  },
+  {
+    title: "Notifikasi",
+    href: "/notifikasi",
+    icon: Bell,
+  },
+  {
+    title: "Administrasi",
+    icon: UserCog,
+    subItems: [
+      { href: "/admin", label: NAV_LINKS.ADMIN },
+      { href: "/pengaturan", label: NAV_LINKS.PENGATURAN },
+    ],
+  },
+  {
+    title: "Bantuan",
+    href: "/bantuan",
+    icon: HelpCircle,
+  },
 ];
-
-const secondaryNavItem = { href: "/pengaturan", label: NAV_LINKS.PENGATURAN, icon: Settings };
 
 type NavLinksProps = {
   isMobile?: boolean;
@@ -41,12 +71,12 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
   const pathname = usePathname();
   const { activeUser } = useUserStore();
 
-  const vendorHiddenRoutes = ["/dashboard", "/admin", "/log-aktivitas", "/laporan"];
+  const vendorHiddenRoutes = ["/dashboard", "/admin", "/log-aktivitas", "/laporan", "/pengaturan"];
 
-  const visibleMainNavItems =
+  const visibleNavGroups =
     activeUser?.jabatan === "Vendor"
-      ? mainNavItems.filter((item) => !vendorHiddenRoutes.includes(item.href))
-      : mainNavItems;
+      ? navGroups.filter((group) => !group.href || !vendorHiddenRoutes.includes(group.href))
+      : navGroups;
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -54,9 +84,20 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
     }
     return pathname.startsWith(href);
   };
+  
+  const getAccordionValue = () => {
+    const activeGroup = visibleNavGroups.find(group => 
+      group.subItems?.some(item => isActive(item.href))
+    );
+    return activeGroup ? [activeGroup.title] : [];
+  }
 
+  // Mobile view remains a flat list for simplicity
   if (isMobile) {
-    const allItems = [...visibleMainNavItems, secondaryNavItem];
+    const allItems = visibleNavGroups.flatMap(group => 
+      group.href ? [{ href: group.href, label: group.title, icon: group.icon }] : 
+      (group.subItems ? group.subItems.map(item => ({...item, icon: group.icon})) : [])
+    );
     return (
       <nav className="grid gap-2 text-lg font-medium">
         <Link
@@ -97,40 +138,52 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
     );
   }
 
-  // Desktop
+  // Desktop view with Accordion for sub-menus
   return (
-    <>
-      <div className="flex-1">
-        <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-          {visibleMainNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                isActive(item.href) && "bg-muted text-primary"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <div className="mt-auto p-4">
-        <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-          <Link
-            href={secondaryNavItem.href}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-              isActive(secondaryNavItem.href) && "bg-muted text-primary"
-            )}
-          >
-            <secondaryNavItem.icon className="h-4 w-4" />
-            {secondaryNavItem.label}
-          </Link>
-        </nav>
-      </div>
-    </>
+    <div className="flex-1">
+        <Accordion type="multiple" defaultValue={getAccordionValue()} className="w-full">
+            {visibleNavGroups.map((group) => (
+              group.subItems ? (
+                <AccordionItem key={group.title} value={group.title} className="border-b-0">
+                  <AccordionTrigger className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:no-underline",
+                    group.subItems.some(item => isActive(item.href)) && "text-primary"
+                  )}>
+                     <group.icon className="h-4 w-4" />
+                     {group.title}
+                  </AccordionTrigger>
+                  <AccordionContent className="pl-8 pt-1 pb-1">
+                    <nav className="grid items-start gap-1">
+                      {group.subItems.map(item => (
+                         <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary text-sm",
+                            isActive(item.href) && "bg-muted text-primary font-semibold"
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </nav>
+                  </AccordionContent>
+                </AccordionItem>
+              ) : (
+                 <Link
+                  key={group.href}
+                  href={group.href || "/"}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    isActive(group.href || "/") && "bg-muted text-primary"
+                  )}
+                >
+                  <group.icon className="h-4 w-4" />
+                  {group.title}
+                </Link>
+              )
+            ))}
+        </Accordion>
+    </div>
   );
 }
