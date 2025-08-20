@@ -30,34 +30,27 @@ export default function VendorLayout({
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    // This effect ensures that the user is authenticated.
-    // It will redirect to the login page if no active user is found after a brief delay.
     const checkAuth = () => {
-      if (!useUserStore.getState().activeUser) {
-        if (pathname !== '/vendor/login') {
-          router.replace('/vendor/login');
-        } else {
-          setIsAuthCheckComplete(true);
-        }
-      } else {
+      const user = useUserStore.getState().activeUser;
+      if (!user) {
+        router.replace('/');
+      } else if (user.jabatan !== 'Vendor') {
+         router.replace('/dashboard');
+      }
+      else {
         setIsAuthCheckComplete(true);
       }
     };
-
-    // A small delay helps ensure the state is hydrated from storage before checking.
     const timer = setTimeout(checkAuth, 50);
     return () => clearTimeout(timer);
   }, [pathname, router]);
 
   const handleLogout = () => {
     logout();
-    router.push('/vendor/login');
+    router.push('/');
   };
 
   if (!isAuthCheckComplete) {
-    // Show a skeleton loader while auth check is in progress, but only if not on the login page itself
-    if (pathname === '/vendor/login') return <>{children}</>;
-    
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -72,16 +65,6 @@ export default function VendorLayout({
         </div>
     );
   }
-  
-  if (!activeUser && pathname !== '/vendor/login') {
-    return null; // Render nothing while redirecting
-  }
-  
-  // If on login page, just render children without the layout
-  if (pathname === '/vendor/login') {
-      return <>{children}</>;
-  }
-
 
   return (
     <div className="flex min-h-screen w-full flex-col">

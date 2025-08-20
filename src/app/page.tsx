@@ -14,12 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { JABATAN_PLACEHOLDER, ROLES } from '@/lib/constants';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,7 +24,6 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [nip, setNip] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [role, setRole] = React.useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -44,19 +40,17 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nip || !password || !role) {
+    if (!nip || !password) {
         toast({
             variant: "destructive",
             title: "Login Gagal",
-            description: "NIP, Password, dan Jabatan tidak boleh kosong."
+            description: "NIP/Username dan Password tidak boleh kosong."
         });
         return;
     }
 
     try {
         const user = await login(nip, password);
-        // We will not validate role for this prototype to allow easy login
-        // But in a real app, you would check if user.jabatan === role
         toast({
             title: "Login Berhasil",
             description: `Selamat datang, ${user.nama}!`
@@ -72,7 +66,7 @@ export default function LoginPage() {
         toast({
             variant: "destructive",
             title: "Login Gagal",
-            description: error.message || "NIP atau password salah."
+            description: error.message || "NIP/Username atau password salah."
         });
     }
   };
@@ -91,7 +85,7 @@ export default function LoginPage() {
             </div>
           <CardTitle className="text-2xl">Login SuratHub</CardTitle>
           <CardDescription>
-            Masuk untuk mengakses sistem manajemen surat RSUD Oto Iskandar Di Nata
+            Sistem Manajemen Surat RSUD Oto Iskandar Di Nata
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
@@ -121,39 +115,11 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Jabatan / Role</Label>
-              <Select onValueChange={setRole} value={role}>
-                <SelectTrigger>
-                  <SelectValue placeholder={JABATAN_PLACEHOLDER} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(ROLES)
-                    .filter(([group]) => group !== "Pihak Eksternal")
-                    .map(([group, groupRoles]) => (
-                      <SelectGroup key={group}>
-                        <SelectLabel>{group}</SelectLabel>
-                        {groupRoles.map((roleItem) => (
-                          <SelectItem key={roleItem} value={roleItem}>
-                            {roleItem}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
           </CardContent>
           <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full">
               Login
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Login sebagai vendor?{' '}
-              <Link href="/vendor/login" className="underline underline-offset-4 hover:text-primary">
-                Klik di sini
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>
