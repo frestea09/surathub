@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-wrap items-center gap-2 py-4">
         {filterableColumns.nomor && (
             <Input
-            placeholder="Cari No. Surat..."
+            placeholder="Ketik No. Surat..."
             value={(filterableColumns.nomor.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.nomor?.setFilterValue(event.target.value)
@@ -101,7 +101,7 @@ export function DataTable<TData, TValue>({
         )}
          {filterableColumns.perihal && (
             <Input
-            placeholder="Cari Perihal/Judul..."
+            placeholder="Ketik Perihal/Judul..."
             value={(filterableColumns.perihal.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.perihal?.setFilterValue(event.target.value)
@@ -111,7 +111,7 @@ export function DataTable<TData, TValue>({
         )}
          {filterableColumns.nama && (
             <Input
-            placeholder="Cari Nama..."
+            placeholder="Ketik Nama..."
             value={(filterableColumns.nama.getFilterValue() as string) ?? ""}
             onChange={(event) =>
                 filterableColumns.nama?.setFilterValue(event.target.value)
@@ -121,7 +121,7 @@ export function DataTable<TData, TValue>({
         )}
         {filterableColumns.pengguna && (
           <Input
-            placeholder="Cari Pengguna..."
+            placeholder="Ketik Pengguna..."
             value={
               (filterableColumns.pengguna.getFilterValue() as string) ?? ""
             }
@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
         )}
         {filterableColumns.aksi && (
           <Input
-            placeholder="Cari Aksi..."
+            placeholder="Ketik Aksi..."
             value={(filterableColumns.aksi.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               filterableColumns.aksi?.setFilterValue(event.target.value)
@@ -147,7 +147,7 @@ export function DataTable<TData, TValue>({
             onValueChange={(value) => filterableColumns.status?.setFilterValue(value === "all" ? "" : value)}
           >
             <SelectTrigger className="w-full max-w-xs">
-              <SelectValue placeholder="Filter by Status" />
+              <SelectValue placeholder="Saring berdasarkan status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Status</SelectItem>
@@ -195,7 +195,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Tidak ada hasil.
+                  Tidak ada data yang ditemukan.
                 </TableCell>
               </TableRow>
             )}
@@ -204,7 +204,7 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} dari {table.getCoreRowModel().rows.length} baris ditampilkan.
+          {table.getFilteredRowModel().rows.length} dari {table.getCoreRowModel().rows.length} baris data.
         </div>
         <Button
           variant="outline"

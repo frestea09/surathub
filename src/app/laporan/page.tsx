@@ -157,10 +157,10 @@ export default function LaporanPage() {
       : dataByUnit;
 
     const cards = [
-      { title: "Total Surat Keluar", value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(), description: "Surat yang dibuat internal", icon: Send },
-      { title: "Total Surat Masuk", value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(), description: "Surat yang diterima dari eksternal", icon: Mailbox },
-      { title: "Surat Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(), description: "Surat yang prosesnya telah rampung", icon: CheckCircle },
-      { title: "Total Surat Ditolak", value: dataByDate.filter(s => s.status === 'Ditolak' || s.status === 'Revisi Diminta').length.toString(), description: "Surat yang ditolak atau direvisi", icon: XCircle },
+      { title: "Total Surat Keluar", value: dataByDate.filter(s => s.jenis === 'Surat Keluar').length.toString(), description: "Total surat yang dibuat secara internal.", icon: Send },
+      { title: "Total Surat Masuk", value: dataByDate.filter(s => s.jenis === 'Surat Masuk').length.toString(), description: "Total surat yang diterima dari luar.", icon: Mailbox },
+      { title: "Surat Selesai", value: dataByDate.filter(s => ['Selesai', 'Diarsipkan', 'Disetujui'].includes(s.status)).length.toString(), description: "Total surat yang prosesnya sudah rampung.", icon: CheckCircle },
+      { title: "Surat Ditolak / Revisi", value: dataByDate.filter(s => s.status === 'Ditolak' || s.status === 'Revisi Diminta').length.toString(), description: "Total surat yang ditolak atau butuh revisi.", icon: XCircle },
     ];
     
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -236,7 +236,7 @@ export default function LaporanPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold md:text-2xl">Laporan {viewAsUser ? `(${viewAsUser.jabatan})` : ''}</h1>
           <div className="w-64">
-            <Label htmlFor="role-switcher-laporan">Tampilan Sebagai:</Label>
+            <Label htmlFor="role-switcher-laporan">Lihat Laporan Sebagai:</Label>
             <Select value={viewAsUser?.id} onValueChange={handleViewAsChange} disabled={visibleUsers.length <= 1}>
                 <SelectTrigger id="role-switcher-laporan"><SelectValue placeholder="Pilih Peran" /></SelectTrigger>
                 <SelectContent>
@@ -260,7 +260,7 @@ export default function LaporanPage() {
         {isLoading ? <><ChartSkeleton /><ChartSkeleton /></> : (
             <>
             <Card>
-              <CardHeader><CardTitle>Volume Surat per Bulan</CardTitle><CardDescription>Jumlah total surat masuk dan keluar yang tercatat setiap bulan.</CardDescription></CardHeader>
+              <CardHeader><CardTitle>Volume Surat per Bulan</CardTitle><CardDescription>Jumlah total surat yang tercatat setiap bulan dalam rentang waktu yang dipilih.</CardDescription></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={suratVolumeData}>
@@ -287,8 +287,8 @@ export default function LaporanPage() {
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div><CardTitle>Laporan Rinci Semua Surat</CardTitle><CardDescription>Lacak alur dan status semua surat dalam sistem {viewAsUser ? `untuk ${viewAsUser.jabatan}`: ''}.</CardDescription></div>
-          <div className="flex items-center gap-2"><DateRangePicker date={date} setDate={setDate} /><Button onClick={handleExport} disabled={isLoading}><Download className="mr-2 h-4 w-4" />Ekspor</Button></div>
+          <div><CardTitle>Data Rinci Surat</CardTitle><CardDescription>Tabel data semua surat berdasarkan filter di atas. Gunakan tombol di pojok untuk mengunduh data.</CardDescription></div>
+          <div className="flex items-center gap-2"><DateRangePicker date={date} setDate={setDate} /><Button onClick={handleExport} disabled={isLoading}><Download className="mr-2 h-4 w-4" />Unduh Data (CSV)</Button></div>
         </CardHeader>
         <CardContent>
             {isLoading ? <div className="space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-48 w-full" /><Skeleton className="h-8 w-1/3 ml-auto" /></div> : <DataTable columns={columns} data={filteredData} />}

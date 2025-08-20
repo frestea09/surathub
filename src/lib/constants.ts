@@ -56,34 +56,34 @@ export const ROLES = {
 export const USERS_STORAGE_KEY = 'surathub_users';
 
 // Admin Page Constants
-export const USER_PAGE_HEADING = "Manajemen Pengguna";
-export const USER_PAGE_DESCRIPTION = "Kelola pengguna yang terdaftar di sistem. Tambah, ubah, atau hapus akun pengguna.";
-export const ADD_USER_BUTTON_LABEL = "Tambah Pengguna";
+export const USER_PAGE_HEADING = "Daftar Pengguna";
+export const USER_PAGE_DESCRIPTION = "Lihat, tambah, atau ubah data pengguna yang terdaftar di sistem.";
+export const ADD_USER_BUTTON_LABEL = "Tambah Pengguna Baru";
 
 // User Form Constants
 export const ADD_USER_TITLE = "Tambah Pengguna Baru";
-export const ADD_USER_DESCRIPTION = "Isi formulir untuk menambahkan pengguna baru ke sistem.";
+export const ADD_USER_DESCRIPTION = "Isi data di bawah untuk mendaftarkan pengguna baru.";
 export const EDIT_USER_TITLE = "Ubah Data Pengguna";
-export const EDIT_USER_DESCRIPTION_PREFIX = "Perbarui informasi untuk pengguna:";
-export const NAMA_LENGKAP_LABEL = "Nama Lengkap / Nama Perusahaan";
-export const NIP_USERNAME_LABEL = "NIP / Username";
+export const EDIT_USER_DESCRIPTION_PREFIX = "Perbarui informasi untuk";
+export const NAMA_LENGKAP_LABEL = "Nama Lengkap";
+export const NIP_USERNAME_LABEL = "NIP atau Username";
 export const PASSWORD_LABEL = "Password";
-export const CONFIRM_PASSWORD_LABEL = "Konfirmasi Password";
-export const JABATAN_ROLE_LABEL = "Jabatan / Role";
-export const STATUS_LABEL = "Status";
-export const SAVE_USER_BUTTON_LABEL = "Simpan Pengguna";
+export const CONFIRM_PASSWORD_LABEL = "Ulangi Password";
+export const JABATAN_ROLE_LABEL = "Jabatan atau Posisi";
+export const STATUS_LABEL = "Status Akun";
+export const SAVE_USER_BUTTON_LABEL = "Simpan Data Pengguna";
 export const UPDATE_USER_BUTTON_LABEL = "Simpan Perubahan";
-export const BACK_TO_ADMIN_LINK_TEXT = "Kembali ke Manajemen Pengguna";
+export const BACK_TO_ADMIN_LINK_TEXT = "Batal dan kembali ke Daftar Pengguna";
 export const CANCEL_AND_BACK_LINK_TEXT = "Batal dan Kembali";
 
 // Placeholders
-export const NAMA_LENGKAP_PLACEHOLDER = "Masukkan nama lengkap atau nama perusahaan";
-export const NIP_USERNAME_PLACEHOLDER = "Masukkan NIP atau username";
-export const PASSWORD_PLACEHOLDER = "Masukkan password";
-export const CONFIRM_PASSWORD_PLACEHOLDER = "Konfirmasi password Anda";
-export const JABATAN_PLACEHOLDER = "Pilih jabatan pengguna";
-export const STATUS_PLACEHOLDER = "Pilih status pengguna";
-export const PASSWORD_EDIT_PLACEHOLDER = "Kosongkan jika tidak ingin mengubah";
+export const NAMA_LENGKAP_PLACEHOLDER = "Ketik nama lengkap...";
+export const NIP_USERNAME_PLACEHOLDER = "Ketik NIP atau username...";
+export const PASSWORD_PLACEHOLDER = "Ketik password...";
+export const CONFIRM_PASSWORD_PLACEHOLDER = "Ketik ulang password...";
+export const JABATAN_PLACEHOLDER = "Pilih Jabatan";
+export const STATUS_PLACEHOLDER = "Pilih status";
+export const PASSWORD_EDIT_PLACEHOLDER = "Biarkan kosong jika tidak ingin mengubah";
 
 // Status Options
 export const STATUS_OPTIONS = ["Aktif", "Non-Aktif"];
@@ -94,12 +94,12 @@ export const COLUMN_NAMA = "Nama";
 export const COLUMN_JABATAN = "Jabatan";
 export const COLUMN_PASSWORD = "Password";
 export const COLUMN_STATUS = "Status";
-export const COLUMN_ACTIONS_LABEL = "Aksi";
+export const COLUMN_ACTIONS_LABEL = "Tindakan";
 export const ACTION_EDIT_LABEL = "Ubah";
 export const ACTION_DELETE_LABEL = "Hapus";
 
 // Dialogs
-export const DELETE_CONFIRM_TITLE = "Konfirmasi Hapus Pengguna";
+export const DELETE_CONFIRM_TITLE = "Anda Yakin?";
 export const DELETE_CONFIRM_DESCRIPTION_PREFIX = "Apakah Anda yakin ingin menghapus pengguna";
 export const DELETE_CONFIRM_DESCRIPTION_SUFFIX = "? Tindakan ini tidak dapat dibatalkan.";
 export const CANCEL_BUTTON_LABEL = "Batal";
@@ -111,9 +111,9 @@ export const NAV_LINKS = {
   SURAT_MASUK: "Surat Masuk",
   SURAT_KELUAR: "Surat Keluar",
   LAPORAN: "Laporan",
-  ARSIP_BUNDLE: "Arsip Bundle",
+  ARSIP_BUNDLE: "Arsip",
   NOTIFIKASI: "Notifikasi",
-  ADMIN: "Admin",
+  ADMIN: "Pengguna",
   LOG_AKTIVITAS: "Log Aktivitas",
   BANTUAN: "Bantuan",
   PENGATURAN: "Pengaturan",
@@ -121,27 +121,27 @@ export const NAV_LINKS = {
 
 // Header & User Menu
 export const HEADER_SR = {
-  TOGGLE_NAV: "Toggle navigation menu",
-  TOGGLE_NOTIF: "Toggle notifications",
-  TOGGLE_USER_MENU: "Toggle user menu",
-  SEARCH_PLACEHOLDER: "Cari surat...",
+  TOGGLE_NAV: "Buka/tutup menu navigasi",
+  TOGGLE_NOTIF: "Buka notifikasi",
+  TOGGLE_USER_MENU: "Buka menu pengguna",
+  SEARCH_PLACEHOLDER: "Ketik nomor atau judul surat...",
 };
 
 export const USER_MENU = {
-  PROFIL: "Profil",
-  PENGATURAN: "Pengaturan",
+  PROFIL: "Profil Saya",
+  PENGATURAN: "Pengaturan Akun",
   KELUAR: "Keluar",
 };
 
 export const NOTIFICATION_MENU = {
-  LABEL: "Notifikasi",
-  VIEW_ALL: "Lihat semua notifikasi",
+  LABEL: "Notifikasi Terbaru",
+  VIEW_ALL: "Lihat Semua Notifikasi",
 };
 
 // Buat Surat Button & Popover
 export const BUAT_SURAT_POPOVER = {
-  BUTTON_LABEL: "Buat Surat",
-  SEARCH_PLACEHOLDER: "Cari jenis surat...",
+  BUTTON_LABEL: "Buat Surat Baru",
+  SEARCH_PLACEHOLDER: "Ketik jenis surat...",
   NOT_FOUND: "Jenis surat tidak ditemukan.",
   SURAT_PERINTAH: "1. Surat Perintah",
   SURAT_PESANAN_INTERNAL: "2. Surat Pesanan (Internal)",
