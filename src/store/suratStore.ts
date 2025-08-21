@@ -1,9 +1,10 @@
 
 import { create } from 'zustand';
-import type { User, Surat } from '@/types';
+import type { User, Surat, Workflow } from '@/types';
 
 type SuratState = {
     surat: Surat[];
+    workflows: Workflow[];
     isLoading: boolean;
     error: string | null;
     fetchAllSurat: (activeUser?: User | null) => void;
@@ -11,9 +12,13 @@ type SuratState = {
     updateSurat: (nomor: string, updatedData: Partial<Omit<Surat, 'nomor'>>) => void;
     deleteSurat: (nomor: string) => void;
     addRevisionNote: (nomor: string, note: { by: string; date: string; message: string }) => void;
+    fetchWorkflows: () => void;
+    updateWorkflows: (workflows: Workflow[]) => void;
 }
 
 const SURAT_STORAGE_KEY = 'surathub_surat_v3';
+const WORKFLOW_STORAGE_KEY = 'surathub_workflows_v1';
+
 
 const getUnitForSurat = (suratData: any): string => {
     const perihal = suratData.judul?.toLowerCase() || suratData.perihal?.toLowerCase() || suratData.hal?.toLowerCase() || suratData.namaPaket?.toLowerCase() || '';
@@ -86,6 +91,35 @@ const getInitialSuratData = (): Surat[] => {
     ];
 };
 
+const getInitialWorkflowData = (): Workflow[] => {
+    return [
+        {
+            id: 'wf-obat',
+            title: "Pengadaan Obat & Alkes",
+            description: "Alur standar untuk Farmasi & Alat Kesehatan (5 langkah).",
+            steps: [
+                { id: "s1", label: "Surat Perintah", href: "/buat-surat" },
+                { id: "s2", label: "Surat Pesanan (Internal)", href: "/buat-surat-pesanan" },
+                { id: "s3", label: "Surat Pesanan (Vendor)", href: "/buat-surat-pesanan-final" },
+                { id: "s4", label: "Berita Acara Pemeriksaan", href: "/buat-berita-acara" },
+                { id: "s5", label: "Berita Acara Serah Terima", href: "/buat-bastb" },
+            ]
+        },
+        {
+            id: 'wf-umum',
+            title: "Pengadaan Barang Jasa Umum",
+            description: "Alur standar untuk pengadaan non-farmasi (4 langkah).",
+            steps: [
+                { id: "s6", label: "Surat Perintah Pengadaan", href: "/buat-surat-perintah-umum" },
+                { id: "s7", label: "Berita Acara Hasil Pengadaan", href: "/buat-berita-acara-hasil" },
+                { id: "s8", label: "Surat Pesanan", href: "/buat-surat-pesanan-umum" },
+                { id: "s9", label: "Berita Acara Pemeriksaan", href: "/buat-berita-acara-umum" },
+            ]
+        }
+    ];
+};
+
+
 const fetchSuratFromStorage = (activeUser?: User | null): Surat[] => {
     try {
         if (typeof window === 'undefined') return [];
@@ -119,8 +153,34 @@ const saveSuratToStorage = (suratList: Surat[]) => {
     }
 }
 
+const fetchWorkflowsFromStorage = (): Workflow[] => {
+    try {
+        if (typeof window === 'undefined') return [];
+
+        const storedWorkflows = localStorage.getItem(WORKFLOW_STORAGE_KEY);
+        if (storedWorkflows) {
+            return JSON.parse(storedWorkflows);
+        } else {
+            const initialData = getInitialWorkflowData();
+            localStorage.setItem(WORKFLOW_STORAGE_KEY, JSON.stringify(initialData));
+            return initialData;
+        }
+    } catch (e) {
+        console.error("Failed to load workflows from localStorage", e);
+        return [];
+    }
+};
+
+const saveWorkflowsToStorage = (workflows: Workflow[]) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(WORKFLOW_STORAGE_KEY, JSON.stringify(workflows));
+    }
+}
+
+
 export const useSuratStore = create<SuratState>((set, get) => ({
     surat: [],
+    workflows: [],
     isLoading: true,
     error: null,
     
@@ -190,5 +250,20 @@ export const useSuratStore = create<SuratState>((set, get) => ({
         const updatedList = surat.filter(s => s.nomor !== nomor);
         saveSuratToStorage(updatedList);
         set({ surat: updatedList });
+    },
+
+    fetchWorkflows: () => {
+        set({ isLoading: true, error: null });
+        try {
+            const workflows = fetchWorkflowsFromStorage();
+            set({ workflows, isLoading: false });
+        } catch (e: any) {
+            set({ error: e.message, isLoading: false });
+        }
+    },
+
+    updateWorkflows: (workflows) => {
+        saveWorkflowsToStorage(workflows);
+        set({ workflows });
     }
 }));

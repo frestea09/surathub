@@ -17,6 +17,7 @@ import {
   Send,
   BarChart2,
   Users,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
@@ -53,6 +54,7 @@ const navGroups = [
     icon: UserCog,
     subItems: [
       { href: "/admin", label: NAV_LINKS.ADMIN, icon: Users },
+      { href: "/pengaturan/alur-kerja", label: NAV_LINKS.ALUR_KERJA, icon: Workflow },
       { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
       { href: "/pengaturan", label: NAV_LINKS.PENGATURAN, icon: Settings },
     ],
@@ -72,11 +74,18 @@ export function NavLinks({ isMobile = false }: NavLinksProps) {
   const pathname = usePathname();
   const { activeUser } = useUserStore();
 
-  const vendorHiddenRoutes = ["/dashboard", "/admin", "/log-aktivitas", "/laporan", "/pengaturan"];
+  const vendorHiddenRoutes = ["/dashboard", "/admin", "/log-aktivitas", "/laporan", "/pengaturan", "/pengaturan/alur-kerja"];
 
   const visibleNavGroups =
     activeUser?.jabatan === "Vendor"
-      ? navGroups.filter((group) => !group.href || !vendorHiddenRoutes.includes(group.href))
+      ? navGroups.filter((group) => {
+          if (group.href && vendorHiddenRoutes.includes(group.href)) return false;
+          if (group.subItems) {
+              group.subItems = group.subItems.filter(sub => !vendorHiddenRoutes.includes(sub.href));
+              return group.subItems.length > 0;
+          }
+          return true;
+        })
       : navGroups;
 
   const isActive = (href: string) => {

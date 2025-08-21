@@ -21,3 +21,16 @@ export type Surat = {
     data: any; // Original form data
     revisionHistory?: { by: string; date: string; message: string }[];
 };
+
+export type WorkflowStep = {
+    id: string;
+    label: string;
+    href: string;
+};
+
+export type Workflow = {
+    id: string;
+    title: string;
+    description: string;
+    steps: WorkflowStep[];
+};

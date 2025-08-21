@@ -117,6 +117,7 @@ export const NAV_LINKS = {
   LOG_AKTIVITAS: "Log Aktivitas",
   BANTUAN: "Bantuan",
   PENGATURAN: "Pengaturan",
+  ALUR_KERJA: "Pengelola Alur Kerja",
 };
 
 // Header & User Menu
