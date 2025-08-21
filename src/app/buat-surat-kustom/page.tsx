@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,7 +36,7 @@ type TableItem = {
 
 const defaultTableHeaders = ['Nama Item/Barang', 'Jumlah', 'Satuan', 'Keterangan'];
 
-export default function BuatSuratKustomPage() {
+function BuatSuratKustomPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -478,6 +478,14 @@ export default function BuatSuratKustomPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatSuratKustomPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatSuratKustomPageContent />
+    </Suspense>
   );
 }
 
