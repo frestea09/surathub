@@ -119,7 +119,7 @@ const getInitialWorkflowData = (): Workflow[] => {
         {
             id: 'wf-personalia',
             title: "Surat Personalia & SDM",
-            description: "Templat untuk surat terkait kepegawaian.",
+            description: "Template untuk surat terkait kepegawaian.",
             steps: [
                 { id: "s10", label: "Surat Pengunduran Diri", href: "/buat-surat-kustom?template=resign&label=Surat%20Pengunduran%20Diri" },
             ]

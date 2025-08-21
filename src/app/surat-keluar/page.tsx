@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import {
   Archive,
   Download,
@@ -86,7 +86,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   'Revisi Diminta': 'destructive'
 };
 
-export default function SuratKeluarPage() {
+function SuratKeluarPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -592,5 +592,13 @@ export default function SuratKeluarPage() {
         </AlertDialogContent>
       </AlertDialog>
     </AppLayout>
+  );
+}
+
+export default function SuratKeluarPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuratKeluarPageContent />
+    </Suspense>
   );
 }

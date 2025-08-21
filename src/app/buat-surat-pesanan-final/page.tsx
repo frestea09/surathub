@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,6 +50,7 @@ import { id } from "date-fns/locale";
 import { useSuratStore, type Surat } from "@/store/suratStore";
 import { terbilang } from "@/lib/terbilang";
 import { roundHalfUp } from "@/lib/utils";
+import LogoRSUD from '@/app/logo-rs.png';
 
 type Item = {
   id: number;
@@ -75,7 +76,7 @@ const initialItems: Item[] = [
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
-export default function BuatSuratPesananFinalPage() {
+function BuatSuratPesananFinalPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -565,7 +566,7 @@ export default function BuatSuratPesananFinalPage() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -847,5 +848,13 @@ export default function BuatSuratPesananFinalPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatSuratPesananFinalPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatSuratPesananFinalPageContent />
+    </Suspense>
   );
 }

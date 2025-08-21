@@ -107,7 +107,7 @@ export default function AlurKerjaPage() {
                 <div>
                     <h1 className="text-lg font-semibold md:text-2xl">Pengelola Alur Kerja</h1>
                     <p className="text-sm text-muted-foreground">
-                        Sesuaikan alur dan templat surat sesuai kebutuhan Anda.
+                        Sesuaikan alur dan template surat sesuai kebutuhan Anda.
                     </p>
                 </div>
                 <Button onClick={() => setIsAddWorkflowDialogOpen(true)}>
@@ -151,7 +151,7 @@ export default function AlurKerjaPage() {
                                 id="workflow-description"
                                 value={newWorkflowDescription}
                                 onChange={(e) => setNewWorkflowDescription(e.target.value)}
-                                placeholder="Contoh: Templat untuk surat terkait kepegawaian"
+                                placeholder="Contoh: Template untuk surat terkait kepegawaian"
                                 rows={3}
                             />
                         </div>

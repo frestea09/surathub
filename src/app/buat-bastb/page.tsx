@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,10 +18,11 @@ import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning'
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useSuratStore, type Surat } from '@/store/suratStore';
+import LogoRSUD from '@/app/logo-rs.png';
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
-export default function BuatBastbPage() {
+function BuatBastbPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -274,7 +275,7 @@ export default function BuatBastbPage() {
               <div className="bg-white text-black p-4 sm:p-8 font-serif text-[11pt] print:shadow-none print:p-0" id="surat-preview">
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
                     <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
@@ -437,5 +438,13 @@ export default function BuatBastbPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatBastbPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatBastbPageContent />
+    </Suspense>
   );
 }

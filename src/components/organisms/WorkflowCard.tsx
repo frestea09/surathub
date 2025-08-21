@@ -139,7 +139,7 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={() => setIsAddStepDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Tambah Langkah/Templat Baru
+                        Tambah Langkah/Template Baru
                     </Button>
                 </CardFooter>
             </Card>
@@ -149,7 +149,7 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Tambah Langkah Baru</DialogTitle>
-                        <DialogDescription>Masukkan nama untuk langkah atau templat surat baru di alur kerja ini.</DialogDescription>
+                        <DialogDescription>Masukkan nama untuk langkah atau template surat baru di alur kerja ini.</DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-2">
                         <Label htmlFor="step-name">Nama Langkah/Surat</Label>
