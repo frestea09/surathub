@@ -5,7 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d932655-5aa8-4391-a5c3-6db2971f8b0f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/app/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/favicon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-bastb/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-bastb/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-berita-acara-hasil/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-berita-acara-hasil/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-berita-acara-umum/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-berita-acara-umum/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-berita-acara/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-berita-acara/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat-kustom/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat-kustom/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat-perintah-umum/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat-perintah-umum/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat-pesanan-final/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat-pesanan-final/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat-pesanan-umum/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat-pesanan-umum/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat-pesanan/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat-pesanan/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/buat-surat/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/buat-surat/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/cetak-bundle/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/cetak-bundle/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/pengaturan/alur-kerja/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/pengaturan/alur-kerja/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/organisms/WorkflowCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/organisms/WorkflowCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/suratStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/suratStore.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +44,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "emailfeature",
+    "git-widget-placeholder": "codex/fix-usesearchparams-in-app",
     "ignore.virus.scanning.warn.message": "true",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
@@ -40,11 +55,17 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "D:\\dua\\surathub\\node_modules\\prettier",
     "to.speed.mode.migration.done": "true",
     "ts.external.directory.path": "D:\\dua\\surathub\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\dua\surathub\src\app" />
+    </key>
+  </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
@@ -75,11 +96,23 @@
       <option name="presentableId" value="Default" />
       <updated>1755770934346</updated>
       <workItem from="1755770935607" duration="380000" />
-      <workItem from="1755785300998" duration="305000" />
+      <workItem from="1755785300998" duration="4738000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/app/buat-surat/page.tsx</url>
+          <line>3</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -25,6 +25,7 @@ import { useSuratStore } from "@/store/suratStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Surat } from "@/types";
+import LogoRSUD from '@/app/logo-rs.png';
 
 type TableItem = {
   id: number;
@@ -124,7 +125,7 @@ function BuatSuratKustomPageContent() {
 
   const handleSave = () => {
     if (!templateId) {
-       toast({ variant: "destructive", title: "Gagal", description: "ID templat tidak valid." });
+       toast({ variant: "destructive", title: "Gagal", description: "ID template tidak valid." });
        return;
     }
     if (!formData.perihal) {
@@ -151,7 +152,7 @@ function BuatSuratKustomPageContent() {
       
       toast({
         title: "Berhasil",
-        description: isEditMode ? `Templat "${formData.perihal}" berhasil diperbarui.` : `Templat untuk "${formData.perihal}" berhasil disimpan.`,
+        description: isEditMode ? `Template "${formData.perihal}" berhasil diperbarui.` : `Template untuk "${formData.perihal}" berhasil disimpan.`,
       });
       router.push("/pengaturan/alur-kerja");
     } catch (error: any) {
@@ -186,9 +187,9 @@ function BuatSuratKustomPageContent() {
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Desain Templat Surat</CardTitle>
+              <CardTitle>Desain Template Surat</CardTitle>
               <CardDescription>
-                 Isi konten default untuk templat surat baru Anda. Ini dapat diubah nanti saat membuat surat sebenarnya.
+                 Isi konten default untuk template surat baru Anda. Ini dapat diubah nanti saat membuat surat sebenarnya.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -372,7 +373,7 @@ function BuatSuratKustomPageContent() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/LOGO_KABUPATEN_BANDUNG.svg/1200px-LOGO_KABUPATEN_BANDUNG.svg.png" alt="Logo RSUD" width={80} height={80} className="mr-4" data-ai-hint="government logo" />
+                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
