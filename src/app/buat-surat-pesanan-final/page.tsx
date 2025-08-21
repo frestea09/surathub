@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, Suspense } from "react";
@@ -47,10 +46,11 @@ import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore, type Surat } from "@/store/suratStore";
+import { useSuratStore } from "@/store/suratStore";
+import type { Surat } from "@/types";
 import { terbilang } from "@/lib/terbilang";
 import { roundHalfUp } from "@/lib/utils";
-import LogoRSUD from '@/app/logo-rs.png';
+import LogoRSUD from "@/app/logo-rs.png";
 
 type Item = {
   id: number;
@@ -81,8 +81,8 @@ function BuatSuratPesananFinalPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addSurat, surat: allSurat } = useSuratStore();
-  
-  const editNomor = searchParams.get('edit');
+
+  const editNomor = searchParams.get("edit");
   const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
@@ -102,39 +102,45 @@ function BuatSuratPesananFinalPageContent() {
     revisionHistory: [],
   });
   const [items, setItems] = useState<Item[]>(initialItems);
-  
+
   // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importSearchTerm, setImportSearchTerm] = useState("");
   const [importCurrentPage, setImportCurrentPage] = useState(1);
-  
+
   const availableSurat = useMemo(() => {
-    return allSurat.filter(s => s.tipe === 'SP');
+    return allSurat.filter((s) => s.tipe === "SP");
   }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
-        const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'SP-Vendor');
-        if (suratToEdit) {
-            const { formData: dataToLoad, items: itemsToLoad } = suratToEdit.data;
-            setFormData({
-                ...dataToLoad,
-                tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
-                tanggalSuratReferensi: dataToLoad.tanggalSuratReferensi ? new Date(dataToLoad.tanggalSuratReferensi) : new Date(),
-            });
-            setItems(itemsToLoad || []);
-        }
+      const suratToEdit = allSurat.find(
+        (s) => s.nomor === editNomor && s.tipe === "SP-Vendor",
+      );
+      if (suratToEdit) {
+        const { formData: dataToLoad, items: itemsToLoad } = suratToEdit.data;
+        setFormData({
+          ...dataToLoad,
+          tanggalSurat: dataToLoad.tanggalSurat
+            ? new Date(dataToLoad.tanggalSurat)
+            : new Date(),
+          tanggalSuratReferensi: dataToLoad.tanggalSuratReferensi
+            ? new Date(dataToLoad.tanggalSuratReferensi)
+            : new Date(),
+        });
+        setItems(itemsToLoad || []);
+      }
     }
   }, [editNomor, allSurat, isEditMode]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce(
       (sum, item) => sum + item.jumlah * item.hargaSatuan,
-      0
+      0,
     );
     const totalDiskon = items.reduce(
       (sum, item) => sum + item.jumlah * item.hargaSatuan * (item.diskon / 100),
-      0
+      0,
     );
     const totalAfterDiskon = subtotal - totalDiskon;
     const ppnValue = totalAfterDiskon * (formData.ppn / 100);
@@ -146,39 +152,47 @@ function BuatSuratPesananFinalPageContent() {
     if (totals.grandTotal > 0) {
       const roundedTotal = roundHalfUp(totals.grandTotal);
       const terbilangText = terbilang(roundedTotal);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        terbilang: `${terbilangText} Rupiah`
+        terbilang: `${terbilangText} Rupiah`,
       }));
     } else {
-       setFormData(prev => ({ ...prev, terbilang: "Nol Rupiah" }));
+      setFormData((prev) => ({ ...prev, terbilang: "Nol Rupiah" }));
     }
   }, [totals.grandTotal]);
 
   const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleDateChange = (field: 'tanggalSurat' | 'tanggalSuratReferensi', date: Date | undefined) => {
+  const handleDateChange = (
+    field: "tanggalSurat" | "tanggalSuratReferensi",
+    date: Date | undefined,
+  ) => {
     if (date) {
-      setFormData(prev => ({...prev, [field]: date}))
+      setFormData((prev) => ({ ...prev, [field]: date }));
     }
   };
 
   const handleItemChange = (
     id: number,
     field: keyof Item,
-    value: string | number
+    value: string | number,
   ) => {
     let finalValue = value;
-    if (field === 'hargaSatuan') {
-      finalValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) || 0 : value;
+    if (field === "hargaSatuan") {
+      finalValue =
+        typeof value === "string"
+          ? parseFloat(value.replace(",", ".")) || 0
+          : value;
     }
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: finalValue } : item))
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: finalValue } : item,
+      ),
     );
   };
 
@@ -218,7 +232,9 @@ function BuatSuratPesananFinalPageContent() {
     setFormData((prev) => ({
       ...prev,
       nomorSuratReferensi: fd?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: fd?.tanggalSurat ? new Date(fd.tanggalSurat) : prev.tanggalSuratReferensi,
+      tanggalSuratReferensi: fd?.tanggalSurat
+        ? new Date(fd.tanggalSurat)
+        : prev.tanggalSuratReferensi,
       terbilang: fd?.terbilang || prev.terbilang,
       ppn: fd?.ppn || prev.ppn,
     }));
@@ -241,25 +257,36 @@ function BuatSuratPesananFinalPageContent() {
     }
 
     try {
-      const suratToSave = {
+      const suratToSave: Surat = {
         nomor: formData.nomor,
         judul: formData.perihal,
-        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        jenis: "Surat Keluar",
+        status: isEditMode
+          ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+          : "Draft",
         tanggal: formData.tanggalSurat.toISOString(),
         penanggungJawab: formData.namaPenandaTangan,
         dariKe: formData.penerima,
-        tipe: 'SP-Vendor',
+        tipe: "SP-Vendor",
+        unit: "Pengadaan",
         data: {
-          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          formData: {
+            ...formData,
+            status: isEditMode
+              ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+              : "Draft",
+          },
           items,
-        }
+        },
       };
 
       addSurat(suratToSave);
-      
+
       toast({
         title: "Berhasil",
-        description: isEditMode ? "Draf surat pesanan (vendor) berhasil diperbarui." : "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
+        description: isEditMode
+          ? "Draf surat pesanan (vendor) berhasil diperbarui."
+          : "Data surat pesanan (vendor) berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -277,27 +304,40 @@ function BuatSuratPesananFinalPageContent() {
 
   // Pagination and search for import dialog
   const filteredImportSurat = useMemo(() => {
-    return availableSurat.filter(s =>
-      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
-      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    return availableSurat.filter(
+      (s) =>
+        s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+        s.judul.toLowerCase().includes(importSearchTerm.toLowerCase()),
     );
   }, [availableSurat, importSearchTerm]);
 
   const paginatedImportSurat = useMemo(() => {
     const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
-    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+    return filteredImportSurat.slice(
+      startIndex,
+      startIndex + IMPORT_ITEMS_PER_PAGE,
+    );
   }, [filteredImportSurat, importCurrentPage]);
 
-  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
+  const totalImportPages = Math.ceil(
+    filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Surat Pesanan (Vendor)</h1>
+        <h1 className="text-xl font-semibold">
+          {isEditMode ? "Edit" : "Buat"} Surat Pesanan (Vendor)
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleOpenImportDialog}>
             <Download className="mr-2 h-4 w-4" />
@@ -305,7 +345,7 @@ function BuatSuratPesananFinalPageContent() {
           </Button>
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            {isEditMode ? 'Update Draf' : 'Simpan'}
+            {isEditMode ? "Update Draf" : "Simpan"}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -350,7 +390,12 @@ function BuatSuratPesananFinalPageContent() {
                 </div>
                 <div className="space-y-2">
                   <Label>Tanggal Surat</Label>
-                  <DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(date) => handleDateChange('tanggalSurat', date)} />
+                  <DatePickerWithWarning
+                    date={formData.tanggalSurat}
+                    onDateChange={(date) =>
+                      handleDateChange("tanggalSurat", date)
+                    }
+                  />
                 </div>
               </div>
               <div className="space-y-2">
@@ -384,10 +429,13 @@ function BuatSuratPesananFinalPageContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>
-                  Tanggal Surat Referensi
-                </Label>
-                <DatePickerWithWarning date={formData.tanggalSuratReferensi} onDateChange={(date) => handleDateChange('tanggalSuratReferensi', date)} />
+                <Label>Tanggal Surat Referensi</Label>
+                <DatePickerWithWarning
+                  date={formData.tanggalSuratReferensi}
+                  onDateChange={(date) =>
+                    handleDateChange("tanggalSuratReferensi", date)
+                  }
+                />
               </div>
               <Separator />
               <h3 className="text-sm font-medium">Penanda Tangan</h3>
@@ -488,7 +536,7 @@ function BuatSuratPesananFinalPageContent() {
                               handleItemChange(
                                 item.id,
                                 "satuan",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />
@@ -513,19 +561,25 @@ function BuatSuratPesananFinalPageContent() {
                               handleItemChange(
                                 item.id,
                                 "jumlah",
-                                parseInt(e.target.value, 10) || 0
+                                parseInt(e.target.value, 10) || 0,
                               )
                             }
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`harga-${item.id}`}>Harga Satuan</Label>
+                          <Label htmlFor={`harga-${item.id}`}>
+                            Harga Satuan
+                          </Label>
                           <Input
                             type="number"
                             id={`harga-${item.id}`}
                             value={item.hargaSatuan}
                             onChange={(e) =>
-                              handleItemChange(item.id, 'hargaSatuan', e.target.value)
+                              handleItemChange(
+                                item.id,
+                                "hargaSatuan",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
@@ -541,7 +595,7 @@ function BuatSuratPesananFinalPageContent() {
                               handleItemChange(
                                 item.id,
                                 "diskon",
-                                parseInt(e.target.value, 10) || 0
+                                parseInt(e.target.value, 10) || 0,
                               )
                             }
                           />
@@ -566,7 +620,13 @@ function BuatSuratPesananFinalPageContent() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image
+                    src={LogoRSUD}
+                    alt="Logo RSUD"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                  />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -597,7 +657,14 @@ function BuatSuratPesananFinalPageContent() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <p>{formData.tempat}, {formData.tanggalSurat ? format(formData.tanggalSurat, "dd MMMM yyyy", { locale: id }) : ""}</p>
+                    <p>
+                      {formData.tempat},{" "}
+                      {formData.tanggalSurat
+                        ? format(formData.tanggalSurat, "dd MMMM yyyy", {
+                            locale: id,
+                          })
+                        : ""}
+                    </p>
                     <p>Kepada Yth</p>
                     <p className="font-semibold">{formData.penerima}</p>
                     <p>Di</p>
@@ -608,9 +675,15 @@ function BuatSuratPesananFinalPageContent() {
                 <p className="mb-4 text-justify">
                   Berdasarkan Usulan dari Pejabat Pengadaan RSUD Oto Iskandar Di
                   Nata Nomor : {formData.nomorSuratReferensi} Tanggal{" "}
-                  {formData.tanggalSuratReferensi ? format(new Date(formData.tanggalSuratReferensi), "dd MMMM yyyy", { locale: id }) : ""}, Maka dengan ini kami
-                  menyatakan pesanan barang/jasa dengan perincian sebagai
-                  berikut:
+                  {formData.tanggalSuratReferensi
+                    ? format(
+                        new Date(formData.tanggalSuratReferensi),
+                        "dd MMMM yyyy",
+                        { locale: id },
+                      )
+                    : ""}
+                  , Maka dengan ini kami menyatakan pesanan barang/jasa dengan
+                  perincian sebagai berikut:
                 </p>
 
                 <Table className="mb-4 text-[10pt]">
@@ -750,13 +823,13 @@ function BuatSuratPesananFinalPageContent() {
             </DialogDescription>
           </DialogHeader>
           <div className="relative my-4">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                  placeholder="Cari no. surat atau perihal..."
-                  value={importSearchTerm}
-                  onChange={(e) => setImportSearchTerm(e.target.value)}
-                  className="pl-8"
-              />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari no. surat atau perihal..."
+              value={importSearchTerm}
+              onChange={(e) => setImportSearchTerm(e.target.value)}
+              className="pl-8"
+            />
           </div>
           <ScrollArea className="max-h-80">
             <div className="pr-4 space-y-2">
@@ -784,12 +857,12 @@ function BuatSuratPesananFinalPageContent() {
               )}
             </div>
           </ScrollArea>
-           {totalImportPages > 1 && (
+          {totalImportPages > 1 && (
             <div className="flex items-center justify-center space-x-2 pt-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))}
+                onClick={() => setImportCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={importCurrentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -800,7 +873,9 @@ function BuatSuratPesananFinalPageContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))}
+                onClick={() =>
+                  setImportCurrentPage((p) => Math.min(p + 1, totalImportPages))
+                }
                 disabled={importCurrentPage === totalImportPages}
               >
                 <ChevronRight className="h-4 w-4" />

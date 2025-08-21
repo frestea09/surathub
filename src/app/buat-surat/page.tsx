@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import LogoRSUD from '@/app/logo-rs.png'
+import LogoRSUD from "@/app/logo-rs.png";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,14 +21,15 @@ import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning"
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useSuratStore } from "@/store/suratStore";
+import type { Surat } from "@/types";
 
 function BuatSuratPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addSurat, surat: allSurat } = useSuratStore();
-  
-  const editNomor = searchParams.get('edit');
+
+  const editNomor = searchParams.get("edit");
   const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
@@ -51,19 +51,23 @@ function BuatSuratPageContent() {
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
-        const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'SPP');
-        if (suratToEdit) {
-            const dataToLoad = suratToEdit.data;
-            setFormData({
-                ...dataToLoad,
-                tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
-            });
-        }
+      const suratToEdit = allSurat.find(
+        (s) => s.nomor === editNomor && s.tipe === "SPP",
+      );
+      if (suratToEdit) {
+        const dataToLoad = suratToEdit.data;
+        setFormData({
+          ...dataToLoad,
+          tanggalSurat: dataToLoad.tanggalSurat
+            ? new Date(dataToLoad.tanggalSurat)
+            : new Date(),
+        });
+      }
     }
   }, [editNomor, allSurat, isEditMode]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -71,7 +75,7 @@ function BuatSuratPageContent() {
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-      setFormData(prev => ({ ...prev, tanggalSurat: date }));
+      setFormData((prev) => ({ ...prev, tanggalSurat: date }));
     }
   };
 
@@ -90,22 +94,33 @@ function BuatSuratPageContent() {
     }
 
     try {
-      const dataToSave = {
+      const dataToSave: Surat = {
         nomor: formData.nomor,
         judul: formData.perihal,
-        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        jenis: "Surat Keluar",
+        status: isEditMode
+          ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+          : "Draft",
         tanggal: formData.tanggalSurat.toISOString(),
         penanggungJawab: formData.namaPenandaTangan,
         dariKe: formData.penerima,
-        tipe: 'SPP',
-        data: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+        tipe: "SPP",
+        unit: "Pengadaan",
+        data: {
+          ...formData,
+          status: isEditMode
+            ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+            : "Draft",
+        },
       };
 
       addSurat(dataToSave);
-      
+
       toast({
         title: "Berhasil",
-        description: isEditMode ? "Draf surat berhasil diperbarui." : "Data surat berhasil disimpan sebagai draft.",
+        description: isEditMode
+          ? "Draf surat berhasil diperbarui."
+          : "Data surat berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -121,15 +136,22 @@ function BuatSuratPageContent() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Surat Perintah</h1>
+        <h1 className="text-xl font-semibold">
+          {isEditMode ? "Edit" : "Buat"} Surat Perintah
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            {isEditMode ? 'Update Draf' : 'Simpan'}
+            {isEditMode ? "Update Draf" : "Simpan"}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -263,7 +285,13 @@ function BuatSuratPageContent() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image
+                    src={LogoRSUD}
+                    alt="Logo RSUD"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                  />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -281,7 +309,14 @@ function BuatSuratPageContent() {
                 </div>
                 {/* BADAN SURAT */}
                 <div className="flex justify-end mb-4">
-                  <p>{formData.tempat}, {formData.tanggalSurat ? format(formData.tanggalSurat, "dd MMMM yyyy", { locale: id }) : ""}</p>
+                  <p>
+                    {formData.tempat},{" "}
+                    {formData.tanggalSurat
+                      ? format(formData.tanggalSurat, "dd MMMM yyyy", {
+                          locale: id,
+                        })
+                      : ""}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 mb-4">

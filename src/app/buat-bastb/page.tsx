@@ -1,24 +1,44 @@
-
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import Image from 'next/image';
-import { ArrowLeft, Printer, Download, Save, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
+import {
+  ArrowLeft,
+  Printer,
+  Download,
+  Save,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { DatePickerWithWarning } from '@/components/ui/date-picker-with-warning';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { useSuratStore, type Surat } from '@/store/suratStore';
-import LogoRSUD from '@/app/logo-rs.png';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useRouter, useSearchParams } from "next/navigation";
+import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { useSuratStore } from "@/store/suratStore";
+import type { Surat } from "@/types";
+import LogoRSUD from "@/app/logo-rs.png";
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
@@ -28,62 +48,76 @@ function BuatBastbPageContent() {
   const searchParams = useSearchParams();
   const { addSurat, surat: allSurat } = useSuratStore();
 
-  const editNomor = searchParams.get('edit');
+  const editNomor = searchParams.get("edit");
   const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
-    nomor: 'BASTB/06/FAR/IV/2025',
-    narasiPembuka: 'Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.',
-    pihak1Nama: 'Saep Trian Prasetia.S.Si. Apt',
-    pihak1Nip: '198408272008011005',
-    pihak1Jabatan: 'Pejabat Pembuat Komitmen RSUD Oto Iskandar Di Nata',
-    pihak1Alamat: 'Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung',
-    pihak2Nama: 'dr. H. Yani Sumpena Muchtar, SH, MH.Kes',
-    pihak2Nip: '196711022002121001',
-    pihak2Jabatan: 'Kuasa Pengguna Anggaran RSUD Oto Iskandar Di Nata',
-    pihak2Alamat: 'Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung',
-    nomorSuratPesanan: '000.3/06-FAR/PPK-RSUD OTISTA/V/2025',
-    tanggalSuratPesanan: new Date('2025-04-08T00:00:00'),
-    nomorBeritaAcara: '06/PPK-FAR/RSUDO/IV/2025',
-    tanggalBeritaAcara: new Date('2025-04-30T00:00:00'),
-    narasiPenutup: 'Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.',
+    nomor: "BASTB/06/FAR/IV/2025",
+    narasiPembuka:
+      "Pada hari ini, Rabu Tanggal Tiga Puluh Bulan April Tahun Dua Ribu Dua Puluh Lima, bertempat di Rumah Sakit Umum Daerah Oto Iskandar Di Nata, yang bertanda tangan dibawah ini.",
+    pihak1Nama: "Saep Trian Prasetia.S.Si. Apt",
+    pihak1Nip: "198408272008011005",
+    pihak1Jabatan: "Pejabat Pembuat Komitmen RSUD Oto Iskandar Di Nata",
+    pihak1Alamat:
+      "Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung",
+    pihak2Nama: "dr. H. Yani Sumpena Muchtar, SH, MH.Kes",
+    pihak2Nip: "196711022002121001",
+    pihak2Jabatan: "Kuasa Pengguna Anggaran RSUD Oto Iskandar Di Nata",
+    pihak2Alamat:
+      "Jalan Raya Gading Tutuka Desa Cingcin, Kecamatan Soreang Kabupaten Bandung",
+    nomorSuratPesanan: "000.3/06-FAR/PPK-RSUD OTISTA/V/2025",
+    tanggalSuratPesanan: new Date("2025-04-08T00:00:00"),
+    nomorBeritaAcara: "06/PPK-FAR/RSUDO/IV/2025",
+    tanggalBeritaAcara: new Date("2025-04-30T00:00:00"),
+    narasiPenutup:
+      "Demikian Berita Acara Serah Terima Barang ini, dibuat dalam rangkap 3 (Tiga) untuk di pergunakan sebagaimana mestinya.",
   });
 
   // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importSearchTerm, setImportSearchTerm] = useState("");
   const [importCurrentPage, setImportCurrentPage] = useState(1);
-  
+
   const availableSurat = useMemo(() => {
-    return allSurat.filter(s => s.tipe === 'BA');
+    return allSurat.filter((s) => s.tipe === "BA");
   }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
-      const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'BASTB');
+      const suratToEdit = allSurat.find(
+        (s) => s.nomor === editNomor && s.tipe === "BASTB",
+      );
       if (suratToEdit) {
         const { formData: dataToLoad } = suratToEdit.data;
         setFormData({
-            ...dataToLoad,
-            tanggalSuratPesanan: dataToLoad.tanggalSuratPesanan ? new Date(dataToLoad.tanggalSuratPesanan) : new Date(),
-            tanggalBeritaAcara: dataToLoad.tanggalBeritaAcara ? new Date(dataToLoad.tanggalBeritaAcara) : new Date(),
+          ...dataToLoad,
+          tanggalSuratPesanan: dataToLoad.tanggalSuratPesanan
+            ? new Date(dataToLoad.tanggalSuratPesanan)
+            : new Date(),
+          tanggalBeritaAcara: dataToLoad.tanggalBeritaAcara
+            ? new Date(dataToLoad.tanggalBeritaAcara)
+            : new Date(),
         });
       }
     }
   }, [editNomor, allSurat, isEditMode]);
 
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleDateChange = (field: 'tanggalSuratPesanan' | 'tanggalBeritaAcara', date: Date | undefined) => {
-    if(date) {
-      setFormData(prev => ({...prev, [field]: date}))
+  const handleDateChange = (
+    field: "tanggalSuratPesanan" | "tanggalBeritaAcara",
+    date: Date | undefined,
+  ) => {
+    if (date) {
+      setFormData((prev) => ({ ...prev, [field]: date }));
     }
-  }
-  
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -93,17 +127,21 @@ function BuatBastbPageContent() {
     setImportSearchTerm("");
     setIsImportDialogOpen(true);
   };
-  
+
   const handleImportSelection = (importData: Surat) => {
     const fd = importData.data.formData;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       nomorBeritaAcara: fd?.nomor || prev.nomorBeritaAcara,
-      tanggalBeritaAcara: new Date(), 
+      tanggalBeritaAcara: new Date(),
       nomorSuratPesanan: fd?.nomorSuratReferensi || prev.nomorSuratPesanan,
-      tanggalSuratPesanan: fd?.tanggalSuratReferensi ? new Date(fd.tanggalSuratReferensi) : prev.tanggalSuratPesanan,
+      tanggalSuratPesanan: fd?.tanggalSuratReferensi
+        ? new Date(fd.tanggalSuratReferensi)
+        : prev.tanggalSuratPesanan,
       pihak1Nama: fd?.pejabatNama || prev.pihak1Nama,
-      pihak1Nip: fd?.pejabatNip ? fd.pejabatNip.replace('NIP. ', '') : prev.pihak1Nip,
+      pihak1Nip: fd?.pejabatNip
+        ? fd.pejabatNip.replace("NIP. ", "")
+        : prev.pihak1Nip,
     }));
 
     setIsImportDialogOpen(false);
@@ -115,71 +153,105 @@ function BuatBastbPageContent() {
 
   const handleSave = () => {
     if (!formData.nomor) {
-      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: "Nomor surat tidak boleh kosong.",
+      });
       return;
     }
-    
+
     try {
-      const suratToSave = {
+      const suratToSave: Surat = {
         nomor: formData.nomor,
         judul: `BASTB untuk ${formData.pihak1Nama}`,
-        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        jenis: "Surat Keluar",
+        status: isEditMode
+          ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+          : "Draft",
         tanggal: formData.tanggalBeritaAcara.toISOString(),
         penanggungJawab: formData.pihak1Nama,
         dariKe: formData.pihak2Nama,
-        tipe: 'BASTB',
-        data: { formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' } },
+        tipe: "BASTB",
+        unit: "Pengadaan",
+        data: {
+          formData: {
+            ...formData,
+            status: isEditMode
+              ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+              : "Draft",
+          },
+        },
       };
 
       addSurat(suratToSave);
 
-      toast({ 
-        title: "Berhasil", 
-        description: isEditMode ? "Draf BASTB berhasil diperbarui." : "Data BASTB berhasil disimpan sebagai draft." 
+      toast({
+        title: "Berhasil",
+        description: isEditMode
+          ? "Draf BASTB berhasil diperbarui."
+          : "Data BASTB berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
-      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan data." });
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: "Terjadi kesalahan saat menyimpan data.",
+      });
       console.error("Failed to save", error);
     }
   };
 
   // Pagination and search for import dialog
   const filteredImportSurat = useMemo(() => {
-    return availableSurat.filter(s =>
-      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
-      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    return availableSurat.filter(
+      (s) =>
+        s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+        s.judul.toLowerCase().includes(importSearchTerm.toLowerCase()),
     );
   }, [availableSurat, importSearchTerm]);
 
   const paginatedImportSurat = useMemo(() => {
     const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
-    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+    return filteredImportSurat.slice(
+      startIndex,
+      startIndex + IMPORT_ITEMS_PER_PAGE,
+    );
   }, [filteredImportSurat, importCurrentPage]);
 
-  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
+  const totalImportPages = Math.ceil(
+    filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Berita Acara Serah Terima</h1>
+        <h1 className="text-xl font-semibold">
+          {isEditMode ? "Edit" : "Buat"} Berita Acara Serah Terima
+        </h1>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" onClick={handleOpenImportDialog}>
-              <Download className="mr-2 h-4 w-4" />
-              Ambil Data
-            </Button>
-            <Button variant="outline" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              {isEditMode ? 'Update Draf' : 'Simpan'}
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Cetak
-            </Button>
+          <Button variant="outline" onClick={handleOpenImportDialog}>
+            <Download className="mr-2 h-4 w-4" />
+            Ambil Data
+          </Button>
+          <Button variant="outline" onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            {isEditMode ? "Update Draf" : "Simpan"}
+          </Button>
+          <Button onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Cetak
+          </Button>
         </div>
       </header>
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-1">
@@ -192,74 +264,146 @@ function BuatBastbPageContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-             <ScrollArea className="h-[calc(100vh-180px)]">
+              <ScrollArea className="h-[calc(100vh-180px)]">
                 <div className="space-y-4 pr-4">
                   <div className="space-y-2">
                     <Label htmlFor="nomor">Nomor Surat</Label>
-                    <Input id="nomor" value={formData.nomor} onChange={handleInputChange} />
+                    <Input
+                      id="nomor"
+                      value={formData.nomor}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="narasiPembuka">Narasi Pembuka</Label>
-                    <Textarea id="narasiPembuka" value={formData.narasiPembuka} onChange={handleInputChange} rows={5} />
+                    <Textarea
+                      id="narasiPembuka"
+                      value={formData.narasiPembuka}
+                      onChange={handleInputChange}
+                      rows={5}
+                    />
                   </div>
                   <Separator />
-                  <h3 className="text-sm font-medium">Pihak Kesatu (Pejabat Pembuat Komitmen)</h3>
+                  <h3 className="text-sm font-medium">
+                    Pihak Kesatu (Pejabat Pembuat Komitmen)
+                  </h3>
                   <div className="space-y-2">
                     <Label htmlFor="pihak1Nama">Nama</Label>
-                    <Input id="pihak1Nama" value={formData.pihak1Nama} onChange={handleInputChange} />
+                    <Input
+                      id="pihak1Nama"
+                      value={formData.pihak1Nama}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak1Nip">NIP</Label>
-                    <Input id="pihak1Nip" value={formData.pihak1Nip} onChange={handleInputChange} />
+                    <Input
+                      id="pihak1Nip"
+                      value={formData.pihak1Nip}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak1Jabatan">Jabatan</Label>
-                    <Input id="pihak1Jabatan" value={formData.pihak1Jabatan} onChange={handleInputChange} />
+                    <Input
+                      id="pihak1Jabatan"
+                      value={formData.pihak1Jabatan}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak1Alamat">Alamat</Label>
-                    <Input id="pihak1Alamat" value={formData.pihak1Alamat} onChange={handleInputChange} />
+                    <Input
+                      id="pihak1Alamat"
+                      value={formData.pihak1Alamat}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <Separator />
-                  <h3 className="text-sm font-medium">Pihak Kedua (Kuasa Pengguna Anggaran)</h3>
-                   <div className="space-y-2">
+                  <h3 className="text-sm font-medium">
+                    Pihak Kedua (Kuasa Pengguna Anggaran)
+                  </h3>
+                  <div className="space-y-2">
                     <Label htmlFor="pihak2Nama">Nama</Label>
-                    <Input id="pihak2Nama" value={formData.pihak2Nama} onChange={handleInputChange} />
+                    <Input
+                      id="pihak2Nama"
+                      value={formData.pihak2Nama}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak2Nip">NIP</Label>
-                    <Input id="pihak2Nip" value={formData.pihak2Nip} onChange={handleInputChange} />
+                    <Input
+                      id="pihak2Nip"
+                      value={formData.pihak2Nip}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak2Jabatan">Jabatan</Label>
-                    <Input id="pihak2Jabatan" value={formData.pihak2Jabatan} onChange={handleInputChange} />
+                    <Input
+                      id="pihak2Jabatan"
+                      value={formData.pihak2Jabatan}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pihak2Alamat">Alamat</Label>
-                    <Input id="pihak2Alamat" value={formData.pihak2Alamat} onChange={handleInputChange} />
+                    <Input
+                      id="pihak2Alamat"
+                      value={formData.pihak2Alamat}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <Separator />
                   <h3 className="text-sm font-medium">Dokumen Referensi</h3>
                   <div className="space-y-2">
-                    <Label htmlFor="nomorSuratPesanan">Nomor Surat Pesanan</Label>
-                    <Input id="nomorSuratPesanan" value={formData.nomorSuratPesanan} onChange={handleInputChange} />
+                    <Label htmlFor="nomorSuratPesanan">
+                      Nomor Surat Pesanan
+                    </Label>
+                    <Input
+                      id="nomorSuratPesanan"
+                      value={formData.nomorSuratPesanan}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tanggal Surat Pesanan</Label>
-                    <DatePickerWithWarning date={formData.tanggalSuratPesanan} onDateChange={(date) => handleDateChange('tanggalSuratPesanan', date)} />
+                    <DatePickerWithWarning
+                      date={formData.tanggalSuratPesanan}
+                      onDateChange={(date) =>
+                        handleDateChange("tanggalSuratPesanan", date)
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nomorBeritaAcara">Nomor Berita Acara Pemeriksaan</Label>
-                    <Input id="nomorBeritaAcara" value={formData.nomorBeritaAcara} onChange={handleInputChange} />
+                    <Label htmlFor="nomorBeritaAcara">
+                      Nomor Berita Acara Pemeriksaan
+                    </Label>
+                    <Input
+                      id="nomorBeritaAcara"
+                      value={formData.nomorBeritaAcara}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Tanggal Berita Acara Pemeriksaan</Label>
-                    <DatePickerWithWarning date={formData.tanggalBeritaAcara} onDateChange={(date) => handleDateChange('tanggalBeritaAcara', date)} />
+                    <DatePickerWithWarning
+                      date={formData.tanggalBeritaAcara}
+                      onDateChange={(date) =>
+                        handleDateChange("tanggalBeritaAcara", date)
+                      }
+                    />
                   </div>
                   <Separator />
-                   <div className="space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="narasiPenutup">Narasi Penutup</Label>
-                    <Textarea id="narasiPenutup" value={formData.narasiPenutup} onChange={handleInputChange} rows={3} />
+                    <Textarea
+                      id="narasiPenutup"
+                      value={formData.narasiPenutup}
+                      onChange={handleInputChange}
+                      rows={3}
+                    />
                   </div>
                 </div>
               </ScrollArea>
@@ -267,54 +411,114 @@ function BuatBastbPageContent() {
           </Card>
         </div>
         <div className="lg:col-span-2 print:col-span-1">
-           <Card className="overflow-hidden print:shadow-none print:border-none">
+          <Card className="overflow-hidden print:shadow-none print:border-none">
             <CardHeader className="print:hidden">
               <CardTitle>Preview Berita Acara</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-white text-black p-4 sm:p-8 font-serif text-[11pt] print:shadow-none print:p-0" id="surat-preview">
+              <div
+                className="bg-white text-black p-4 sm:p-8 font-serif text-[11pt] print:shadow-none print:p-0"
+                id="surat-preview"
+              >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image
+                    src={LogoRSUD}
+                    alt="Logo RSUD"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                  />
                   <div>
-                    <h1 className="font-bold text-lg tracking-wide">RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA</h1>
-                    <p className="text-xs">Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912</p>
-                    <p className="text-xs">Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592</p>
-                    <p className="text-xs">E-mail: rsudotista@bandungkab.go.id</p>
+                    <h1 className="font-bold text-lg tracking-wide">
+                      RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
+                    </h1>
+                    <p className="text-xs">
+                      Jalan Gading Tutuka Kampung Cingcin Kolot Cingcin - 40912
+                    </p>
+                    <p className="text-xs">
+                      Telp. (022) 5891355, 5896590, 5896591 - IGD, Fax. 5896592
+                    </p>
+                    <p className="text-xs">
+                      E-mail: rsudotista@bandungkab.go.id
+                    </p>
                   </div>
                 </div>
 
                 <div className="text-center mb-4">
-                  <h2 className="font-bold underline text-base">BERITA ACARA SERAH TERIMA BARANG/JASA</h2>
+                  <h2 className="font-bold underline text-base">
+                    BERITA ACARA SERAH TERIMA BARANG/JASA
+                  </h2>
                   <p>NOMOR: {formData.nomor}</p>
                 </div>
-                
+
                 <p className="mb-4 text-justify indent-8">
                   {formData.narasiPembuka}
                 </p>
-                
+
                 <div className="mb-4">
-                    <div className="grid grid-cols-[8rem_auto_1fr] gap-x-2 gap-y-1">
-                        <span>Nama</span><span>:</span><span>{formData.pihak1Nama}</span>
-                        <span>NIP</span><span>:</span><span>{formData.pihak1Nip}</span>
-                        <span>JABATAN</span><span>:</span><span>{formData.pihak1Jabatan}</span>
-                        <span className="align-top">Alamat</span><span className="align-top">:</span><span className="align-top">{formData.pihak1Alamat}</span>
-                    </div>
-                    <p className="mt-2">Dalam Hal Ini Bertindak Sebagai Pejabat Pembuat Komitmen Yang Selanjutnya Disebut <span className="font-bold">PIHAK KESATU</span></p>
+                  <div className="grid grid-cols-[8rem_auto_1fr] gap-x-2 gap-y-1">
+                    <span>Nama</span>
+                    <span>:</span>
+                    <span>{formData.pihak1Nama}</span>
+                    <span>NIP</span>
+                    <span>:</span>
+                    <span>{formData.pihak1Nip}</span>
+                    <span>JABATAN</span>
+                    <span>:</span>
+                    <span>{formData.pihak1Jabatan}</span>
+                    <span className="align-top">Alamat</span>
+                    <span className="align-top">:</span>
+                    <span className="align-top">{formData.pihak1Alamat}</span>
+                  </div>
+                  <p className="mt-2">
+                    Dalam Hal Ini Bertindak Sebagai Pejabat Pembuat Komitmen
+                    Yang Selanjutnya Disebut{" "}
+                    <span className="font-bold">PIHAK KESATU</span>
+                  </p>
                 </div>
 
                 <div className="mb-4">
-                    <div className="grid grid-cols-[8rem_auto_1fr] gap-x-2 gap-y-1">
-                        <span>Nama</span><span>:</span><span>{formData.pihak2Nama}</span>
-                        <span>NIP</span><span>:</span><span>{formData.pihak2Nip}</span>
-                        <span>JABATAN</span><span>:</span><span>{formData.pihak2Jabatan}</span>
-                        <span className="align-top">Alamat</span><span className="align-top">:</span><span className="align-top">{formData.pihak2Alamat}</span>
-                    </div>
-                    <p className="mt-2">Dalam Hal Ini Bertindak Sebagai Kuasa Pengguna Anggaran Yang Selanjutnya Disebut <span className="font-bold">PIHAK KE DUA</span></p>
+                  <div className="grid grid-cols-[8rem_auto_1fr] gap-x-2 gap-y-1">
+                    <span>Nama</span>
+                    <span>:</span>
+                    <span>{formData.pihak2Nama}</span>
+                    <span>NIP</span>
+                    <span>:</span>
+                    <span>{formData.pihak2Nip}</span>
+                    <span>JABATAN</span>
+                    <span>:</span>
+                    <span>{formData.pihak2Jabatan}</span>
+                    <span className="align-top">Alamat</span>
+                    <span className="align-top">:</span>
+                    <span className="align-top">{formData.pihak2Alamat}</span>
+                  </div>
+                  <p className="mt-2">
+                    Dalam Hal Ini Bertindak Sebagai Kuasa Pengguna Anggaran Yang
+                    Selanjutnya Disebut{" "}
+                    <span className="font-bold">PIHAK KE DUA</span>
+                  </p>
                 </div>
 
                 <p className="mb-4 text-justify indent-8">
-                  PIHAK KESATU telah melaksanakan pemeriksaan terhadap Pengadaan Obat yang dipesan melalui surat pesanan Nomor {formData.nomorSuratPesanan} tanggal {formData.tanggalSuratPesanan ? format(formData.tanggalSuratPesanan, "dd MMMM yyyy", { locale: id }) : ''}, dalam kondisi baik dan sesuai dengan spesifikasi yang terdapat dalam berita acara Pemeriksaan Barang Nomor: {formData.nomorBeritaAcara} tanggal {formData.tanggalBeritaAcara ? format(formData.tanggalBeritaAcara, "dd MMMM yyyy", { locale: id }) : ''} (jenis barang terlampir). Untuk selanjutnya diserah terimakan kepada PIHAK KEDUA.
+                  PIHAK KESATU telah melaksanakan pemeriksaan terhadap Pengadaan
+                  Obat yang dipesan melalui surat pesanan Nomor{" "}
+                  {formData.nomorSuratPesanan} tanggal{" "}
+                  {formData.tanggalSuratPesanan
+                    ? format(formData.tanggalSuratPesanan, "dd MMMM yyyy", {
+                        locale: id,
+                      })
+                    : ""}
+                  , dalam kondisi baik dan sesuai dengan spesifikasi yang
+                  terdapat dalam berita acara Pemeriksaan Barang Nomor:{" "}
+                  {formData.nomorBeritaAcara} tanggal{" "}
+                  {formData.tanggalBeritaAcara
+                    ? format(formData.tanggalBeritaAcara, "dd MMMM yyyy", {
+                        locale: id,
+                      })
+                    : ""}{" "}
+                  (jenis barang terlampir). Untuk selanjutnya diserah terimakan
+                  kepada PIHAK KEDUA.
                 </p>
 
                 <p className="mb-8 text-justify indent-8">
@@ -322,91 +526,106 @@ function BuatBastbPageContent() {
                 </p>
 
                 <div className="flex justify-between">
-                    <div className="text-center w-1/2">
-                        <p>PIHAK PERTAMA</p>
-                        <p>PEJABAT PEMBUAT KOMITMEN</p>
-                        <div className="h-20"></div>
-                        <p className="font-bold underline">{formData.pihak1Nama}</p>
-                        <p>NIP. {formData.pihak1Nip}</p>
-                    </div>
-                    <div className="text-center w-1/2">
-                        <p>PIHAK KEDUA</p>
-                        <p>KUASA PENGGUNA ANGGARAN</p>
-                        <div className="h-20"></div>
-                        <p className="font-bold underline">{formData.pihak2Nama}</p>
-                        <p>NIP. {formData.pihak2Nip}</p>
-                    </div>
+                  <div className="text-center w-1/2">
+                    <p>PIHAK PERTAMA</p>
+                    <p>PEJABAT PEMBUAT KOMITMEN</p>
+                    <div className="h-20"></div>
+                    <p className="font-bold underline">{formData.pihak1Nama}</p>
+                    <p>NIP. {formData.pihak1Nip}</p>
+                  </div>
+                  <div className="text-center w-1/2">
+                    <p>PIHAK KEDUA</p>
+                    <p>KUASA PENGGUNA ANGGARAN</p>
+                    <div className="h-20"></div>
+                    <p className="font-bold underline">{formData.pihak2Nama}</p>
+                    <p>NIP. {formData.pihak2Nip}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
-           </Card>
+          </Card>
         </div>
       </main>
 
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle>
-                <DialogDescription>Pilih surat referensi dari daftar di bawah ini untuk mengisi data secara otomatis.</DialogDescription>
-            </DialogHeader>
-            <div className="relative my-4">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                  placeholder="Cari no. surat atau perihal..."
-                  value={importSearchTerm}
-                  onChange={(e) => setImportSearchTerm(e.target.value)}
-                  className="pl-8"
-              />
+          <DialogHeader>
+            <DialogTitle>Pilih Berita Acara untuk Diimpor</DialogTitle>
+            <DialogDescription>
+              Pilih surat referensi dari daftar di bawah ini untuk mengisi data
+              secara otomatis.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative my-4">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari no. surat atau perihal..."
+              value={importSearchTerm}
+              onChange={(e) => setImportSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <ScrollArea className="max-h-80">
+            <div className="pr-4 space-y-2">
+              {paginatedImportSurat.length > 0 ? (
+                paginatedImportSurat.map((surat: Surat) => (
+                  <div
+                    key={surat.nomor}
+                    className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border"
+                  >
+                    <div>
+                      <p className="font-semibold">{surat.nomor}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Vendor: {surat.dariKe}
+                      </p>
+                    </div>
+                    <Button onClick={() => handleImportSelection(surat)}>
+                      Pilih
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center p-4">
+                  Tidak ada data Berita Acara yang tersedia.
+                </p>
+              )}
             </div>
-            <ScrollArea className="max-h-80">
-                <div className="pr-4 space-y-2">
-                  {paginatedImportSurat.length > 0 ? (
-                      paginatedImportSurat.map((surat: Surat) => (
-                          <div key={surat.nomor} className="flex items-center justify-between p-2 my-1 hover:bg-muted rounded-md border">
-                              <div>
-                                  <p className="font-semibold">{surat.nomor}</p>
-                                  <p className="text-sm text-muted-foreground">Vendor: {surat.dariKe}</p>
-                              </div>
-                              <Button onClick={() => handleImportSelection(surat)}>Pilih</Button>
-                          </div>
-                      ))
-                  ) : (
-                      <p className="text-sm text-muted-foreground text-center p-4">Tidak ada data Berita Acara yang tersedia.</p>
-                  )}
-                </div>
-            </ScrollArea>
-             {totalImportPages > 1 && (
-              <div className="flex items-center justify-center space-x-2 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))}
-                  disabled={importCurrentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Hal {importCurrentPage} dari {totalImportPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))}
-                  disabled={importCurrentPage === totalImportPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+          </ScrollArea>
+          {totalImportPages > 1 && (
+            <div className="flex items-center justify-center space-x-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setImportCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={importCurrentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Hal {importCurrentPage} dari {totalImportPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setImportCurrentPage((p) => Math.min(p + 1, totalImportPages))
+                }
+                disabled={importCurrentPage === totalImportPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
-      
+
       <style jsx global>{`
         @media print {
           body * {
             visibility: hidden;
           }
-          #surat-preview, #surat-preview * {
+          #surat-preview,
+          #surat-preview * {
             visibility: visible;
           }
           #surat-preview {

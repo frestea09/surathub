@@ -1,14 +1,25 @@
-
 "use client";
 
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ShieldAlert, ShieldCheck, Info, MessageSquareWarning } from "lucide-react";
+import {
+  ShieldAlert,
+  ShieldCheck,
+  Info,
+  MessageSquareWarning,
+} from "lucide-react";
 
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatDate } from "@/lib/utils";
 
 type LogEntry = {
   id: string;
@@ -20,47 +31,236 @@ type LogEntry = {
 };
 
 const mockLogData: LogEntry[] = [
-  { id: "log1", tanggal: "2024-08-01 10:05:12", pengguna: "admin", aksi: "LOGIN_BERHASIL", detail: "Pengguna 'Admin Utama' berhasil login dari IP 192.168.1.10", status: "Info" },
-  { id: "log2", tanggal: "2024-08-01 10:10:22", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Perintah' No. 000.3/PPK-RSUD OTISTA/IV/2025", status: "Berhasil" },
-  { id: "log3", tanggal: "2024-08-01 10:15:03", pengguna: "ppk", aksi: "KIRIM_SURAT", detail: "Surat Perintah No. 000.3/PPK-RSUD OTISTA/IV/2025 dikirim ke Pejabat Pengadaan", status: "Berhasil" },
-  { id: "log4", tanggal: "2024-08-01 10:30:00", pengguna: "ppbj", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Pesanan (Internal)' No. 000.3/PPBJ-RSUD OTISTA/IV/2025", status: "Berhasil" },
-  { id: "log5", tanggal: "2024-08-01 10:35:00", pengguna: "ppbj", aksi: "KIRIM_SURAT", detail: "Surat Pesanan (Internal) No. 000.3/PPBJ-RSUD OTISTA/IV/2025 dikirim ke PPK", status: "Berhasil" },
-  { id: "log6", tanggal: "2024-08-01 10:45:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Berhasil" },
-  { id: "log21", tanggal: "2024-08-01 10:48:00", pengguna: "vendor-1", aksi: "REVISI_DIMINTA", detail: "Vendor 'PT Intisumber' meminta revisi untuk pesanan No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025", status: "Peringatan" },
-  { id: "log22", tanggal: "2024-08-01 10:49:00", pengguna: "ppk", aksi: "EDIT_DRAF_SURAT", detail: "Memperbarui draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 setelah permintaan revisi", status: "Berhasil" },
-  { id: "log7", tanggal: "2024-08-01 10:50:00", pengguna: "ppk", aksi: "TERBITKAN_KE_VENDOR", detail: "Surat Pesanan (Vendor) No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 diterbitkan ke portal vendor", status: "Berhasil" },
-  { id: "log23", tanggal: "2024-08-01 10:55:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Surat Perintah Pengadaan' No. 02/Alat Listrik/PPK/V/2025", status: "Berhasil" },
-  { id: "log24", tanggal: "2024-08-01 11:00:00", pengguna: "ppk", aksi: "KIRIM_SURAT", detail: "Surat No. 02/Alat Listrik/PPK/V/2025 dikirim", status: "Berhasil" },
-  { id: "log25", tanggal: "2024-08-01 11:05:00", pengguna: "ppbj", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'BA Hasil Pengadaan' No. 02/Alat Listrik/PP/V/2025", status: "Berhasil" },
-  { id: "log8", tanggal: "2024-08-01 11:00:45", pengguna: "admin", aksi: "TERIMA_SURAT_MASUK", detail: "Surat masuk No. INV/2024/07/998 dari 'CV. ATK Bersama' diterima", status: "Info" },
-  { id: "log9", tanggal: "2024-08-01 11:02:15", pengguna: "admin", aksi: "BUAT_DISPOSISI", detail: "Disposisi surat No. INV/2024/07/998 ke 'Kepala Bagian Keuangan'", status: "Berhasil" },
-  { id: "log10", tanggal: "2024-08-01 11:30:00", pengguna: "ppk", aksi: "BUAT_DRAF_SURAT", detail: "Membuat draf 'Berita Acara Pemeriksaan' No. 06/PPK-FAR/RSUDO/IV/2025", status: "Berhasil" },
-  { id: "log11", tanggal: "2024-08-01 11:35:00", pengguna: "ppk", aksi: "EDIT_DRAF_SURAT", detail: "Mengubah draf 'Berita Acara Serah Terima' No. BASTB/06/FAR/IV/2025", status: "Berhasil" },
-  { id: "log12", tanggal: "2024-08-01 12:30:00", pengguna: "admin", aksi: "TAMBAH_PENGGUNA", detail: "Pengguna 'Andi Wijaya' (Staf) ditambahkan", status: "Berhasil" },
-  { id: "log13", tanggal: "2024-08-01 12:35:10", pengguna: "admin", aksi: "UBAH_PENGGUNA", detail: "Status pengguna 'Budi Darmawan' diubah menjadi Non-Aktif", status: "Berhasil" },
-  { id: "log14", tanggal: "2024-08-01 14:00:00", pengguna: "system", aksi: "LOGIN_GAGAL", detail: "Upaya login gagal untuk pengguna 'tidakada' dari IP 202.55.12.34", status: "Gagal" },
-  { id: "log15", tanggal: "2024-08-01 15:00:00", pengguna: "direktur", aksi: "TOLAK_SURAT", detail: "Surat keluar No. 007/MEMO/RSUD-O/VIII/2024 ditolak", status: "Info" },
-  { id: "log16", tanggal: "2024-08-01 15:15:45", pengguna: "keuangan", aksi: "SELESAIKAN_PROSES", detail: "Proses surat masuk No. 005/B/FIN/2024 diselesaikan", status: "Berhasil" },
-  { id: "log17", tanggal: "2024-08-01 15:30:00", pengguna: "direktur", aksi: "LIHAT_LAPORAN", detail: "Melihat laporan rentang tanggal 01/07/2024 - 31/07/2024", status: "Info" },
-  { id: "log18", tanggal: "2024-08-01 15:31:00", pengguna: "direktur", aksi: "EKSPOR_LAPORAN", detail: "Mengekspor laporan ke CSV", status: "Berhasil" },
-  { id: "log19", tanggal: "2024-08-01 16:00:00", pengguna: "admin", aksi: "LOGOUT", detail: "Pengguna 'admin' berhasil logout", status: "Info" },
-  { id: "log20", tanggal: "2024-08-01 17:00:00", pengguna: "ppk", aksi: "ARSIP_SURAT", detail: "Surat 'BASTB/06/FAR/IV/2025' diarsipkan", status: "Berhasil" },
+  {
+    id: "log1",
+    tanggal: "2024-08-01 10:05:12",
+    pengguna: "admin",
+    aksi: "LOGIN_BERHASIL",
+    detail: "Pengguna 'Admin Utama' berhasil login dari IP 192.168.1.10",
+    status: "Info",
+  },
+  {
+    id: "log2",
+    tanggal: "2024-08-01 10:10:22",
+    pengguna: "ppk",
+    aksi: "BUAT_DRAF_SURAT",
+    detail: "Membuat draf 'Surat Perintah' No. 000.3/PPK-RSUD OTISTA/IV/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log3",
+    tanggal: "2024-08-01 10:15:03",
+    pengguna: "ppk",
+    aksi: "KIRIM_SURAT",
+    detail:
+      "Surat Perintah No. 000.3/PPK-RSUD OTISTA/IV/2025 dikirim ke Pejabat Pengadaan",
+    status: "Berhasil",
+  },
+  {
+    id: "log4",
+    tanggal: "2024-08-01 10:30:00",
+    pengguna: "ppbj",
+    aksi: "BUAT_DRAF_SURAT",
+    detail:
+      "Membuat draf 'Surat Pesanan (Internal)' No. 000.3/PPBJ-RSUD OTISTA/IV/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log5",
+    tanggal: "2024-08-01 10:35:00",
+    pengguna: "ppbj",
+    aksi: "KIRIM_SURAT",
+    detail:
+      "Surat Pesanan (Internal) No. 000.3/PPBJ-RSUD OTISTA/IV/2025 dikirim ke PPK",
+    status: "Berhasil",
+  },
+  {
+    id: "log6",
+    tanggal: "2024-08-01 10:45:00",
+    pengguna: "ppk",
+    aksi: "BUAT_DRAF_SURAT",
+    detail:
+      "Membuat draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log21",
+    tanggal: "2024-08-01 10:48:00",
+    pengguna: "vendor-1",
+    aksi: "REVISI_DIMINTA",
+    detail:
+      "Vendor 'PT Intisumber' meminta revisi untuk pesanan No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025",
+    status: "Peringatan",
+  },
+  {
+    id: "log22",
+    tanggal: "2024-08-01 10:49:00",
+    pengguna: "ppk",
+    aksi: "EDIT_DRAF_SURAT",
+    detail:
+      "Memperbarui draf 'Surat Pesanan (Vendor)' No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 setelah permintaan revisi",
+    status: "Berhasil",
+  },
+  {
+    id: "log7",
+    tanggal: "2024-08-01 10:50:00",
+    pengguna: "ppk",
+    aksi: "TERBITKAN_KE_VENDOR",
+    detail:
+      "Surat Pesanan (Vendor) No. 000.3/06-FAR/PPK-RSUD OTISTA/IV/2025 diterbitkan ke portal vendor",
+    status: "Berhasil",
+  },
+  {
+    id: "log23",
+    tanggal: "2024-08-01 10:55:00",
+    pengguna: "ppk",
+    aksi: "BUAT_DRAF_SURAT",
+    detail:
+      "Membuat draf 'Surat Perintah Pengadaan' No. 02/Alat Listrik/PPK/V/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log24",
+    tanggal: "2024-08-01 11:00:00",
+    pengguna: "ppk",
+    aksi: "KIRIM_SURAT",
+    detail: "Surat No. 02/Alat Listrik/PPK/V/2025 dikirim",
+    status: "Berhasil",
+  },
+  {
+    id: "log25",
+    tanggal: "2024-08-01 11:05:00",
+    pengguna: "ppbj",
+    aksi: "BUAT_DRAF_SURAT",
+    detail: "Membuat draf 'BA Hasil Pengadaan' No. 02/Alat Listrik/PP/V/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log8",
+    tanggal: "2024-08-01 11:00:45",
+    pengguna: "admin",
+    aksi: "TERIMA_SURAT_MASUK",
+    detail: "Surat masuk No. INV/2024/07/998 dari 'CV. ATK Bersama' diterima",
+    status: "Info",
+  },
+  {
+    id: "log9",
+    tanggal: "2024-08-01 11:02:15",
+    pengguna: "admin",
+    aksi: "BUAT_DISPOSISI",
+    detail: "Disposisi surat No. INV/2024/07/998 ke 'Kepala Bagian Keuangan'",
+    status: "Berhasil",
+  },
+  {
+    id: "log10",
+    tanggal: "2024-08-01 11:30:00",
+    pengguna: "ppk",
+    aksi: "BUAT_DRAF_SURAT",
+    detail:
+      "Membuat draf 'Berita Acara Pemeriksaan' No. 06/PPK-FAR/RSUDO/IV/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log11",
+    tanggal: "2024-08-01 11:35:00",
+    pengguna: "ppk",
+    aksi: "EDIT_DRAF_SURAT",
+    detail:
+      "Mengubah draf 'Berita Acara Serah Terima' No. BASTB/06/FAR/IV/2025",
+    status: "Berhasil",
+  },
+  {
+    id: "log12",
+    tanggal: "2024-08-01 12:30:00",
+    pengguna: "admin",
+    aksi: "TAMBAH_PENGGUNA",
+    detail: "Pengguna 'Andi Wijaya' (Staf) ditambahkan",
+    status: "Berhasil",
+  },
+  {
+    id: "log13",
+    tanggal: "2024-08-01 12:35:10",
+    pengguna: "admin",
+    aksi: "UBAH_PENGGUNA",
+    detail: "Status pengguna 'Budi Darmawan' diubah menjadi Non-Aktif",
+    status: "Berhasil",
+  },
+  {
+    id: "log14",
+    tanggal: "2024-08-01 14:00:00",
+    pengguna: "system",
+    aksi: "LOGIN_GAGAL",
+    detail: "Upaya login gagal untuk pengguna 'tidakada' dari IP 202.55.12.34",
+    status: "Gagal",
+  },
+  {
+    id: "log15",
+    tanggal: "2024-08-01 15:00:00",
+    pengguna: "direktur",
+    aksi: "TOLAK_SURAT",
+    detail: "Surat keluar No. 007/MEMO/RSUD-O/VIII/2024 ditolak",
+    status: "Info",
+  },
+  {
+    id: "log16",
+    tanggal: "2024-08-01 15:15:45",
+    pengguna: "keuangan",
+    aksi: "SELESAIKAN_PROSES",
+    detail: "Proses surat masuk No. 005/B/FIN/2024 diselesaikan",
+    status: "Berhasil",
+  },
+  {
+    id: "log17",
+    tanggal: "2024-08-01 15:30:00",
+    pengguna: "direktur",
+    aksi: "LIHAT_LAPORAN",
+    detail: "Melihat laporan rentang tanggal 01/07/2024 - 31/07/2024",
+    status: "Info",
+  },
+  {
+    id: "log18",
+    tanggal: "2024-08-01 15:31:00",
+    pengguna: "direktur",
+    aksi: "EKSPOR_LAPORAN",
+    detail: "Mengekspor laporan ke CSV",
+    status: "Berhasil",
+  },
+  {
+    id: "log19",
+    tanggal: "2024-08-01 16:00:00",
+    pengguna: "admin",
+    aksi: "LOGOUT",
+    detail: "Pengguna 'admin' berhasil logout",
+    status: "Info",
+  },
+  {
+    id: "log20",
+    tanggal: "2024-08-01 17:00:00",
+    pengguna: "ppk",
+    aksi: "ARSIP_SURAT",
+    detail: "Surat 'BASTB/06/FAR/IV/2025' diarsipkan",
+    status: "Berhasil",
+  },
 ].sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
 
-const statusConfig: { [key: string]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ElementType } } = {
+const statusConfig: {
+  [key: string]: {
+    variant: "default" | "secondary" | "destructive" | "outline";
+    icon: React.ElementType;
+  };
+} = {
   Berhasil: { variant: "default", icon: ShieldCheck },
   Gagal: { variant: "destructive", icon: ShieldAlert },
   Info: { variant: "secondary", icon: Info },
-  Peringatan: { variant: "destructive", icon: MessageSquareWarning }
+  Peringatan: { variant: "destructive", icon: MessageSquareWarning },
 };
 
-
 export default function LogAktivitasPage() {
-
   const columns: ColumnDef<LogEntry>[] = [
     {
       accessorKey: "tanggal",
       header: "Waktu",
+      cell: ({ row }) => formatDate(row.getValue("tanggal")),
     },
     {
       accessorKey: "pengguna",
@@ -81,10 +281,13 @@ export default function LogAktivitasPage() {
         const status = row.original.status;
         const config = statusConfig[status];
         return (
-            <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-                <config.icon className="h-3 w-3" />
-                <span>{status}</span>
-            </Badge>
+          <Badge
+            variant={config.variant}
+            className="flex items-center gap-1 w-fit"
+          >
+            <config.icon className="h-3 w-3" />
+            <span>{status}</span>
+          </Badge>
         );
       },
     },
@@ -93,20 +296,20 @@ export default function LogAktivitasPage() {
   return (
     <AppLayout>
       <div className="flex items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">Log Aktivitas Sistem</h1>
+        <h1 className="text-lg font-semibold md:text-2xl">
+          Log Aktivitas Sistem
+        </h1>
       </div>
       <Card>
         <CardHeader>
           <CardTitle>Catatan Aktivitas</CardTitle>
           <CardDescription>
-            Tinjau semua aktivitas penting yang terjadi di dalam sistem. Gunakan filter untuk mencari log spesifik.
+            Tinjau semua aktivitas penting yang terjadi di dalam sistem. Gunakan
+            filter untuk mencari log spesifik.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={mockLogData}
-          />
+          <DataTable columns={columns} data={mockLogData} />
         </CardContent>
       </Card>
     </AppLayout>

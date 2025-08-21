@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -19,13 +18,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import { useSuratStore } from "@/store/suratStore";
+import { formatDate } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Surat } from "@/types";
-import LogoRSUD from '@/app/logo-rs.png';
+import LogoRSUD from "@/app/logo-rs.png";
 
 type TableItem = {
   id: number;
@@ -35,18 +40,23 @@ type TableItem = {
   col4: string; // Keterangan
 };
 
-const defaultTableHeaders = ['Nama Item/Barang', 'Jumlah', 'Satuan', 'Keterangan'];
+const defaultTableHeaders = [
+  "Nama Item/Barang",
+  "Jumlah",
+  "Satuan",
+  "Keterangan",
+];
 
 function BuatSuratKustomPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addSurat, surat: allSurat } = useSuratStore();
-  
-  const templateId = searchParams.get('template');
-  const templateLabel = searchParams.get('label') || 'Kustom';
-  
-  const isEditMode = !!templateId && allSurat.some(s => s.nomor === templateId);
+
+  const templateId = searchParams.get("template");
+  const templateLabel = searchParams.get("label") || "Kustom";
+
+  const isEditMode = searchParams.get("edit") === "true";
 
   const [formData, setFormData] = useState({
     nomor: "",
@@ -57,7 +67,8 @@ function BuatSuratKustomPageContent() {
     penerima: "",
     penerimaTempat: "Tempat",
     isiSurat: "",
-    penutup: "Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.",
+    penutup:
+      "Demikian surat ini disampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.",
     jabatanPenandaTangan: "",
     namaPenandaTangan: "",
     nipPenandaTangan: "",
@@ -68,55 +79,66 @@ function BuatSuratKustomPageContent() {
 
   useEffect(() => {
     if (templateId) {
-      const existingTemplate = allSurat.find(s => s.nomor === templateId);
+      const existingTemplate = allSurat.find((s) => s.nomor === templateId);
       if (existingTemplate) {
-        // We are in edit mode, load the data.
         const dataToLoad = existingTemplate.data;
         setFormData({
           ...dataToLoad,
-          tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
+          nomor: isEditMode ? dataToLoad.nomor || "" : "",
+          tanggalSurat: dataToLoad.tanggalSurat
+            ? new Date(dataToLoad.tanggalSurat)
+            : new Date(),
           tableHeaders: dataToLoad.tableHeaders || [...defaultTableHeaders],
         });
         setItems(existingTemplate.data.items || []);
       } else {
-        // We are in creation mode for a new template.
-        setFormData(prev => ({ ...prev, perihal: templateLabel }));
+        setFormData((prev) => ({ ...prev, perihal: templateLabel }));
       }
     }
-  }, [templateId, templateLabel, allSurat]);
+  }, [templateId, templateLabel, allSurat, isEditMode]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
-  
+
   const handleHeaderChange = (index: number, value: string) => {
     const newHeaders = [...formData.tableHeaders];
     newHeaders[index] = value;
-    setFormData(prev => ({ ...prev, tableHeaders: newHeaders }));
+    setFormData((prev) => ({ ...prev, tableHeaders: newHeaders }));
   };
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-      setFormData(prev => ({ ...prev, tanggalSurat: date }));
+      setFormData((prev) => ({ ...prev, tanggalSurat: date }));
     }
   };
 
-  const handleItemChange = (itemId: number, field: keyof TableItem, value: string | number) => {
-      setItems(prevItems => prevItems.map(item => 
-        item.id === itemId ? { ...item, [field]: String(value) } : item
-      ));
+  const handleItemChange = (
+    itemId: number,
+    field: keyof TableItem,
+    value: string | number,
+  ) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, [field]: String(value) } : item,
+      ),
+    );
   };
 
   const handleAddItem = () => {
-    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    setItems(prev => [...prev, { id: newId, col1: "", col2: "1", col3: "Buah", col4: "" }]);
+    const newId =
+      items.length > 0 ? Math.max(...items.map((i) => i.id)) + 1 : 1;
+    setItems((prev) => [
+      ...prev,
+      { id: newId, col1: "", col2: "1", col3: "Buah", col4: "" },
+    ]);
   };
 
   const handleRemoveItem = (itemId: number) => {
-    setItems(prev => prev.filter(item => item.id !== itemId));
+    setItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
   const handlePrint = () => {
@@ -125,41 +147,69 @@ function BuatSuratKustomPageContent() {
 
   const handleSave = () => {
     if (!templateId) {
-       toast({ variant: "destructive", title: "Gagal", description: "ID template tidak valid." });
-       return;
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "ID template tidak valid.",
+      });
+      return;
     }
     if (!formData.perihal) {
-      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Perihal tidak boleh kosong." });
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: "Perihal tidak boleh kosong.",
+      });
       return;
     }
 
     try {
-      const suratData = { ...formData, items, status: 'Draft' };
-      const dataToSave: Surat = {
-        nomor: templateId, 
-        judul: formData.perihal,
-        status: 'Draft',
-        tanggal: formData.tanggalSurat.toISOString(),
-        penanggungJawab: formData.namaPenandaTangan,
-        dariKe: formData.penerima,
-        tipe: `KUSTOM-${templateId}`,
-        jenis: 'Surat Keluar',
-        unit: 'Umum',
-        data: suratData,
-      };
-
-      addSurat(dataToSave);
-      
-      toast({
-        title: "Berhasil",
-        description: isEditMode ? `Template "${formData.perihal}" berhasil diperbarui.` : `Template untuk "${formData.perihal}" berhasil disimpan.`,
-      });
-      router.push("/pengaturan/alur-kerja");
+      const suratData = { ...formData, items, status: "Draft" };
+      if (isEditMode) {
+        const dataToSave: Surat = {
+          nomor: templateId,
+          judul: formData.perihal,
+          status: "Draft",
+          tanggal: formData.tanggalSurat.toISOString(),
+          penanggungJawab: formData.namaPenandaTangan,
+          dariKe: formData.penerima,
+          tipe: `KUSTOM-${templateId}`,
+          jenis: "Surat Keluar",
+          unit: "Umum",
+          data: suratData,
+        };
+        addSurat(dataToSave);
+        toast({
+          title: "Berhasil",
+          description: `Template "${formData.perihal}" berhasil diperbarui.`,
+        });
+        router.push("/pengaturan/alur-kerja");
+      } else {
+        const dataToSave: Surat = {
+          nomor: formData.nomor || `DRAFT-${Date.now()}`,
+          judul: formData.perihal,
+          status: "Draft",
+          tanggal: formData.tanggalSurat.toISOString(),
+          penanggungJawab: formData.namaPenandaTangan,
+          dariKe: formData.penerima,
+          tipe: `KUSTOM-${templateId}`,
+          jenis: "Surat Keluar",
+          unit: "Umum",
+          data: suratData,
+        };
+        addSurat(dataToSave);
+        toast({
+          title: "Berhasil",
+          description: `Surat "${formData.perihal}" berhasil disimpan.`,
+        });
+        router.push("/surat-keluar");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Gagal Menyimpan",
-        description: "Terjadi kesalahan saat menyimpan templat: " + error.message,
+        description:
+          "Terjadi kesalahan saat menyimpan templat: " + error.message,
       });
     }
   };
@@ -167,15 +217,22 @@ function BuatSuratKustomPageContent() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Kembali</span>
         </Button>
-        <h1 className="text-xl font-semibold">{isEditMode ? 'Ubah' : 'Buat'} Templat: {templateLabel}</h1>
+        <h1 className="text-xl font-semibold">
+          {isEditMode ? "Ubah Templat" : `Buat Surat: ${templateLabel}`}
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            {isEditMode ? 'Update Templat' : 'Simpan Templat'}
+            {isEditMode ? "Update Templat" : "Simpan"}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -189,175 +246,227 @@ function BuatSuratKustomPageContent() {
             <CardHeader>
               <CardTitle>Desain Template Surat</CardTitle>
               <CardDescription>
-                 Isi konten default untuk template surat baru Anda. Ini dapat diubah nanti saat membuat surat sebenarnya.
+                Isi konten default untuk template surat baru Anda. Ini dapat
+                diubah nanti saat membuat surat sebenarnya.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[calc(100vh-180px)] pr-4">
-              <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="perihal">Perihal (Judul Surat)</Label>
-                <Input
-                  id="perihal"
-                  value={formData.perihal}
-                  onChange={handleInputChange}
-                  placeholder="Contoh: Surat Rekomendasi Kerja"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nomor">Format Nomor Surat (Opsional)</Label>
-                <Input
-                  id="nomor"
-                  value={formData.nomor}
-                  onChange={handleInputChange}
-                  placeholder="Contoh: .../SK-DIR/UMUM/I/2025"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lampiran">Lampiran</Label>
-                <Input
-                  id="lampiran"
-                  value={formData.lampiran}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tempat">Tempat Surat</Label>
-                  <Input
-                    id="tempat"
-                    value={formData.tempat}
-                    onChange={handleInputChange}
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="perihal">Perihal (Judul Surat)</Label>
+                    <Input
+                      id="perihal"
+                      value={formData.perihal}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Surat Rekomendasi Kerja"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nomor">Format Nomor Surat (Opsional)</Label>
+                    <Input
+                      id="nomor"
+                      value={formData.nomor}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: .../SK-DIR/UMUM/I/2025"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lampiran">Lampiran</Label>
+                    <Input
+                      id="lampiran"
+                      value={formData.lampiran}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tempat">Tempat Surat</Label>
+                      <Input
+                        id="tempat"
+                        value={formData.tempat}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tanggalSurat">Tanggal Surat</Label>
+                      <DatePickerWithWarning
+                        date={formData.tanggalSurat}
+                        onDateChange={handleDateChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="penerima">Penerima (Yth.)</Label>
+                    <Input
+                      id="penerima"
+                      value={formData.penerima}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="penerimaTempat">Di (Tempat Penerima)</Label>
+                    <Input
+                      id="penerimaTempat"
+                      value={formData.penerimaTempat}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="isiSurat">Isi Surat</Label>
+                    <Textarea
+                      id="isiSurat"
+                      value={formData.isiSurat}
+                      onChange={handleInputChange}
+                      rows={8}
+                      placeholder="Tuliskan paragraf pembuka, isi, dan detail lain dari surat di sini..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="penutup">Kalimat Penutup</Label>
+                    <Textarea
+                      id="penutup"
+                      value={formData.penutup}
+                      onChange={handleInputChange}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="jabatanPenandaTangan">
+                      Jabatan Penanda Tangan
+                    </Label>
+                    <Input
+                      id="jabatanPenandaTangan"
+                      value={formData.jabatanPenandaTangan}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="namaPenandaTangan">
+                      Nama Penanda Tangan
+                    </Label>
+                    <Input
+                      id="namaPenandaTangan"
+                      value={formData.namaPenandaTangan}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nipPenandaTangan">NIP Penanda Tangan</Label>
+                    <Input
+                      id="nipPenandaTangan"
+                      value={formData.nipPenandaTangan}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tanggalSurat">Tanggal Surat</Label>
-                  <DatePickerWithWarning
-                    date={formData.tanggalSurat}
-                    onDateChange={handleDateChange}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="penerima">Penerima (Yth.)</Label>
-                <Input
-                  id="penerima"
-                  value={formData.penerima}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="penerimaTempat">Di (Tempat Penerima)</Label>
-                <Input
-                  id="penerimaTempat"
-                  value={formData.penerimaTempat}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="isiSurat">Isi Surat</Label>
-                <Textarea
-                  id="isiSurat"
-                  value={formData.isiSurat}
-                  onChange={handleInputChange}
-                  rows={8}
-                  placeholder="Tuliskan paragraf pembuka, isi, dan detail lain dari surat di sini..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="penutup">Kalimat Penutup</Label>
-                <Textarea
-                  id="penutup"
-                  value={formData.penutup}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jabatanPenandaTangan">
-                  Jabatan Penanda Tangan
-                </Label>
-                <Input
-                  id="jabatanPenandaTangan"
-                  value={formData.jabatanPenandaTangan}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="namaPenandaTangan">Nama Penanda Tangan</Label>
-                <Input
-                  id="namaPenandaTangan"
-                  value={formData.namaPenandaTangan}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nipPenandaTangan">NIP Penanda Tangan</Label>
-                <Input
-                  id="nipPenandaTangan"
-                  value={formData.nipPenandaTangan}
-                  onChange={handleInputChange}
-                />
-              </div>
-              </div>
               </ScrollArea>
             </CardContent>
           </Card>
-          
-           <Card>
+
+          <Card>
             <CardHeader>
               <CardTitle>Item Tabel (Opsional)</CardTitle>
-              <CardDescription>Tambahkan daftar item atau lampiran dalam bentuk tabel. Anda bisa mengubah nama kolom sesuai kebutuhan.</CardDescription>
+              <CardDescription>
+                Tambahkan daftar item atau lampiran dalam bentuk tabel. Anda
+                bisa mengubah nama kolom sesuai kebutuhan.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                 <div className="space-y-2 rounded-md border p-4">
-                    <Label className="text-sm font-medium">Ubah Nama Kolom</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                        {formData.tableHeaders.map((header, index) => (
-                            <Input
-                                key={index}
-                                value={header}
-                                onChange={(e) => handleHeaderChange(index, e.target.value)}
-                                placeholder={`Kolom ${index + 1}`}
-                            />
-                        ))}
-                    </div>
+                <div className="space-y-2 rounded-md border p-4">
+                  <Label className="text-sm font-medium">Ubah Nama Kolom</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {formData.tableHeaders.map((header, index) => (
+                      <Input
+                        key={index}
+                        value={header}
+                        onChange={(e) =>
+                          handleHeaderChange(index, e.target.value)
+                        }
+                        placeholder={`Kolom ${index + 1}`}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {items.map((item, index) => (
-                  <div key={item.id} className="border p-4 rounded-md space-y-2 relative">
-                    <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleRemoveItem(item.id)}>
-                        <Trash2 className="h-4 w-4" />
+                  <div
+                    key={item.id}
+                    className="border p-4 rounded-md space-y-2 relative"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1 right-1 h-7 w-7 text-destructive hover:bg-destructive/10"
+                      onClick={() => handleRemoveItem(item.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                     <p className="font-semibold text-sm">Item #{index + 1}</p>
                     <div className="space-y-2">
-                        <Label htmlFor={`item-col1-${item.id}`}>{formData.tableHeaders[0]}</Label>
-                        <Input id={`item-col1-${item.id}`} value={item.col1} onChange={(e) => handleItemChange(item.id, 'col1', e.target.value)} />
+                      <Label htmlFor={`item-col1-${item.id}`}>
+                        {formData.tableHeaders[0]}
+                      </Label>
+                      <Input
+                        id={`item-col1-${item.id}`}
+                        value={item.col1}
+                        onChange={(e) =>
+                          handleItemChange(item.id, "col1", e.target.value)
+                        }
+                      />
                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor={`item-col2-${item.id}`}>{formData.tableHeaders[1]}</Label>
-                            <Input id={`item-col2-${item.id}`} value={item.col2} onChange={(e) => handleItemChange(item.id, 'col2', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor={`item-col3-${item.id}`}>{formData.tableHeaders[2]}</Label>
-                            <Input id={`item-col3-${item.id}`} value={item.col3} onChange={(e) => handleItemChange(item.id, 'col3', e.target.value)} />
-                        </div>
-                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor={`item-col4-${item.id}`}>{formData.tableHeaders[3]}</Label>
-                        <Input id={`item-col4-${item.id}`} value={item.col4} onChange={(e) => handleItemChange(item.id, 'col4', e.target.value)} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`item-col2-${item.id}`}>
+                          {formData.tableHeaders[1]}
+                        </Label>
+                        <Input
+                          id={`item-col2-${item.id}`}
+                          value={item.col2}
+                          onChange={(e) =>
+                            handleItemChange(item.id, "col2", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`item-col3-${item.id}`}>
+                          {formData.tableHeaders[2]}
+                        </Label>
+                        <Input
+                          id={`item-col3-${item.id}`}
+                          value={item.col3}
+                          onChange={(e) =>
+                            handleItemChange(item.id, "col3", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`item-col4-${item.id}`}>
+                        {formData.tableHeaders[3]}
+                      </Label>
+                      <Input
+                        id={`item-col4-${item.id}`}
+                        value={item.col4}
+                        onChange={(e) =>
+                          handleItemChange(item.id, "col4", e.target.value)
+                        }
+                      />
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
             <CardFooter>
-                 <Button variant="outline" className="w-full" onClick={handleAddItem}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Tambah Baris Tabel
-                </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleAddItem}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Tambah Baris Tabel
+              </Button>
             </CardFooter>
           </Card>
         </div>
@@ -373,7 +482,13 @@ function BuatSuratKustomPageContent() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image
+                    src={LogoRSUD}
+                    alt="Logo RSUD"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                  />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -391,7 +506,12 @@ function BuatSuratKustomPageContent() {
                 </div>
                 {/* BADAN SURAT */}
                 <div className="flex justify-end mb-4">
-                  <p>{formData.tempat}, {formData.tanggalSurat ? format(formData.tanggalSurat, "dd MMMM yyyy", { locale: id }) : ""}</p>
+                  <p>
+                    {formData.tempat},{" "}
+                    {formData.tanggalSurat
+                      ? formatDate(formData.tanggalSurat)
+                      : ""}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 mb-4">
@@ -400,7 +520,9 @@ function BuatSuratKustomPageContent() {
                   <span className="font-semibold">Lampiran</span>
                   <span>: {formData.lampiran}</span>
                   <span className="font-semibold">Perihal</span>
-                  <span className="font-semibold">: {formData.perihal || "[Perihal Surat]"}</span>
+                  <span className="font-semibold">
+                    : {formData.perihal || "[Perihal Surat]"}
+                  </span>
                 </div>
 
                 <div className="mb-4">
@@ -411,33 +533,51 @@ function BuatSuratKustomPageContent() {
                 </div>
 
                 <div className="mb-4 text-justify indent-8 whitespace-pre-wrap">
-                  {formData.isiSurat || "[Isi surat akan ditampilkan di sini...]"}
+                  {formData.isiSurat ||
+                    "[Isi surat akan ditampilkan di sini...]"}
                 </div>
-                
+
                 {items.length > 0 && (
-                    <div className="my-6">
-                        <Table className="text-[10pt]">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="border border-black text-black text-center font-bold">No</TableHead>
-                                    {formData.tableHeaders.map((header, index) => (
-                                        <TableHead key={index} className="border border-black text-black text-center font-bold">{header}</TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {items.map((item, index) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell className="border border-black text-center">{index + 1}</TableCell>
-                                        <TableCell className="border border-black">{item.col1}</TableCell>
-                                        <TableCell className="border border-black text-center">{item.col2}</TableCell>
-                                        <TableCell className="border border-black text-center">{item.col3}</TableCell>
-                                        <TableCell className="border border-black">{item.col4}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                  <div className="my-6">
+                    <Table className="text-[10pt]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="border border-black text-black text-center font-bold">
+                            No
+                          </TableHead>
+                          {formData.tableHeaders.map((header, index) => (
+                            <TableHead
+                              key={index}
+                              className="border border-black text-black text-center font-bold"
+                            >
+                              {header}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map((item, index) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="border border-black text-center">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="border border-black">
+                              {item.col1}
+                            </TableCell>
+                            <TableCell className="border border-black text-center">
+                              {item.col2}
+                            </TableCell>
+                            <TableCell className="border border-black text-center">
+                              {item.col3}
+                            </TableCell>
+                            <TableCell className="border border-black">
+                              {item.col4}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
 
                 <p className="mb-12 text-justify indent-8">
@@ -447,7 +587,10 @@ function BuatSuratKustomPageContent() {
                 {/* TANDA TANGAN */}
                 <div className="flex justify-end">
                   <div className="text-center">
-                    <p>{formData.jabatanPenandaTangan || "[Jabatan Penanda Tangan]"}</p>
+                    <p>
+                      {formData.jabatanPenandaTangan ||
+                        "[Jabatan Penanda Tangan]"}
+                    </p>
                     <div className="h-20"></div> {/* Space for signature */}
                     <p className="font-bold underline">
                       {formData.namaPenandaTangan || "[Nama Penanda Tangan]"}
@@ -489,5 +632,3 @@ export default function BuatSuratKustomPage() {
     </Suspense>
   );
 }
-
-    
