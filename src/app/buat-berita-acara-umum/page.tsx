@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -204,7 +203,7 @@ export default function BuatBeritaAcaraUmumPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2 print:hidden">
-        <Link href="/dashboard"><Button size="icon" variant="outline" className="h-8 w-8"><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back</span></Button></Link>
+        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back</span></Button>
         <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} BA Pemeriksaan (Umum)</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleOpenImportDialog}><Download className="mr-2 h-4 w-4" />Ambil Data</Button>
@@ -321,7 +320,7 @@ export default function BuatBeritaAcaraUmumPage() {
                   </div>
                   <div className="text-center w-1/2">
                     <p>{formData.tempatTanggal}</p>
-                    {formData.pejabatJabatan.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+                    {(formData.pejabatJabatan ?? '').split('\n').map((line, i) => <p key={i}>{line}</p>)}
                     <div className="h-20"></div>
                     <p className="font-bold underline">{formData.pejabatNama}</p>
                     <p>{formData.pejabatNip}</p>
