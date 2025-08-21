@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   FileText,
-  Package,
   LineChart,
   Bell,
   UserCog,
@@ -40,12 +39,9 @@ const navGroups = [
     ],
   },
   {
-    title: "Laporan & Analitik",
-    icon: LineChart,
-    subItems: [
-      { href: "/laporan", label: NAV_LINKS.LAPORAN, icon: BarChart2 },
-      { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
-    ],
+    title: "Laporan",
+    href: "/laporan",
+    icon: BarChart2,
   },
   {
     title: "Notifikasi",
@@ -57,6 +53,7 @@ const navGroups = [
     icon: UserCog,
     subItems: [
       { href: "/admin", label: NAV_LINKS.ADMIN, icon: Users },
+      { href: "/log-aktivitas", label: NAV_LINKS.LOG_AKTIVITAS, icon: History },
       { href: "/pengaturan", label: NAV_LINKS.PENGATURAN, icon: Settings },
     ],
   },
