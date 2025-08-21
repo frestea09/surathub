@@ -34,11 +34,11 @@ export default function BuatSuratPerintahUmumPage() {
   const [formData, setFormData] = useState({
     nomor: "02/Alat Listrik/PPK/V/2025",
     lampiran: "-",
-    perihal: "Perintah Pengadaan",
+    perihal: "Perintah Pengadaan Barang/Jasa Umum",
     tempat: "Soreang",
-    tanggalSurat: new Date("2025-05-19T00:00:00"),
+    tanggalSurat: new Date(),
     penerima: "Pejabat Pengadaan Barang/Jasa",
-    penerimaTempat: "Tempat",
+    penerimaTempat: "di Tempat",
     isiSurat:
       "Berdasarkan Nota Dinas dari Kepala Bidang Penunjang Non Medik Nomor : 64a/Umpeg/2025 Tanggal 2 Mei 2025 Hal Permohonan Pengadaan Barang Jasa pada IPSRS, maka dengan ini agar Pejabat Pengadaan Barang/Jasa segera persiapan dan pelaksanaan pengadaan dengan memperhatikan peraturan perundang-undangan yang berlaku.",
     penutup:
@@ -140,33 +140,25 @@ export default function BuatSuratPerintahUmumPage() {
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Detail Surat</CardTitle>
+              <CardTitle>Formulir Surat Perintah</CardTitle>
               <CardDescription>
-                Isi detail surat yang akan dibuat.
+                Isi detail surat untuk memulai proses pengadaan barang atau jasa umum.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nomor">Nomor Surat</Label>
-                <Input
-                  id="nomor"
-                  value={formData.nomor}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lampiran">Lampiran</Label>
-                <Input
-                  id="lampiran"
-                  value={formData.lampiran}
-                  onChange={handleInputChange}
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="perihal">Perihal</Label>
                 <Input
                   id="perihal"
                   value={formData.perihal}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nomor">Nomor Surat</Label>
+                <Input
+                  id="nomor"
+                  value={formData.nomor}
                   onChange={handleInputChange}
                 />
               </div>
@@ -188,48 +180,22 @@ export default function BuatSuratPerintahUmumPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="penerima">Penerima (Yth)</Label>
+                <Label htmlFor="penerima">Tujuan Surat</Label>
                 <Input
                   id="penerima"
                   value={formData.penerima}
-                  onChange={handleInputChange}
+                  readOnly
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="penerimaTempat">Di</Label>
-                <Input
-                  id="penerimaTempat"
-                  value={formData.penerimaTempat}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="isiSurat">Isi Surat</Label>
+                <Label htmlFor="isiSurat">Detail Perintah Pengadaan</Label>
                 <Textarea
                   id="isiSurat"
                   value={formData.isiSurat}
                   onChange={handleInputChange}
                   rows={6}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="penutup">Kalimat Penutup</Label>
-                <Textarea
-                  id="penutup"
-                  value={formData.penutup}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jabatanPenandaTangan">
-                  Jabatan Penanda Tangan
-                </Label>
-                <Textarea
-                  id="jabatanPenandaTangan"
-                  value={formData.jabatanPenandaTangan}
-                  onChange={handleInputChange}
-                  rows={2}
+                  placeholder="Jelaskan dasar perintah pengadaan, misalnya berdasarkan nota dinas, dan instruksi utama."
                 />
               </div>
               <div className="space-y-2">
@@ -308,7 +274,7 @@ export default function BuatSuratPerintahUmumPage() {
                 {/* TANDA TANGAN */}
                 <div className="flex justify-end">
                   <div className="text-center w-1/2 ml-auto">
-                    {formData.jabatanPenandaTangan.split('\n').map((line, index) => (
+                    {(formData.jabatanPenandaTangan ?? '').split('\n').map((line, index) => (
                       <p key={index}>{line}</p>
                     ))}
                     <div className="h-20"></div> {/* Space for signature */}
@@ -324,7 +290,7 @@ export default function BuatSuratPerintahUmumPage() {
         </div>
       </main>
       {/* Print styles */}
-      <style jsx global>{`
+      <style jsx global>{\`
         @media print {
           body * {
             visibility: hidden;
@@ -340,7 +306,7 @@ export default function BuatSuratPerintahUmumPage() {
             width: 100%;
           }
         }
-      `}</style>
+      \`}</style>
     </div>
   );
 }
