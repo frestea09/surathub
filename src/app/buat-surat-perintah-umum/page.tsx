@@ -274,7 +274,7 @@ export default function BuatSuratPerintahUmumPage() {
                 {/* TANDA TANGAN */}
                 <div className="flex justify-end">
                   <div className="text-center w-1/2 ml-auto">
-                    {(formData.jabatanPenandaTangan ?? '').split('\n').map((line, index) => (
+                    {(formData.jabatanPenandaTangan ?? '').split('\\n').map((line, index) => (
                       <p key={index}>{line}</p>
                     ))}
                     <div className="h-20"></div> {/* Space for signature */}
@@ -290,7 +290,7 @@ export default function BuatSuratPerintahUmumPage() {
         </div>
       </main>
       {/* Print styles */}
-      <style jsx global>{\`
+      <style jsx global>{`
         @media print {
           body * {
             visibility: hidden;
@@ -306,7 +306,7 @@ export default function BuatSuratPerintahUmumPage() {
             width: 100%;
           }
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 }
