@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { Workflow, WorkflowStep } from '@/types';
+import { useRouter } from 'next/navigation';
 
 // Simple drag and drop implementation
 const DraggableStep = ({ step, index, onMove, children }: { step: WorkflowStep, index: number, onMove: (from: number, to: number) => void, children: React.ReactNode }) => {
@@ -60,6 +61,7 @@ interface WorkflowCardProps {
 
 export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isAddStepDialogOpen, setIsAddStepDialogOpen] = useState(false);
     const [newStepName, setNewStepName] = useState('');
@@ -76,15 +78,18 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
             toast({ variant: 'destructive', title: "Nama langkah tidak boleh kosong." });
             return;
         }
+        const templateId = newStepName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const newStep: WorkflowStep = {
             id: `step-${Date.now()}`,
             label: newStepName,
-            href: `/buat-surat-kustom?template=${newStepName.toLowerCase().replace(/\s+/g, '-')}`, // Example href
+            href: `/buat-surat-kustom?template=${templateId}&label=${encodeURIComponent(newStepName)}`,
         };
         const updatedSteps = [...workflow.steps, newStep];
         onUpdate({ ...workflow, steps: updatedSteps });
         setNewStepName('');
         setIsAddStepDialogOpen(false);
+        // Redirect user to the new custom template page to create it.
+        router.push(newStep.href);
     };
 
     const handleRemoveStep = (stepId: string) => {
@@ -126,7 +131,7 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={() => setIsAddStepDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Tambah Langkah/Surat Baru
+                        Tambah Langkah/Templat Baru
                     </Button>
                 </CardFooter>
             </Card>
@@ -149,7 +154,7 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
                     </div>
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
-                        <Button onClick={handleAddStep}>Tambah</Button>
+                        <Button onClick={handleAddStep}>Buat & Desain Templat</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -10,6 +10,11 @@ import { useSuratStore } from '@/store/suratStore';
 import { WorkflowCard } from '@/components/organisms/WorkflowCard';
 import type { Workflow } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const WorkflowPageSkeleton = () => (
     <>
@@ -49,6 +54,10 @@ const WorkflowPageSkeleton = () => (
 
 export default function AlurKerjaPage() {
     const { workflows, fetchWorkflows, updateWorkflows, isLoading } = useSuratStore();
+    const { toast } = useToast();
+    const [isAddWorkflowDialogOpen, setIsAddWorkflowDialogOpen] = useState(false);
+    const [newWorkflowTitle, setNewWorkflowTitle] = useState('');
+    const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
 
     useEffect(() => {
         fetchWorkflows();
@@ -62,13 +71,21 @@ export default function AlurKerjaPage() {
     };
 
     const handleAddWorkflow = () => {
+        if (!newWorkflowTitle.trim()) {
+            toast({ variant: 'destructive', title: "Judul alur kerja tidak boleh kosong." });
+            return;
+        }
         const newWorkflow: Workflow = {
             id: `wf-${Date.now()}`,
-            title: "Alur Baru (Tanpa Judul)",
-            description: "Alur baru yang dibuat oleh pengguna",
+            title: newWorkflowTitle,
+            description: newWorkflowDescription,
             steps: [],
         };
         updateWorkflows([...workflows, newWorkflow]);
+        setNewWorkflowTitle('');
+        setNewWorkflowDescription('');
+        setIsAddWorkflowDialogOpen(false);
+        toast({ title: "Alur Kerja Ditambahkan", description: `Alur kerja "${newWorkflowTitle}" berhasil dibuat.` });
     };
 
     const handleDeleteWorkflow = (workflowId: string) => {
@@ -93,7 +110,7 @@ export default function AlurKerjaPage() {
                         Sesuaikan alur dan templat surat sesuai kebutuhan Anda.
                     </p>
                 </div>
-                <Button onClick={handleAddWorkflow}>
+                <Button onClick={() => setIsAddWorkflowDialogOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Tambah Alur Baru
                 </Button>
@@ -108,6 +125,43 @@ export default function AlurKerjaPage() {
                     />
                 ))}
             </div>
+
+            {/* Add Workflow Dialog */}
+            <Dialog open={isAddWorkflowDialogOpen} onOpenChange={setIsAddWorkflowDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Buat Alur Kerja Baru</DialogTitle>
+                        <DialogDescription>
+                            Buat kategori baru untuk jenis-jenis surat Anda. Contoh: "Personalia" atau "Keuangan".
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="workflow-title">Judul Alur Kerja</Label>
+                            <Input
+                                id="workflow-title"
+                                value={newWorkflowTitle}
+                                onChange={(e) => setNewWorkflowTitle(e.target.value)}
+                                placeholder="Contoh: Surat Personalia & SDM"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="workflow-description">Deskripsi Singkat</Label>
+                             <Textarea
+                                id="workflow-description"
+                                value={newWorkflowDescription}
+                                onChange={(e) => setNewWorkflowDescription(e.target.value)}
+                                placeholder="Contoh: Templat untuk surat terkait kepegawaian"
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild><Button type="button" variant="secondary">Batal</Button></DialogClose>
+                        <Button onClick={handleAddWorkflow}>Simpan Alur Kerja</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
