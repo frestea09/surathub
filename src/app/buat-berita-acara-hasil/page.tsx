@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import { ArrowLeft, Printer, Download, Save, Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Save, Trash2, ChevronLeft, ChevronRight, Search, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +97,19 @@ export default function BuatBeritaAcaraHasilPage() {
     }
   };
 
+   const handlePesertaChange = (id: number, field: keyof Omit<Peserta, 'id'>, value: string) => {
+    setPeserta(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const handleAddPeserta = () => {
+    const newId = peserta.length > 0 ? Math.max(...peserta.map(p => p.id)) + 1 : 1;
+    setPeserta(prev => [...prev, { id: newId, nama: '', pemilik: '', hasilEvaluasi: 'Lulus' }]);
+  };
+
+  const handleRemovePeserta = (id: number) => {
+    setPeserta(prev => prev.filter(p => p.id !== id));
+  };
+
   const handleSave = () => {
     if (!formData.nomor) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
@@ -177,7 +190,7 @@ export default function BuatBeritaAcaraHasilPage() {
           <Card>
             <CardHeader><CardTitle>Detail Berita Acara</CardTitle><CardDescription>Isi detail Berita Acara Hasil Pengadaan.</CardDescription></CardHeader>
             <CardContent>
-             <ScrollArea className="h-[calc(100vh-180px)]">
+             <ScrollArea className="h-[calc(100vh-250px)]">
                 <div className="space-y-4 pr-4">
                   <div className="space-y-2"><Label>Nomor Surat</Label><Input id="nomor" value={formData.nomor} onChange={handleInputChange} /></div>
                   <div className="space-y-2"><Label>Tanggal Surat</Label><DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(d) => handleDateChange('tanggalSurat', d)} /></div>
@@ -196,6 +209,53 @@ export default function BuatBeritaAcaraHasilPage() {
                   <div className="space-y-2"><Label>NIP Pejabat</Label><Input id="pejabatNip" value={formData.pejabatNip} onChange={handleInputChange} /></div>
                   <div className="space-y-2"><Label>Tempat Vendor</Label><Input id="vendorTempat" value={formData.vendorTempat} onChange={handleInputChange} /></div>
                   <div className="space-y-2"><Label>Tanggal Vendor</Label><DatePickerWithWarning date={formData.vendorTanggal} onDateChange={(d) => handleDateChange('vendorTanggal', d)} /></div>
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Peserta Evaluasi</CardTitle>
+              <Button size="sm" onClick={handleAddPeserta}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Tambah Peserta
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="space-y-4 pr-4">
+                  {peserta.map((p, index) => (
+                    <div
+                      key={p.id}
+                      className="border p-4 rounded-md space-y-2 relative"
+                    >
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={() => handleRemovePeserta(p.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <p className="font-semibold text-sm">
+                        Peserta #{index + 1}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2 col-span-2">
+                          <Label htmlFor={`peserta-nama-${p.id}`}>Nama Peserta/Perusahaan</Label>
+                          <Input id={`peserta-nama-${p.id}`} value={p.nama} onChange={(e) => handlePesertaChange(p.id, "nama", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`peserta-pemilik-${p.id}`}>Pemilik</Label>
+                          <Input id={`peserta-pemilik-${p.id}`} value={p.pemilik} onChange={(e) => handlePesertaChange(p.id, "pemilik", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`peserta-hasil-${p.id}`}>Hasil Evaluasi</Label>
+                          <Input id={`peserta-hasil-${p.id}`} value={p.hasilEvaluasi} onChange={(e) => handlePesertaChange(p.id, "hasilEvaluasi", e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             </CardContent>
