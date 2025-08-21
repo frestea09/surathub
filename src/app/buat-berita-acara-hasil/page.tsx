@@ -30,6 +30,42 @@ type Peserta = {
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
+const PesertaCard = ({ title, peserta, onAdd, onRemove, onChange }: { title: string, peserta: Peserta[], onAdd: () => void, onRemove: (id: number) => void, onChange: (id: number, field: keyof Omit<Peserta, 'id'>, value: string) => void }) => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <Button size="sm" onClick={onAdd}><PlusCircle className="mr-2 h-4 w-4" />Tambah</Button>
+        </CardHeader>
+        <CardContent>
+            <ScrollArea className="h-48 w-full">
+                <div className="space-y-4 pr-4">
+                    {peserta.length > 0 ? peserta.map((p, index) => (
+                        <div key={p.id} className="border p-3 rounded-md space-y-2 relative bg-muted/50">
+                             <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 text-destructive hover:bg-destructive/10" onClick={() => onRemove(p.id)}><Trash2 className="h-4 w-4" /></Button>
+                            <p className="font-semibold text-sm">Peserta #{index + 1}</p>
+                            <div className="space-y-2">
+                                <Label htmlFor={`peserta-nama-${title}-${p.id}`} className="text-xs">Nama Peserta/Perusahaan</Label>
+                                <Input id={`peserta-nama-${title}-${p.id}`} value={p.nama} onChange={(e) => onChange(p.id, "nama", e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor={`peserta-pemilik-${title}-${p.id}`} className="text-xs">Pemilik</Label>
+                                    <Input id={`peserta-pemilik-${title}-${p.id}`} value={p.pemilik} onChange={(e) => onChange(p.id, "pemilik", e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`peserta-hasil-${title}-${p.id}`} className="text-xs">Hasil Evaluasi</Label>
+                                    <Input id={`peserta-hasil-${title}-${p.id}`} value={p.hasilEvaluasi} onChange={(e) => onChange(p.id, "hasilEvaluasi", e.target.value)} />
+                                </div>
+                            </div>
+                        </div>
+                    )) : <p className="text-xs text-center text-muted-foreground py-4">Belum ada peserta ditambahkan.</p>}
+                </div>
+            </ScrollArea>
+        </CardContent>
+    </Card>
+);
+
+
 export default function BuatBeritaAcaraHasilPage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -58,9 +94,9 @@ export default function BuatBeritaAcaraHasilPage() {
     vendorTanggal: new Date('2025-05-19T00:00:00'),
   });
 
-  const [peserta, setPeserta] = useState<Peserta[]>([
-    { id: 1, nama: 'TB Doa Sepuh', pemilik: 'iin Permana', hasilEvaluasi: 'Lulus' }
-  ]);
+  const [penawaranPeserta, setPenawaranPeserta] = useState<Peserta[]>([{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'Iin Permana', hasilEvaluasi: 'Lulus' }]);
+  const [teknisPeserta, setTeknisPeserta] = useState<Peserta[]>([{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'Iin Permana', hasilEvaluasi: 'Lulus' }]);
+  const [hargaPeserta, setHargaPeserta] = useState<Peserta[]>([{ id: 1, nama: 'TB Doa Sepuh', pemilik: 'Iin Permana', hasilEvaluasi: 'Lulus' }]);
   
   // State for import dialog
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -75,13 +111,15 @@ export default function BuatBeritaAcaraHasilPage() {
     if (isEditMode && allSurat.length > 0) {
       const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'BAH');
       if (suratToEdit) {
-        const { formData: dataToLoad, peserta: pesertaToLoad } = suratToEdit.data;
+        const { formData: dataToLoad, peserta, penawaranPeserta: pp, teknisPeserta: tp, hargaPeserta: hp } = suratToEdit.data;
         setFormData({
             ...dataToLoad,
             tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
             vendorTanggal: dataToLoad.vendorTanggal ? new Date(dataToLoad.vendorTanggal) : new Date(),
         });
-        setPeserta(pesertaToLoad || []);
+        setPenawaranPeserta(pp || peserta || []);
+        setTeknisPeserta(tp || peserta || []);
+        setHargaPeserta(hp || peserta || []);
       }
     }
   }, [editNomor, allSurat, isEditMode]);
@@ -97,18 +135,19 @@ export default function BuatBeritaAcaraHasilPage() {
     }
   };
 
-   const handlePesertaChange = (id: number, field: keyof Omit<Peserta, 'id'>, value: string) => {
-    setPeserta(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  const createPesertaHandler = (setter: React.Dispatch<React.SetStateAction<Peserta[]>>) => {
+      return {
+          add: () => setter(prev => [...prev, { id: Date.now(), nama: '', pemilik: '', hasilEvaluasi: 'Lulus' }]),
+          remove: (id: number) => setter(prev => prev.filter(p => p.id !== id)),
+          change: (id: number, field: keyof Omit<Peserta, 'id'>, value: string) => {
+              setter(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p))
+          }
+      }
   };
 
-  const handleAddPeserta = () => {
-    const newId = peserta.length > 0 ? Math.max(...peserta.map(p => p.id)) + 1 : 1;
-    setPeserta(prev => [...prev, { id: newId, nama: '', pemilik: '', hasilEvaluasi: 'Lulus' }]);
-  };
-
-  const handleRemovePeserta = (id: number) => {
-    setPeserta(prev => prev.filter(p => p.id !== id));
-  };
+  const penawaranHandler = createPesertaHandler(setPenawaranPeserta);
+  const teknisHandler = createPesertaHandler(setTeknisPeserta);
+  const hargaHandler = createPesertaHandler(setHargaPeserta);
 
   const handleSave = () => {
     if (!formData.nomor) {
@@ -123,11 +162,13 @@ export default function BuatBeritaAcaraHasilPage() {
         status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
         tanggal: formData.tanggalSurat.toISOString(),
         penanggungJawab: formData.pejabatNama,
-        dariKe: peserta.map(p => p.nama).join(', '),
+        dariKe: penawaranPeserta.map(p => p.nama).join(', '),
         tipe: 'BAH',
         data: { 
           formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' }, 
-          peserta 
+          penawaranPeserta,
+          teknisPeserta,
+          hargaPeserta
         },
       };
 
@@ -158,6 +199,8 @@ export default function BuatBeritaAcaraHasilPage() {
   
   const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
   const nilaiHpsTerbilang = terbilang(formData.nilaiHps);
+  const pemenang = penawaranPeserta.find(p => p.hasilEvaluasi.toLowerCase() === 'lulus');
+
 
   // Pagination and search for import dialog
   const filteredImportSurat = useMemo(() => {
@@ -187,79 +230,38 @@ export default function BuatBeritaAcaraHasilPage() {
       </header>
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-1">
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-1 print:hidden">
-          <Card>
-            <CardHeader><CardTitle>Detail Berita Acara</CardTitle><CardDescription>Isi detail Berita Acara Hasil Pengadaan.</CardDescription></CardHeader>
-            <CardContent>
-             <ScrollArea className="h-[calc(100vh-250px)]">
-                <div className="space-y-4 pr-4">
-                  <div className="space-y-2"><Label>Nomor Surat</Label><Input id="nomor" value={formData.nomor} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Tanggal Surat</Label><DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(d) => handleDateChange('tanggalSurat', d)} /></div>
-                  <div className="space-y-2"><Label>Kode Paket</Label><Input id="kodePaket" value={formData.kodePaket} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Nama Paket</Label><Input id="namaPaket" value={formData.namaPaket} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Nilai Total HPS</Label><Input id="nilaiHps" type="number" value={formData.nilaiHps} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Metode Pemilihan</Label><Input id="metodePemilihan" value={formData.metodePemilihan} onChange={handleInputChange} /></div>
-                  <Separator />
-                  <h3 className="text-sm font-medium">Hasil Negosiasi</h3>
-                  <div className="space-y-2"><Label>Nilai Penawaran</Label><Input id="nilaiPenawaran" type="number" value={formData.nilaiPenawaran} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Nilai Terkoreksi</Label><Input id="nilaiTerkoreksi" type="number" value={formData.nilaiTerkoreksi} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Nilai Negosiasi Biaya</Label><Input id="nilaiNegosiasi" type="number" value={formData.nilaiNegosiasi} onChange={handleInputChange} /></div>
-                  <Separator />
-                  <h3 className="text-sm font-medium">Penanda Tangan</h3>
-                  <div className="space-y-2"><Label>Nama Pejabat</Label><Input id="pejabatNama" value={formData.pejabatNama} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>NIP Pejabat</Label><Input id="pejabatNip" value={formData.pejabatNip} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Tempat Vendor</Label><Input id="vendorTempat" value={formData.vendorTempat} onChange={handleInputChange} /></div>
-                  <div className="space-y-2"><Label>Tanggal Vendor</Label><DatePickerWithWarning date={formData.vendorTanggal} onDateChange={(d) => handleDateChange('vendorTanggal', d)} /></div>
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Peserta Evaluasi</CardTitle>
-              <Button size="sm" onClick={handleAddPeserta}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Tambah Peserta
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px] w-full">
-                <div className="space-y-4 pr-4">
-                  {peserta.map((p, index) => (
-                    <div
-                      key={p.id}
-                      className="border p-4 rounded-md space-y-2 relative"
-                    >
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-6 w-6"
-                        onClick={() => handleRemovePeserta(p.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <p className="font-semibold text-sm">
-                        Peserta #{index + 1}
-                      </p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2 col-span-2">
-                          <Label htmlFor={`peserta-nama-${p.id}`}>Nama Peserta/Perusahaan</Label>
-                          <Input id={`peserta-nama-${p.id}`} value={p.nama} onChange={(e) => handlePesertaChange(p.id, "nama", e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`peserta-pemilik-${p.id}`}>Pemilik</Label>
-                          <Input id={`peserta-pemilik-${p.id}`} value={p.pemilik} onChange={(e) => handlePesertaChange(p.id, "pemilik", e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`peserta-hasil-${p.id}`}>Hasil Evaluasi</Label>
-                          <Input id={`peserta-hasil-${p.id}`} value={p.hasilEvaluasi} onChange={(e) => handlePesertaChange(p.id, "hasilEvaluasi", e.target.value)} />
-                        </div>
-                      </div>
+           <ScrollArea className="h-[calc(100vh-110px)]">
+           <div className="pr-4 space-y-4">
+            <Card>
+                <CardHeader><CardTitle>Detail Berita Acara</CardTitle><CardDescription>Isi detail Berita Acara Hasil Pengadaan.</CardDescription></CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                    <div className="space-y-2"><Label>Nomor Surat</Label><Input id="nomor" value={formData.nomor} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Tanggal Surat</Label><DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(d) => handleDateChange('tanggalSurat', d)} /></div>
+                    <div className="space-y-2"><Label>Kode Paket</Label><Input id="kodePaket" value={formData.kodePaket} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Nama Paket</Label><Input id="namaPaket" value={formData.namaPaket} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Nilai Total HPS</Label><Input id="nilaiHps" type="number" value={formData.nilaiHps} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Metode Pemilihan</Label><Input id="metodePemilihan" value={formData.metodePemilihan} onChange={handleInputChange} /></div>
+                    <Separator />
+                    <h3 className="text-sm font-medium">Hasil Negosiasi</h3>
+                    <div className="space-y-2"><Label>Nilai Penawaran</Label><Input id="nilaiPenawaran" type="number" value={formData.nilaiPenawaran} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Nilai Terkoreksi</Label><Input id="nilaiTerkoreksi" type="number" value={formData.nilaiTerkoreksi} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Nilai Negosiasi Biaya</Label><Input id="nilaiNegosiasi" type="number" value={formData.nilaiNegosiasi} onChange={handleInputChange} /></div>
+                    <Separator />
+                    <h3 className="text-sm font-medium">Penanda Tangan</h3>
+                    <div className="space-y-2"><Label>Nama Pejabat</Label><Input id="pejabatNama" value={formData.pejabatNama} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>NIP Pejabat</Label><Input id="pejabatNip" value={formData.pejabatNip} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Tempat Vendor</Label><Input id="vendorTempat" value={formData.vendorTempat} onChange={handleInputChange} /></div>
+                    <div className="space-y-2"><Label>Tanggal Vendor</Label><DatePickerWithWarning date={formData.vendorTanggal} onDateChange={(d) => handleDateChange('vendorTanggal', d)} /></div>
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
+            
+            <PesertaCard title="Peserta Evaluasi Penawaran" peserta={penawaranPeserta} onAdd={penawaranHandler.add} onRemove={penawaranHandler.remove} onChange={penawaranHandler.change} />
+            <PesertaCard title="Peserta Evaluasi Teknis" peserta={teknisPeserta} onAdd={teknisHandler.add} onRemove={teknisHandler.remove} onChange={teknisHandler.change} />
+            <PesertaCard title="Peserta Evaluasi Harga" peserta={hargaPeserta} onAdd={hargaHandler.add} onRemove={hargaHandler.remove} onChange={hargaHandler.change} />
+            </div>
+          </ScrollArea>
         </div>
         <div className="lg:col-span-2 print:col-span-1">
            <Card className="overflow-hidden print:shadow-none print:border-none">
@@ -297,19 +299,19 @@ export default function BuatBeritaAcaraHasilPage() {
                     <div className="ml-4">
                         <p>1. Evaluasi Penawaran</p>
                         <Table className="text-xs border-collapse border border-black"><TableHeader><TableRow><TableHead className="border border-black text-black font-bold text-center">No</TableHead><TableHead className="border border-black text-black font-bold">Nama Peserta</TableHead><TableHead className="border border-black text-black font-bold text-center">Hasil Evaluasi</TableHead><TableHead className="border border-black text-black font-bold text-center">Keterangan</TableHead></TableRow></TableHeader>
-                            <TableBody>{peserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
+                            <TableBody>{penawaranPeserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
                         </Table>
                     </div>
                      <div className="ml-4 mt-2">
                         <p>2. Evaluasi Teknis</p>
                         <Table className="text-xs border-collapse border border-black"><TableHeader><TableRow><TableHead className="border border-black text-black font-bold text-center">No</TableHead><TableHead className="border border-black text-black font-bold">Nama Peserta</TableHead><TableHead className="border border-black text-black font-bold text-center">Hasil Evaluasi</TableHead><TableHead className="border border-black text-black font-bold text-center">Keterangan</TableHead></TableRow></TableHeader>
-                            <TableBody>{peserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
+                            <TableBody>{teknisPeserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
                         </Table>
                     </div>
                      <div className="ml-4 mt-2">
                         <p>3. Evaluasi Harga Biaya</p>
                         <Table className="text-xs border-collapse border border-black"><TableHeader><TableRow><TableHead className="border border-black text-black font-bold text-center">No</TableHead><TableHead className="border border-black text-black font-bold">Nama Peserta</TableHead><TableHead className="border border-black text-black font-bold text-center">Hasil Evaluasi</TableHead><TableHead className="border border-black text-black font-bold text-center">Keterangan</TableHead></TableRow></TableHeader>
-                            <TableBody>{peserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
+                            <TableBody>{hargaPeserta.map((p, i) => (<TableRow key={p.id}><TableCell className="border border-black text-center">{i + 1}</TableCell><TableCell className="border border-black">{p.nama}<br/>Pemilik: {p.pemilik}</TableCell><TableCell className="border border-black text-center">{p.hasilEvaluasi}</TableCell><TableCell className="border border-black"></TableCell></TableRow>))}</TableBody>
                         </Table>
                     </div>
                 </div>
@@ -335,9 +337,9 @@ export default function BuatBeritaAcaraHasilPage() {
                     </div>
                     <div className="text-center w-1/2">
                         <p>{formData.vendorTempat}, {formData.vendorTanggal ? format(formData.vendorTanggal, "dd MMMM yyyy", { locale: id }) : ''}</p>
-                        <p>{peserta[0]?.nama || 'Nama Vendor'}</p>
+                        <p>{pemenang?.nama || 'Nama Vendor Pemenang'}</p>
                         <div className="h-20"></div>
-                        <p className="font-bold underline">{peserta[0]?.pemilik || 'Pemilik Vendor'}</p>
+                        <p className="font-bold underline">{pemenang?.pemilik || 'Pemilik Vendor Pemenang'}</p>
                     </div>
                 </div>
               </div>
