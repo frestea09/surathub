@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,7 +64,7 @@ const initialItems: Item[] = [
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
-export default function BuatSuratPesananUmumPage() {
+function BuatSuratPesananUmumPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -428,5 +428,13 @@ export default function BuatSuratPesananUmumPage() {
       </Dialog>
       <style jsx global>{`@media print { body * { visibility: hidden; } #surat-preview, #surat-preview * { visibility: visible; } #surat-preview { position: absolute; left: 0; top: 0; width: 100%; font-size: 10pt; } } @page { size: A4; margin: 1in; }`}</style>
     </div>
+  );
+}
+
+export default function BuatSuratPesananUmumPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatSuratPesananUmumPageContent />
+    </Suspense>
   );
 }
