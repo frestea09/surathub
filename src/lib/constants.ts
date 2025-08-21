@@ -80,10 +80,10 @@ export const CANCEL_AND_BACK_LINK_TEXT = "Batal dan Kembali";
 export const NAMA_LENGKAP_PLACEHOLDER = "Ketik nama lengkap...";
 export const NIP_USERNAME_PLACEHOLDER = "Ketik NIP atau username...";
 export const PASSWORD_PLACEHOLDER = "Ketik password...";
-export const CONFIRM_PASSWORD_PLACEHOLDER = "Ketik ulang password...";
-export const JABATAN_PLACEHOLDER = "Pilih Jabatan";
-export const STATUS_PLACEHOLDER = "Pilih status";
 export const PASSWORD_EDIT_PLACEHOLDER = "Biarkan kosong jika tidak ingin mengubah";
+export const CONFIRM_PASSWORD_PLACEHOLDER = "Ketik ulang password...";
+export const STATUS_PLACEHOLDER = "Pilih status";
+export const JABATAN_PLACEHOLDER = "Pilih Jabatan";
 
 // Status Options
 export const STATUS_OPTIONS = ["Aktif", "Non-Aktif"];
@@ -92,7 +92,7 @@ export const STATUS_OPTIONS = ["Aktif", "Non-Aktif"];
 export const COLUMN_NIP = "NIP/Username";
 export const COLUMN_NAMA = "Nama";
 export const COLUMN_JABATAN = "Jabatan";
-export const COLUMN_PASSWORD = "Password";
+export const COLUMN_PASSWORD = "Password (tersimpan)";
 export const COLUMN_STATUS = "Status";
 export const COLUMN_ACTIONS_LABEL = "Tindakan";
 export const ACTION_EDIT_LABEL = "Ubah";

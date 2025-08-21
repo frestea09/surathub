@@ -69,7 +69,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { AppLayout } from "@/components/templates/AppLayout";
 import { DataTable } from "@/components/ui/data-table";
-import { useSuratStore, type Surat } from "@/store/suratStore";
+import { useSuratStore } from "@/store/suratStore";
+import type { Surat, User } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const usersData = [
@@ -269,7 +270,7 @@ export default function SuratKeluarPage() {
           header: "Status",
           cell: ({ row }) => {
               const status = row.getValue("status") as keyof typeof statusVariant;
-              return <Badge variant={statusVariant[status]}>{status}</Badge>
+              return <Badge variant={statusVariant[status] || 'default'}>{status}</Badge>
           }
       },
       {
@@ -577,5 +578,3 @@ export default function SuratKeluarPage() {
     </AppLayout>
   );
 }
-
-    

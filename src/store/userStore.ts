@@ -1,15 +1,7 @@
 
 import { create } from 'zustand';
 import { USERS_STORAGE_KEY } from '@/lib/constants';
-
-export type User = {
-  id: string;
-  nip: string;
-  nama: string;
-  jabatan: string;
-  status: string;
-  password?: string;
-};
+import type { User } from '@/types';
 
 const initialUsersData: User[] = [
   {

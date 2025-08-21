@@ -1,20 +1,6 @@
 
 import { create } from 'zustand';
-import type { User } from './userStore';
-
-export type Surat = {
-    nomor: string;
-    judul: string;
-    jenis: "Surat Masuk" | "Surat Keluar";
-    tipe: string; // e.g., 'SPP', 'SP', 'SP-Vendor'
-    status: 'Draft' | 'Terkirim' | 'Diarsipkan' | 'Ditolak' | 'Baru' | 'Didisposisikan' | 'Selesai' | 'Disetujui' | 'Revisi Diminta';
-    tanggal: string;
-    unit: string;
-    penanggungJawab: string;
-    dariKe: string;
-    data: any; // Original form data
-    revisionHistory?: { by: string; date: string; message: string }[];
-};
+import type { User, Surat } from '@/types';
 
 type SuratState = {
     surat: Surat[];

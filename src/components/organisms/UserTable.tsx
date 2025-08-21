@@ -3,33 +3,17 @@
 
 import React, { useState, useMemo } from 'react';
 import { ColumnDef, SortingState, ColumnFiltersState, useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useUserStore, type User } from '@/store/userStore';
+import { useUserStore } from '@/store/userStore';
+import type { User } from '@/types';
+import { useRouter } from "next/navigation";
 
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { getUserTableColumns } from './user-table-columns';
+import { ActionConfirmationDialog } from './ActionConfirmationDialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  COLUMN_NIP,
-  COLUMN_NAMA,
-  COLUMN_JABATAN,
-  COLUMN_PASSWORD,
-  COLUMN_STATUS,
-  COLUMN_ACTIONS_LABEL,
-  ACTION_EDIT_LABEL,
-  ACTION_DELETE_LABEL,
-  DELETE_CONFIRM_TITLE,
-  DELETE_CONFIRM_DESCRIPTION_PREFIX,
-  DELETE_CONFIRM_DESCRIPTION_SUFFIX,
-  CANCEL_BUTTON_LABEL,
-  CONFIRM_DELETE_BUTTON_LABEL
-} from '@/lib/constants';
+import { Button } from '@/components/ui/button';
 
 interface UserTableProps {
   data: User[];
@@ -69,49 +53,8 @@ export default function UserTable({ data }: UserTableProps) {
       setUserToDelete(null);
     }
   };
-
-  const columns: ColumnDef<User>[] = useMemo(() => [
-    { accessorKey: "nip", header: COLUMN_NIP },
-    { accessorKey: "nama", header: COLUMN_NAMA },
-    { accessorKey: "jabatan", header: COLUMN_JABATAN },
-    { accessorKey: "password", header: COLUMN_PASSWORD },
-    {
-      accessorKey: "status",
-      header: COLUMN_STATUS,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return <Badge variant={status === 'Aktif' ? 'default' : 'destructive'}>{status}</Badge>;
-      }
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const user = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button aria-haspopup="true" size="icon" variant="ghost">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{COLUMN_ACTIONS_LABEL}</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleEdit(user)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                {ACTION_EDIT_LABEL}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteRequest(user)}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {ACTION_DELETE_LABEL}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], []);
+  
+  const columns: ColumnDef<User>[] = useMemo(() => getUserTableColumns(handleEdit, handleDeleteRequest), [handleEdit, handleDeleteRequest]);
 
   const table = useReactTable({
     data,
@@ -221,22 +164,15 @@ export default function UserTable({ data }: UserTableProps) {
         </Button>
       </div>
 
-      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{DELETE_CONFIRM_TITLE}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {DELETE_CONFIRM_DESCRIPTION_PREFIX} <span className="font-bold">{userToDelete?.nama}</span>{DELETE_CONFIRM_DESCRIPTION_SUFFIX}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setUserToDelete(null)}>{CANCEL_BUTTON_LABEL}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className={buttonVariants({ variant: "destructive" })}>
-              {CONFIRM_DELETE_BUTTON_LABEL}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+       <ActionConfirmationDialog
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Konfirmasi Hapus Pengguna"
+        description={`Apakah Anda yakin ingin menghapus pengguna "${userToDelete?.nama}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmButtonText="Ya, Hapus"
+        variant="destructive"
+      />
     </>
   );
 }
