@@ -149,6 +149,8 @@ export default function BuatBeritaAcaraHasilPage() {
   const teknisHandler = createPesertaHandler(setTeknisPeserta);
   const hargaHandler = createPesertaHandler(setHargaPeserta);
 
+  const pemenang = useMemo(() => hargaPeserta.find(p => p.hasilEvaluasi.toLowerCase() === 'lulus'), [hargaPeserta]);
+
   const handleSave = () => {
     if (!formData.nomor) {
       toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Nomor surat tidak boleh kosong." });
@@ -156,14 +158,16 @@ export default function BuatBeritaAcaraHasilPage() {
     }
     
     try {
-      const suratToSave = {
+      const suratToSave: Surat = {
         nomor: formData.nomor,
         judul: formData.namaPaket,
         status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
         tanggal: formData.tanggalSurat.toISOString(),
         penanggungJawab: formData.pejabatNama,
-        dariKe: penawaranPeserta.map(p => p.nama).join(', '),
+        dariKe: pemenang?.nama || 'N/A',
         tipe: 'BAH',
+        jenis: 'Surat Keluar',
+        unit: 'Pengadaan',
         data: { 
           formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' }, 
           penawaranPeserta,
@@ -199,8 +203,7 @@ export default function BuatBeritaAcaraHasilPage() {
   
   const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
   const nilaiHpsTerbilang = terbilang(formData.nilaiHps);
-  const pemenang = hargaPeserta.find(p => p.hasilEvaluasi.toLowerCase() === 'lulus');
-
+  
 
   // Pagination and search for import dialog
   const filteredImportSurat = useMemo(() => {
