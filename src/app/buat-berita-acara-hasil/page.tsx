@@ -111,15 +111,15 @@ export default function BuatBeritaAcaraHasilPage() {
     if (isEditMode && allSurat.length > 0) {
       const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'BAH');
       if (suratToEdit) {
-        const { formData: dataToLoad, peserta, penawaranPeserta: pp, teknisPeserta: tp, hargaPeserta: hp } = suratToEdit.data;
+        const { formData: dataToLoad, penawaranPeserta: pp, teknisPeserta: tp, hargaPeserta: hp } = suratToEdit.data;
         setFormData({
             ...dataToLoad,
             tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
             vendorTanggal: dataToLoad.vendorTanggal ? new Date(dataToLoad.vendorTanggal) : new Date(),
         });
-        setPenawaranPeserta(pp || peserta || []);
-        setTeknisPeserta(tp || peserta || []);
-        setHargaPeserta(hp || peserta || []);
+        setPenawaranPeserta(pp || []);
+        setTeknisPeserta(tp || []);
+        setHargaPeserta(hp || []);
       }
     }
   }, [editNomor, allSurat, isEditMode]);
@@ -199,7 +199,7 @@ export default function BuatBeritaAcaraHasilPage() {
   
   const formatCurrency = (value: number) => new Intl.NumberFormat("id-ID", { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
   const nilaiHpsTerbilang = terbilang(formData.nilaiHps);
-  const pemenang = penawaranPeserta.find(p => p.hasilEvaluasi.toLowerCase() === 'lulus');
+  const pemenang = hargaPeserta.find(p => p.hasilEvaluasi.toLowerCase() === 'lulus');
 
 
   // Pagination and search for import dialog
@@ -233,26 +233,35 @@ export default function BuatBeritaAcaraHasilPage() {
            <ScrollArea className="h-[calc(100vh-110px)]">
            <div className="pr-4 space-y-4">
             <Card>
-                <CardHeader><CardTitle>Detail Berita Acara</CardTitle><CardDescription>Isi detail Berita Acara Hasil Pengadaan.</CardDescription></CardHeader>
+                <CardHeader>
+                  <CardTitle>Formulir Berita Acara</CardTitle>
+                  <CardDescription>Lengkapi detail hasil pengadaan. Sebaiknya gunakan tombol "Ambil Data" untuk memulai.</CardDescription>
+                </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                    <div className="space-y-2"><Label>Nomor Surat</Label><Input id="nomor" value={formData.nomor} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Tanggal Surat</Label><DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(d) => handleDateChange('tanggalSurat', d)} /></div>
-                    <div className="space-y-2"><Label>Kode Paket</Label><Input id="kodePaket" value={formData.kodePaket} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Nama Paket</Label><Input id="namaPaket" value={formData.namaPaket} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Nilai Total HPS</Label><Input id="nilaiHps" type="number" value={formData.nilaiHps} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Metode Pemilihan</Label><Input id="metodePemilihan" value={formData.metodePemilihan} onChange={handleInputChange} /></div>
-                    <Separator />
-                    <h3 className="text-sm font-medium">Hasil Negosiasi</h3>
-                    <div className="space-y-2"><Label>Nilai Penawaran</Label><Input id="nilaiPenawaran" type="number" value={formData.nilaiPenawaran} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Nilai Terkoreksi</Label><Input id="nilaiTerkoreksi" type="number" value={formData.nilaiTerkoreksi} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Nilai Negosiasi Biaya</Label><Input id="nilaiNegosiasi" type="number" value={formData.nilaiNegosiasi} onChange={handleInputChange} /></div>
-                    <Separator />
-                    <h3 className="text-sm font-medium">Penanda Tangan</h3>
-                    <div className="space-y-2"><Label>Nama Pejabat</Label><Input id="pejabatNama" value={formData.pejabatNama} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>NIP Pejabat</Label><Input id="pejabatNip" value={formData.pejabatNip} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Tempat Vendor</Label><Input id="vendorTempat" value={formData.vendorTempat} onChange={handleInputChange} /></div>
-                    <div className="space-y-2"><Label>Tanggal Vendor</Label><DatePickerWithWarning date={formData.vendorTanggal} onDateChange={(d) => handleDateChange('vendorTanggal', d)} /></div>
+                      <Separator />
+                      <h3 className="text-sm font-medium">Informasi Dasar</h3>
+                      <div className="space-y-2"><Label>Nomor Surat</Label><Input id="nomor" value={formData.nomor} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Tanggal Surat</Label><DatePickerWithWarning date={formData.tanggalSurat} onDateChange={(d) => handleDateChange('tanggalSurat', d)} /></div>
+                      
+                      <Separator />
+                      <h3 className="text-sm font-medium">Detail Paket Pekerjaan</h3>
+                      <div className="space-y-2"><Label>Nama Paket</Label><Input id="namaPaket" value={formData.namaPaket} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Nilai Proyek (HPS)</Label><Input id="nilaiHps" type="number" value={formData.nilaiHps} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Metode Pemilihan</Label><Input id="metodePemilihan" value={formData.metodePemilihan} onChange={handleInputChange} /></div>
+                      
+                      <Separator />
+                      <h3 className="text-sm font-medium">Hasil Akhir Negosiasi</h3>
+                      <div className="space-y-2"><Label>Nilai Penawaran Awal</Label><Input id="nilaiPenawaran" type="number" value={formData.nilaiPenawaran} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Nilai Penawaran Terkoreksi</Label><Input id="nilaiTerkoreksi" type="number" value={formData.nilaiTerkoreksi} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Nilai Akhir Negosiasi</Label><Input id="nilaiNegosiasi" type="number" value={formData.nilaiNegosiasi} onChange={handleInputChange} /></div>
+                      
+                      <Separator />
+                      <h3 className="text-sm font-medium">Informasi Penanda Tangan</h3>
+                      <div className="space-y-2"><Label>Nama Pejabat Pengadaan</Label><Input id="pejabatNama" value={formData.pejabatNama} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>NIP Pejabat</Label><Input id="pejabatNip" value={formData.pejabatNip} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Lokasi Penandatanganan Vendor</Label><Input id="vendorTempat" value={formData.vendorTempat} onChange={handleInputChange} /></div>
+                      <div className="space-y-2"><Label>Tanggal Penandatanganan Vendor</Label><DatePickerWithWarning date={formData.vendorTanggal} onDateChange={(d) => handleDateChange('vendorTanggal', d)} /></div>
                     </div>
                 </CardContent>
             </Card>
