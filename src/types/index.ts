@@ -10,10 +10,10 @@ export type User = {
 
 export type TableItem = {
     id: number;
-    nama: string;
-    jumlah: number;
-    satuan: string;
-    keterangan: string;
+    col1: string;
+    col2: string;
+    col3: string;
+    col4: string;
 };
 
 export type Surat = {
@@ -42,3 +42,4 @@ export type Workflow = {
     description: string;
     steps: WorkflowStep[];
 };
+

@@ -28,11 +28,13 @@ import type { Surat } from "@/types";
 
 type TableItem = {
   id: number;
-  nama: string;
-  jumlah: number;
-  satuan: string;
-  keterangan: string;
+  col1: string; // Nama Item/Barang
+  col2: string; // Jumlah
+  col3: string; // Satuan
+  col4: string; // Keterangan
 };
+
+const defaultTableHeaders = ['Nama Item/Barang', 'Jumlah', 'Satuan', 'Keterangan'];
 
 export default function BuatSuratKustomPage() {
   const { toast } = useToast();
@@ -58,6 +60,7 @@ export default function BuatSuratKustomPage() {
     jabatanPenandaTangan: "",
     namaPenandaTangan: "",
     nipPenandaTangan: "",
+    tableHeaders: [...defaultTableHeaders],
   });
 
   const [items, setItems] = useState<TableItem[]>([]);
@@ -71,12 +74,12 @@ export default function BuatSuratKustomPage() {
         setFormData({
           ...dataToLoad,
           tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
+          tableHeaders: dataToLoad.tableHeaders || [...defaultTableHeaders],
         });
         setItems(existingTemplate.data.items || []);
       } else {
         // We are in creation mode for a new template.
         setFormData(prev => ({ ...prev, perihal: templateLabel }));
-        // Do not set nomor here, it will be set on save.
       }
     }
   }, [templateId, templateLabel, allSurat]);
@@ -87,6 +90,12 @@ export default function BuatSuratKustomPage() {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+  
+  const handleHeaderChange = (index: number, value: string) => {
+    const newHeaders = [...formData.tableHeaders];
+    newHeaders[index] = value;
+    setFormData(prev => ({ ...prev, tableHeaders: newHeaders }));
+  };
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -96,19 +105,18 @@ export default function BuatSuratKustomPage() {
 
   const handleItemChange = (itemId: number, field: keyof TableItem, value: string | number) => {
       setItems(prevItems => prevItems.map(item => 
-        item.id === itemId ? { ...item, [field]: value } : item
+        item.id === itemId ? { ...item, [field]: String(value) } : item
       ));
   };
 
   const handleAddItem = () => {
     const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    setItems(prev => [...prev, { id: newId, nama: "", jumlah: 1, satuan: "Buah", keterangan: "" }]);
+    setItems(prev => [...prev, { id: newId, col1: "", col2: "1", col3: "Buah", col4: "" }]);
   };
 
   const handleRemoveItem = (itemId: number) => {
     setItems(prev => prev.filter(item => item.id !== itemId));
   };
-
 
   const handlePrint = () => {
     window.print();
@@ -298,10 +306,24 @@ export default function BuatSuratKustomPage() {
            <Card>
             <CardHeader>
               <CardTitle>Item Tabel (Opsional)</CardTitle>
-              <CardDescription>Tambahkan daftar item atau lampiran dalam bentuk tabel.</CardDescription>
+              <CardDescription>Tambahkan daftar item atau lampiran dalam bentuk tabel. Anda bisa mengubah nama kolom sesuai kebutuhan.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                 <div className="space-y-2 rounded-md border p-4">
+                    <Label className="text-sm font-medium">Ubah Nama Kolom</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {formData.tableHeaders.map((header, index) => (
+                            <Input
+                                key={index}
+                                value={header}
+                                onChange={(e) => handleHeaderChange(index, e.target.value)}
+                                placeholder={`Kolom ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                </div>
+
                 {items.map((item, index) => (
                   <div key={item.id} className="border p-4 rounded-md space-y-2 relative">
                     <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleRemoveItem(item.id)}>
@@ -309,22 +331,22 @@ export default function BuatSuratKustomPage() {
                     </Button>
                     <p className="font-semibold text-sm">Item #{index + 1}</p>
                     <div className="space-y-2">
-                        <Label htmlFor={`item-nama-${item.id}`}>Nama Item/Barang</Label>
-                        <Input id={`item-nama-${item.id}`} value={item.nama} onChange={(e) => handleItemChange(item.id, 'nama', e.target.value)} />
+                        <Label htmlFor={`item-col1-${item.id}`}>{formData.tableHeaders[0]}</Label>
+                        <Input id={`item-col1-${item.id}`} value={item.col1} onChange={(e) => handleItemChange(item.id, 'col1', e.target.value)} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor={`item-jumlah-${item.id}`}>Jumlah</Label>
-                            <Input id={`item-jumlah-${item.id}`} type="number" value={item.jumlah} onChange={(e) => handleItemChange(item.id, 'jumlah', parseInt(e.target.value, 10) || 0)} />
+                            <Label htmlFor={`item-col2-${item.id}`}>{formData.tableHeaders[1]}</Label>
+                            <Input id={`item-col2-${item.id}`} value={item.col2} onChange={(e) => handleItemChange(item.id, 'col2', e.target.value)} />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor={`item-satuan-${item.id}`}>Satuan</Label>
-                            <Input id={`item-satuan-${item.id}`} value={item.satuan} onChange={(e) => handleItemChange(item.id, 'satuan', e.target.value)} />
+                            <Label htmlFor={`item-col3-${item.id}`}>{formData.tableHeaders[2]}</Label>
+                            <Input id={`item-col3-${item.id}`} value={item.col3} onChange={(e) => handleItemChange(item.id, 'col3', e.target.value)} />
                         </div>
                      </div>
                      <div className="space-y-2">
-                        <Label htmlFor={`item-keterangan-${item.id}`}>Keterangan</Label>
-                        <Input id={`item-keterangan-${item.id}`} value={item.keterangan} onChange={(e) => handleItemChange(item.id, 'keterangan', e.target.value)} />
+                        <Label htmlFor={`item-col4-${item.id}`}>{formData.tableHeaders[3]}</Label>
+                        <Input id={`item-col4-${item.id}`} value={item.col4} onChange={(e) => handleItemChange(item.id, 'col4', e.target.value)} />
                     </div>
                   </div>
                 ))}
@@ -397,20 +419,19 @@ export default function BuatSuratKustomPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="border border-black text-black text-center font-bold">No</TableHead>
-                                    <TableHead className="border border-black text-black text-center font-bold w-2/5">Nama Item</TableHead>
-                                    <TableHead className="border border-black text-black text-center font-bold">Jumlah</TableHead>
-                                    <TableHead className="border border-black text-black text-center font-bold">Satuan</TableHead>
-                                    <TableHead className="border border-black text-black text-center font-bold">Keterangan</TableHead>
+                                    {formData.tableHeaders.map((header, index) => (
+                                        <TableHead key={index} className="border border-black text-black text-center font-bold">{header}</TableHead>
+                                    ))}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {items.map((item, index) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="border border-black text-center">{index + 1}</TableCell>
-                                        <TableCell className="border border-black">{item.nama}</TableCell>
-                                        <TableCell className="border border-black text-center">{item.jumlah}</TableCell>
-                                        <TableCell className="border border-black text-center">{item.satuan}</TableCell>
-                                        <TableCell className="border border-black">{item.keterangan}</TableCell>
+                                        <TableCell className="border border-black">{item.col1}</TableCell>
+                                        <TableCell className="border border-black text-center">{item.col2}</TableCell>
+                                        <TableCell className="border border-black text-center">{item.col3}</TableCell>
+                                        <TableCell className="border border-black">{item.col4}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -439,7 +460,7 @@ export default function BuatSuratKustomPage() {
         </div>
       </main>
       {/* Print styles */}
-      <style jsx global>{`
+      <style jsx global>{\`
         @media print {
           body * {
             visibility: hidden;
@@ -455,9 +476,7 @@ export default function BuatSuratKustomPage() {
             width: 100%;
           }
         }
-      `}</style>
+      \`}</style>
     </div>
   );
 }
-
-    
