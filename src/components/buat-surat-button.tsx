@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt, CheckCircle, Circle, ArrowRightCircle } from "lucide-react"
+import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt, CheckCircle, ArrowRight, Circle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,100 +11,62 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Input } from "./ui/input"
+import { Separator } from "@/components/ui/separator"
 import { BUAT_SURAT_POPOVER } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 const suratObatItems = [
-  {
-    label: BUAT_SURAT_POPOVER.SURAT_PERINTAH,
-    href: "/buat-surat",
-    icon: FileText,
-    tipe: "SPP",
-  },
-  {
-    label: BUAT_SURAT_POPOVER.SURAT_PESANAN_INTERNAL,
-    href: "/buat-surat-pesanan",
-    icon: FileText,
-    tipe: "SP",
-  },
-  {
-    label: BUAT_SURAT_POPOVER.SURAT_PESANAN_VENDOR,
-    href: "/buat-surat-pesanan-final",
-    icon: FileText,
-    tipe: "SP-Vendor",
-  },
-  {
-    label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN,
-    href: "/buat-berita-acara",
-    icon: FileSignature,
-    tipe: "BA",
-  },
-  {
-    label: BUAT_SURAT_POPOVER.BERITA_ACARA_SERAH_TERIMA,
-    href: "/buat-bastb",
-    icon: FileSignature,
-    tipe: "BASTB",
-  },
+  { label: BUAT_SURAT_POPOVER.SURAT_PERINTAH, href: "/buat-surat", icon: FileText },
+  { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_INTERNAL, href: "/buat-surat-pesanan", icon: FileText },
+  { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_VENDOR, href: "/buat-surat-pesanan-final", icon: FileText },
+  { label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN, href: "/buat-berita-acara", icon: FileSignature },
+  { label: BUAT_SURAT_POPOVER.BERITA_ACARA_SERAH_TERIMA, href: "/buat-bastb", icon: FileSignature },
 ];
 
 const suratUmumItems = [
-    {
-        label: BUAT_SURAT_POPOVER.SURAT_PERINTAH_PENGADAAN,
-        href: "/buat-surat-perintah-umum",
-        icon: FileText,
-        tipe: "SPU"
-    },
-    {
-        label: BUAT_SURAT_POPOVER.BERITA_ACARA_HASIL_PENGADAAN,
-        href: "/buat-berita-acara-hasil",
-        icon: FileSignature,
-        tipe: "BAH"
-    },
-    {
-        label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM,
-        href: "/buat-surat-pesanan-umum",
-        icon: Receipt,
-        tipe: "SP-Umum"
-    },
-    {
-        label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN_UMUM,
-        href: "/buat-berita-acara-umum",
-        icon: FileSignature,
-        tipe: "BA-Umum"
-    },
+    { label: BUAT_SURAT_POPOVER.SURAT_PERINTAH_PENGADAAN, href: "/buat-surat-perintah-umum", icon: FileText },
+    { label: BUAT_SURAT_POPOVER.BERITA_ACARA_HASIL_PENGADAAN, href: "/buat-berita-acara-hasil", icon: FileSignature },
+    { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM, href: "/buat-surat-pesanan-umum", icon: Receipt },
+    { label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN_UMUM, href: "/buat-berita-acara-umum", icon: FileSignature },
 ];
 
 const MainMenu = ({ setView }: { setView: (view: 'obat' | 'umum') => void }) => (
     <div className="p-2 space-y-2">
-        <Button variant="ghost" className="w-full justify-start" onClick={() => setView('obat')}>
-            <Pill className="mr-2 h-4 w-4" />
-            <span>Pengadaan Obat & BMHP</span>
+        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Pilih Jenis Pengadaan</h3>
+        <Button variant="ghost" className="w-full justify-start h-12" onClick={() => setView('obat')}>
+            <Pill className="mr-3 h-5 w-5" />
+            <div>
+                <p className="text-base">Obat & Alkes</p>
+                <p className="text-xs text-muted-foreground text-left">Alur untuk Farmasi & Alat Kesehatan</p>
+            </div>
         </Button>
-        <Button variant="ghost" className="w-full justify-start" onClick={() => setView('umum')}>
-            <Package className="mr-2 h-4 w-4" />
-            <span>Pengadaan Barang Jasa Umum</span>
+        <Button variant="ghost" className="w-full justify-start h-12" onClick={() => setView('umum')}>
+            <Package className="mr-3 h-5 w-5" />
+            <div>
+                <p className="text-base">Barang Jasa Umum</p>
+                 <p className="text-xs text-muted-foreground text-left">Alur untuk pengadaan non-farmasi</p>
+            </div>
         </Button>
     </div>
 );
 
-const SuratMenu = ({ 
-    title, 
-    items, 
+const StepIcon = ({ step }: { step: number }) => (
+    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+        {step}
+    </div>
+);
+
+const WorkflowMenu = ({
+    title,
+    items,
     onBack,
     onSelect
-}: { 
-    title: string, 
-    items: typeof suratObatItems, 
+}: {
+    title: string,
+    items: typeof suratObatItems,
     onBack: () => void,
     onSelect: (href: string) => void
 }) => {
-    const [searchTerm, setSearchTerm] = React.useState("");
-    
-    const filteredSurat = items.filter(surat => 
-        surat.label.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
         <div>
             <div className="p-2 flex items-center border-b">
@@ -114,31 +76,24 @@ const SuratMenu = ({
                 <h3 className="text-sm font-semibold">{title}</h3>
             </div>
             <div className="p-2">
-                <Input 
-                    placeholder={BUAT_SURAT_POPOVER.SEARCH_PLACEHOLDER}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-9"
-                />
-            </div>
-            <div className="flex flex-col p-1">
-                {filteredSurat.length > 0 ? (
-                    filteredSurat.map((surat) => (
-                        <Button
-                            key={surat.href}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => onSelect(surat.href)}
-                        >
-                            <surat.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                            <span>{surat.label}</span>
-                        </Button>
-                    ))
-                ) : (
-                    <p className="p-4 text-center text-sm text-muted-foreground">
-                        {BUAT_SURAT_POPOVER.NOT_FOUND}
-                    </p>
-                )}
+                <p className="text-xs text-muted-foreground px-2 mb-2">Pilih langkah alur kerja yang ingin Anda mulai.</p>
+                <div className="space-y-1">
+                    {items.map((item, index) => (
+                        <div key={item.href}>
+                             <Button
+                                variant="ghost"
+                                className="w-full justify-start h-11"
+                                onClick={() => onSelect(item.href)}
+                            >
+                                <StepIcon step={index + 1} />
+                                <span className="ml-3 text-left">{item.label.substring(3)}</span>
+                            </Button>
+                            {index < items.length - 1 && (
+                                <div className="ml-3 my-1 border-l-2 border-dashed border-border h-4" />
+                            )}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -153,7 +108,6 @@ export function BuatSuratButton() {
   const handleSelect = (href: string) => {
     router.push(href)
     setOpen(false)
-    // Reset view after a short delay to allow popover to close gracefully
     setTimeout(() => setView('main'), 300);
   }
 
@@ -161,7 +115,6 @@ export function BuatSuratButton() {
       setView('main');
   }
 
-  // Reset to main menu when popover opens
   React.useEffect(() => {
       if (open) {
           setView('main');
@@ -176,18 +129,18 @@ export function BuatSuratButton() {
           {BUAT_SURAT_POPOVER.BUTTON_LABEL}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[320px] p-0" align="end">
         {view === 'main' && <MainMenu setView={setView} />}
         {view === 'obat' && (
-            <SuratMenu 
-                title="Alur Pengadaan Obat & BMHP"
+            <WorkflowMenu
+                title="Alur Pengadaan Obat & Alkes"
                 items={suratObatItems}
                 onBack={handleBack}
                 onSelect={handleSelect}
             />
         )}
         {view === 'umum' && (
-             <SuratMenu 
+             <WorkflowMenu
                 title="Alur Pengadaan Umum"
                 items={suratUmumItems}
                 onBack={handleBack}
