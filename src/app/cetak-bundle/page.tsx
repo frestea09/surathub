@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -445,7 +445,7 @@ const VendorActionPanel = ({ onConfirm, onAsk }: { onConfirm: () => void; onAsk:
     );
 };
 
-export default function CetakBundlePage() {
+function CetakBundlePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -748,5 +748,13 @@ export default function CetakBundlePage() {
                 </DialogContent>
             </Dialog>
         </>
+    );
+}
+
+export default function CetakBundlePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CetakBundlePageContent />
+        </Suspense>
     );
 }
