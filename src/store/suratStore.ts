@@ -8,7 +8,7 @@ type SuratState = {
     isLoading: boolean;
     error: string | null;
     fetchAllSurat: (activeUser?: User | null) => void;
-    addSurat: (surat: Omit<Surat, 'jenis' | 'unit'>) => void;
+    addSurat: (surat: Surat) => void;
     updateSurat: (nomor: string, updatedData: Partial<Omit<Surat, 'nomor'>>) => void;
     deleteSurat: (nomor: string) => void;
     addRevisionNote: (nomor: string, note: { by: string; date: string; message: string }) => void;
@@ -121,7 +121,7 @@ const getInitialWorkflowData = (): Workflow[] => {
             title: "Surat Personalia & SDM",
             description: "Templat untuk surat terkait kepegawaian.",
             steps: [
-                { id: "s10", label: "Surat Pengunduran Diri", href: "/buat-surat" },
+                { id: "s10", label: "Surat Pengunduran Diri", href: "/buat-surat-kustom?template=resign&label=Surat%20Pengunduran%20Diri" },
             ]
         }
     ];
@@ -202,17 +202,17 @@ export const useSuratStore = create<SuratState>((set, get) => ({
         }
     },
 
-    addSurat: (newSuratData) => {
+    addSurat: (fullSuratObject) => {
         const { surat } = get();
-        const fullSuratObject = mapToUnifiedFormat(newSuratData.data, 'Surat Keluar', newSuratData.tipe);
-        
         const existingIndex = surat.findIndex(s => s.nomor === fullSuratObject.nomor);
         let updatedList;
 
         if (existingIndex > -1) {
+            // Update existing surat
             updatedList = [...surat];
-            updatedList[existingIndex] = fullSuratObject;
+            updatedList[existingIndex] = { ...updatedList[existingIndex], ...fullSuratObject };
         } else {
+            // Add new surat
             updatedList = [...surat, fullSuratObject];
         }
         

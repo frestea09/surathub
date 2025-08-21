@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Printer, Save } from "lucide-react";
+import { ArrowLeft, Printer, Save, PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -22,6 +22,16 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useSuratStore } from "@/store/suratStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { Surat } from "@/types";
+
+type TableItem = {
+  id: number;
+  nama: string;
+  jumlah: number;
+  satuan: string;
+  keterangan: string;
+};
 
 export default function BuatSuratKustomPage() {
   const { toast } = useToast();
@@ -32,8 +42,6 @@ export default function BuatSuratKustomPage() {
   const templateId = searchParams.get('template');
   const templateLabel = searchParams.get('label') || 'Kustom';
   
-  // Custom templates use the templateId as their `nomor` for storage purposes.
-  // This allows us to find and edit them later.
   const isEditMode = !!templateId && allSurat.some(s => s.nomor === templateId);
 
   const [formData, setFormData] = useState({
@@ -51,6 +59,8 @@ export default function BuatSuratKustomPage() {
     nipPenandaTangan: "",
   });
 
+  const [items, setItems] = useState<TableItem[]>([]);
+
   useEffect(() => {
     if (templateId) {
       const existingTemplate = allSurat.find(s => s.nomor === templateId);
@@ -61,9 +71,11 @@ export default function BuatSuratKustomPage() {
           ...dataToLoad,
           tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
         });
+        setItems(existingTemplate.data.items || []);
       } else {
         // We are in creation mode for a new template.
-        setFormData(prev => ({ ...prev, perihal: templateLabel, nomor: `TEMPLATE-${templateId}` }));
+        setFormData(prev => ({ ...prev, perihal: templateLabel }));
+        // Do not set nomor here, it will be set on save.
       }
     }
   }, [templateId, templateLabel, allSurat]);
@@ -81,6 +93,22 @@ export default function BuatSuratKustomPage() {
     }
   };
 
+  const handleItemChange = (itemId: number, field: keyof TableItem, value: string | number) => {
+      setItems(prevItems => prevItems.map(item => 
+        item.id === itemId ? { ...item, [field]: value } : item
+      ));
+  };
+
+  const handleAddItem = () => {
+    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    setItems(prev => [...prev, { id: newId, nama: "", jumlah: 1, satuan: "Buah", keterangan: "" }]);
+  };
+
+  const handleRemoveItem = (itemId: number) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
+
   const handlePrint = () => {
     window.print();
   };
@@ -96,8 +124,8 @@ export default function BuatSuratKustomPage() {
     }
 
     try {
-      const dataToSave = {
-        // Use a unique, non-user-facing ID for the surat nomor to store the template
+      const suratData = { ...formData, items, status: 'Draft' };
+      const dataToSave: Surat = {
         nomor: templateId, 
         judul: formData.perihal,
         status: 'Draft',
@@ -105,7 +133,9 @@ export default function BuatSuratKustomPage() {
         penanggungJawab: formData.namaPenandaTangan,
         dariKe: formData.penerima,
         tipe: `KUSTOM-${templateId}`,
-        data: { ...formData, status: 'Draft' },
+        jenis: 'Surat Keluar',
+        unit: 'Umum',
+        data: suratData,
       };
 
       addSurat(dataToSave);
@@ -115,11 +145,11 @@ export default function BuatSuratKustomPage() {
         description: isEditMode ? `Templat "${formData.perihal}" berhasil diperbarui.` : `Templat untuk "${formData.perihal}" berhasil disimpan.`,
       });
       router.push("/pengaturan/alur-kerja");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Gagal Menyimpan",
-        description: "Terjadi kesalahan saat menyimpan templat.",
+        description: "Terjadi kesalahan saat menyimpan templat: " + error.message,
       });
     }
   };
@@ -263,6 +293,49 @@ export default function BuatSuratKustomPage() {
               </ScrollArea>
             </CardContent>
           </Card>
+          
+           <Card>
+            <CardHeader>
+              <CardTitle>Item Tabel (Opsional)</CardTitle>
+              <CardDescription>Tambahkan daftar item atau lampiran dalam bentuk tabel.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {items.map((item, index) => (
+                  <div key={item.id} className="border p-4 rounded-md space-y-2 relative">
+                    <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => handleRemoveItem(item.id)}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <p className="font-semibold text-sm">Item #{index + 1}</p>
+                    <div className="space-y-2">
+                        <Label htmlFor={`item-nama-${item.id}`}>Nama Item/Barang</Label>
+                        <Input id={`item-nama-${item.id}`} value={item.nama} onChange={(e) => handleItemChange(item.id, 'nama', e.target.value)} />
+                    </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor={`item-jumlah-${item.id}`}>Jumlah</Label>
+                            <Input id={`item-jumlah-${item.id}`} type="number" value={item.jumlah} onChange={(e) => handleItemChange(item.id, 'jumlah', parseInt(e.target.value, 10) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor={`item-satuan-${item.id}`}>Satuan</Label>
+                            <Input id={`item-satuan-${item.id}`} value={item.satuan} onChange={(e) => handleItemChange(item.id, 'satuan', e.target.value)} />
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor={`item-keterangan-${item.id}`}>Keterangan</Label>
+                        <Input id={`item-keterangan-${item.id}`} value={item.keterangan} onChange={(e) => handleItemChange(item.id, 'keterangan', e.target.value)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter>
+                 <Button variant="outline" className="w-full" onClick={handleAddItem}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Tambah Baris Tabel
+                </Button>
+            </CardFooter>
+          </Card>
         </div>
         <div className="lg:col-span-2">
           <Card className="overflow-hidden">
@@ -313,9 +386,36 @@ export default function BuatSuratKustomPage() {
                   <p className="ml-8">{formData.penerimaTempat}</p>
                 </div>
 
-                <p className="mb-4 text-justify indent-8 whitespace-pre-wrap">
+                <div className="mb-4 text-justify indent-8 whitespace-pre-wrap">
                   {formData.isiSurat || "[Isi surat akan ditampilkan di sini...]"}
-                </p>
+                </div>
+                
+                {items.length > 0 && (
+                    <div className="my-6">
+                        <Table className="text-[10pt]">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="border border-black text-black text-center font-bold">No</TableHead>
+                                    <TableHead className="border border-black text-black text-center font-bold w-2/5">Nama Item</TableHead>
+                                    <TableHead className="border border-black text-black text-center font-bold">Jumlah</TableHead>
+                                    <TableHead className="border border-black text-black text-center font-bold">Satuan</TableHead>
+                                    <TableHead className="border border-black text-black text-center font-bold">Keterangan</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {items.map((item, index) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell className="border border-black text-center">{index + 1}</TableCell>
+                                        <TableCell className="border border-black">{item.nama}</TableCell>
+                                        <TableCell className="border border-black text-center">{item.jumlah}</TableCell>
+                                        <TableCell className="border border-black text-center">{item.satuan}</TableCell>
+                                        <TableCell className="border border-black">{item.keterangan}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 <p className="mb-12 text-justify indent-8">
                   {formData.penutup}

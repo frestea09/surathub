@@ -8,6 +8,14 @@ export type User = {
   password?: string;
 };
 
+export type TableItem = {
+    id: number;
+    nama: string;
+    jumlah: number;
+    satuan: string;
+    keterangan: string;
+};
+
 export type Surat = {
     nomor: string;
     judul: string;
