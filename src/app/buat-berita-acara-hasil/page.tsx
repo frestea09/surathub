@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,7 @@ const PesertaCard = ({ title, peserta, onAdd, onRemove, onChange }: { title: str
 );
 
 
-export default function BuatBeritaAcaraHasilPage() {
+function BuatBeritaAcaraHasilPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -402,5 +402,13 @@ export default function BuatBeritaAcaraHasilPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatBeritaAcaraHasilPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatBeritaAcaraHasilPageContent />
+    </Suspense>
   );
 }

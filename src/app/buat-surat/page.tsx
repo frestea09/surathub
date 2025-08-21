@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,7 +22,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useSuratStore } from "@/store/suratStore";
 
-export default function BuatSuratPage() {
+function BuatSuratPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -342,5 +342,13 @@ export default function BuatSuratPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatSuratPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatSuratPageContent />
+    </Suspense>
   );
 }

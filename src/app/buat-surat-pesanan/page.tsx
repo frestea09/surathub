@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -75,7 +75,7 @@ const initialItems: Item[] = [
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
-export default function BuatSuratPesananPage() {
+function BuatSuratPesananPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -845,5 +845,13 @@ export default function BuatSuratPesananPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatSuratPesananPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatSuratPesananPageContent />
+    </Suspense>
   );
 }
