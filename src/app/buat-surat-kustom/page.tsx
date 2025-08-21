@@ -460,7 +460,7 @@ export default function BuatSuratKustomPage() {
         </div>
       </main>
       {/* Print styles */}
-      <style jsx global>{\`
+      <style jsx global>{`
         @media print {
           body * {
             visibility: hidden;
@@ -476,7 +476,9 @@ export default function BuatSuratKustomPage() {
             width: 100%;
           }
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 }
+
+    
