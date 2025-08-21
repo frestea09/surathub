@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MoreVertical, GripVertical, Trash2, Plus, ArrowRight } from 'lucide-react';
+import { MoreVertical, GripVertical, Trash2, Plus, Pencil, ArrowRight } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,7 +88,6 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
         onUpdate({ ...workflow, steps: updatedSteps });
         setNewStepName('');
         setIsAddStepDialogOpen(false);
-        // Redirect user to the new custom template page to create it.
         router.push(newStep.href);
     };
 
@@ -97,6 +96,10 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
         onUpdate({ ...workflow, steps: updatedSteps });
         toast({ title: "Langkah Dihapus", description: "Langkah alur kerja telah dihapus." });
     };
+
+    const handleEditStep = (href: string) => {
+        router.push(href);
+    }
 
     return (
         <>
@@ -121,9 +124,14 @@ export function WorkflowCard({ workflow, onUpdate, onDelete }: WorkflowCardProps
                                     </div>
                                     <span>{step.label}</span>
                                 </div>
-                                <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => handleRemoveStep(step.id)}>
-                                     <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEditStep(step.href)}>
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleRemoveStep(step.id)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
                              </div>
                         </DraggableStep>
                     ))}

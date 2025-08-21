@@ -32,6 +32,10 @@ export default function BuatSuratKustomPage() {
   const templateId = searchParams.get('template');
   const templateLabel = searchParams.get('label') || 'Kustom';
   
+  // Custom templates use the templateId as their `nomor` for storage purposes.
+  // This allows us to find and edit them later.
+  const isEditMode = !!templateId && allSurat.some(s => s.nomor === templateId);
+
   const [formData, setFormData] = useState({
     nomor: "",
     lampiran: "-",
@@ -48,10 +52,21 @@ export default function BuatSuratKustomPage() {
   });
 
   useEffect(() => {
-    // This could be extended to load saved custom templates in the future
-    // For now, it just sets the perihal based on the label
-    setFormData(prev => ({ ...prev, perihal: templateLabel }));
-  }, [templateLabel]);
+    if (templateId) {
+      const existingTemplate = allSurat.find(s => s.nomor === templateId);
+      if (existingTemplate) {
+        // We are in edit mode, load the data.
+        const dataToLoad = existingTemplate.data;
+        setFormData({
+          ...dataToLoad,
+          tanggalSurat: dataToLoad.tanggalSurat ? new Date(dataToLoad.tanggalSurat) : new Date(),
+        });
+      } else {
+        // We are in creation mode for a new template.
+        setFormData(prev => ({ ...prev, perihal: templateLabel, nomor: `TEMPLATE-${templateId}` }));
+      }
+    }
+  }, [templateId, templateLabel, allSurat]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -71,26 +86,19 @@ export default function BuatSuratKustomPage() {
   };
 
   const handleSave = () => {
-    if (!formData.nomor) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Menyimpan",
-        description: "Nomor surat tidak boleh kosong.",
-      });
-      return;
+    if (!templateId) {
+       toast({ variant: "destructive", title: "Gagal", description: "ID templat tidak valid." });
+       return;
     }
-     if (!formData.perihal) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Menyimpan",
-        description: "Perihal tidak boleh kosong.",
-      });
+    if (!formData.perihal) {
+      toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Perihal tidak boleh kosong." });
       return;
     }
 
     try {
       const dataToSave = {
-        nomor: formData.nomor,
+        // Use a unique, non-user-facing ID for the surat nomor to store the template
+        nomor: templateId, 
         judul: formData.perihal,
         status: 'Draft',
         tanggal: formData.tanggalSurat.toISOString(),
@@ -104,14 +112,14 @@ export default function BuatSuratKustomPage() {
       
       toast({
         title: "Berhasil",
-        description: `Draf untuk "${formData.perihal}" berhasil disimpan.`,
+        description: isEditMode ? `Templat "${formData.perihal}" berhasil diperbarui.` : `Templat untuk "${formData.perihal}" berhasil disimpan.`,
       });
-      router.push("/surat-keluar?tab=draft");
+      router.push("/pengaturan/alur-kerja");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Gagal Menyimpan",
-        description: "Terjadi kesalahan saat menyimpan data.",
+        description: "Terjadi kesalahan saat menyimpan templat.",
       });
     }
   };
@@ -123,11 +131,11 @@ export default function BuatSuratKustomPage() {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Kembali</span>
         </Button>
-        <h1 className="text-xl font-semibold">Buat Templat: {templateLabel}</h1>
+        <h1 className="text-xl font-semibold">{isEditMode ? 'Ubah' : 'Buat'} Templat: {templateLabel}</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            Simpan Draf
+            {isEditMode ? 'Update Templat' : 'Simpan Templat'}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -139,9 +147,9 @@ export default function BuatSuratKustomPage() {
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Detail Surat Kustom</CardTitle>
+              <CardTitle>Desain Templat Surat</CardTitle>
               <CardDescription>
-                Isi detail untuk templat surat baru Anda.
+                 Isi konten default untuk templat surat baru Anda. Ini dapat diubah nanti saat membuat surat sebenarnya.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -157,12 +165,12 @@ export default function BuatSuratKustomPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nomor">Nomor Surat</Label>
+                <Label htmlFor="nomor">Format Nomor Surat (Opsional)</Label>
                 <Input
                   id="nomor"
                   value={formData.nomor}
                   onChange={handleInputChange}
-                  placeholder="Diisi sesuai standar penomoran"
+                  placeholder="Contoh: .../SK-DIR/UMUM/I/2025"
                 />
               </div>
               <div className="space-y-2">
@@ -350,4 +358,3 @@ export default function BuatSuratKustomPage() {
     </div>
   );
 }
-
