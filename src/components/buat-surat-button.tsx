@@ -36,11 +36,13 @@ const MainMenu = ({ workflows, setView }: { workflows: Workflow[], setView: (vie
         {workflows.map(wf => {
             const Icon = getIconForTitle(wf.title);
             return (
-                 <Button key={wf.id} variant="ghost" className="w-full justify-start h-12" onClick={() => setView(wf.id)}>
-                    <Icon className="mr-3 h-5 w-5" />
-                    <div>
-                        <p className="text-base">{wf.title}</p>
-                        <p className="text-xs text-muted-foreground text-left">{wf.description}</p>
+                 <Button key={wf.id} variant="ghost" className="w-full justify-start h-auto py-2" onClick={() => setView(wf.id)}>
+                    <div className="flex items-start gap-3">
+                        <Icon className="h-5 w-5 mt-1 flex-shrink-0" />
+                        <div className="text-left">
+                            <p className="text-base">{wf.title}</p>
+                            <p className="text-xs text-muted-foreground whitespace-normal">{wf.description}</p>
+                        </div>
                     </div>
                 </Button>
             )
