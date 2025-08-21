@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -47,8 +46,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DatePickerWithWarning } from "@/components/ui/date-picker-with-warning";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useSuratStore, type Surat } from "@/store/suratStore";
-import LogoRSUD from '@/app/logo-rs.png';
+import { useSuratStore } from "@/store/suratStore";
+import type { Surat } from "@/types";
+import LogoRSUD from "@/app/logo-rs.png";
 
 type Item = {
   id: number;
@@ -77,8 +77,8 @@ function BuatBeritaAcaraPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addSurat, surat: allSurat } = useSuratStore();
-  
-  const editNomor = searchParams.get('edit');
+
+  const editNomor = searchParams.get("edit");
   const isEditMode = !!editNomor;
 
   const [formData, setFormData] = useState({
@@ -102,28 +102,31 @@ function BuatBeritaAcaraPageContent() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importSearchTerm, setImportSearchTerm] = useState("");
   const [importCurrentPage, setImportCurrentPage] = useState(1);
-  
+
   const availableSurat = useMemo(() => {
-    return allSurat.filter(s => s.tipe === 'SP-Vendor');
+    return allSurat.filter((s) => s.tipe === "SP-Vendor");
   }, [allSurat]);
 
   useEffect(() => {
     if (isEditMode && allSurat.length > 0) {
-      const suratToEdit = allSurat.find(s => s.nomor === editNomor && s.tipe === 'BA');
+      const suratToEdit = allSurat.find(
+        (s) => s.nomor === editNomor && s.tipe === "BA",
+      );
       if (suratToEdit) {
         const { formData: dataToLoad, items: itemsToLoad } = suratToEdit.data;
         setFormData({
-            ...dataToLoad,
-            tanggalSuratReferensi: dataToLoad.tanggalSuratReferensi ? new Date(dataToLoad.tanggalSuratReferensi) : new Date(),
+          ...dataToLoad,
+          tanggalSuratReferensi: dataToLoad.tanggalSuratReferensi
+            ? new Date(dataToLoad.tanggalSuratReferensi)
+            : new Date(),
         });
         setItems(itemsToLoad || []);
       }
     }
   }, [editNomor, allSurat, isEditMode]);
 
-
   const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -131,17 +134,17 @@ function BuatBeritaAcaraPageContent() {
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-      setFormData(prev => ({...prev, tanggalSuratReferensi: date}));
+      setFormData((prev) => ({ ...prev, tanggalSuratReferensi: date }));
     }
-  }
+  };
 
   const handleItemChange = (
     id: number,
     field: keyof Item,
-    value: string | number
+    value: string | number,
   ) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   };
 
@@ -175,7 +178,9 @@ function BuatBeritaAcaraPageContent() {
       vendorNama: fd?.penerima || prev.vendorNama,
       penyediaNama: fd?.penerima || prev.penyediaNama,
       nomorSuratReferensi: fd?.nomor || prev.nomorSuratReferensi,
-      tanggalSuratReferensi: fd?.tanggalSurat ? new Date(fd.tanggalSurat) : prev.tanggalSuratReferensi,
+      tanggalSuratReferensi: fd?.tanggalSurat
+        ? new Date(fd.tanggalSurat)
+        : prev.tanggalSuratReferensi,
     }));
 
     const mappedItems: Item[] = (i || []).map((item: any, index: number) => ({
@@ -203,25 +208,36 @@ function BuatBeritaAcaraPageContent() {
     }
 
     try {
-      const suratToSave = {
+      const suratToSave: Surat = {
         nomor: formData.nomor,
         judul: `Berita Acara untuk ${formData.vendorNama}`,
-        status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft',
+        jenis: "Surat Keluar",
+        status: isEditMode
+          ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+          : "Draft",
         tanggal: new Date().toISOString(),
         penanggungJawab: formData.pejabatNama,
         dariKe: formData.vendorNama,
-        tipe: 'BA',
+        tipe: "BA",
+        unit: "Pengadaan",
         data: {
-          formData: { ...formData, status: isEditMode ? (allSurat.find(s => s.nomor === editNomor)?.status || 'Draft') : 'Draft' },
+          formData: {
+            ...formData,
+            status: isEditMode
+              ? allSurat.find((s) => s.nomor === editNomor)?.status || "Draft"
+              : "Draft",
+          },
           items,
-        }
+        },
       };
 
       addSurat(suratToSave);
 
       toast({
         title: "Berhasil",
-        description: isEditMode ? "Draf berita acara berhasil diperbarui." : "Data berita acara berhasil disimpan sebagai draft.",
+        description: isEditMode
+          ? "Draf berita acara berhasil diperbarui."
+          : "Data berita acara berhasil disimpan sebagai draft.",
       });
       router.push("/surat-keluar?tab=draft");
     } catch (error) {
@@ -239,27 +255,40 @@ function BuatBeritaAcaraPageContent() {
 
   // Pagination and search for import dialog
   const filteredImportSurat = useMemo(() => {
-    return availableSurat.filter(s =>
-      s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
-      s.judul.toLowerCase().includes(importSearchTerm.toLowerCase())
+    return availableSurat.filter(
+      (s) =>
+        s.nomor.toLowerCase().includes(importSearchTerm.toLowerCase()) ||
+        s.judul.toLowerCase().includes(importSearchTerm.toLowerCase()),
     );
   }, [availableSurat, importSearchTerm]);
 
   const paginatedImportSurat = useMemo(() => {
     const startIndex = (importCurrentPage - 1) * IMPORT_ITEMS_PER_PAGE;
-    return filteredImportSurat.slice(startIndex, startIndex + IMPORT_ITEMS_PER_PAGE);
+    return filteredImportSurat.slice(
+      startIndex,
+      startIndex + IMPORT_ITEMS_PER_PAGE,
+    );
   }, [filteredImportSurat, importCurrentPage]);
 
-  const totalImportPages = Math.ceil(filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE);
+  const totalImportPages = Math.ceil(
+    filteredImportSurat.length / IMPORT_ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => router.back()}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-xl font-semibold">{isEditMode ? 'Edit' : 'Buat'} Berita Acara</h1>
+        <h1 className="text-xl font-semibold">
+          {isEditMode ? "Edit" : "Buat"} Berita Acara
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" onClick={handleOpenImportDialog}>
             <Download className="mr-2 h-4 w-4" />
@@ -267,7 +296,7 @@ function BuatBeritaAcaraPageContent() {
           </Button>
           <Button variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
-            {isEditMode ? 'Update Draf' : 'Simpan'}
+            {isEditMode ? "Update Draf" : "Simpan"}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
@@ -333,10 +362,8 @@ function BuatBeritaAcaraPageContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>
-                  Tanggal Surat Referensi
-                </Label>
-                <DatePickerWithWarning 
+                <Label>Tanggal Surat Referensi</Label>
+                <DatePickerWithWarning
                   date={formData.tanggalSuratReferensi}
                   onDateChange={handleDateChange}
                 />
@@ -430,7 +457,7 @@ function BuatBeritaAcaraPageContent() {
                               handleItemChange(
                                 item.id,
                                 "satuan",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />
@@ -455,7 +482,7 @@ function BuatBeritaAcaraPageContent() {
                               handleItemChange(
                                 item.id,
                                 "jumlah",
-                                parseInt(e.target.value, 10) || 0
+                                parseInt(e.target.value, 10) || 0,
                               )
                             }
                           />
@@ -471,7 +498,7 @@ function BuatBeritaAcaraPageContent() {
                               handleItemChange(
                                 item.id,
                                 "keterangan",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />
@@ -496,7 +523,13 @@ function BuatBeritaAcaraPageContent() {
               >
                 {/* KOP SURAT */}
                 <div className="flex items-center justify-center text-center border-b-4 border-black pb-2 mb-4">
-                  <Image src={LogoRSUD}  alt="Logo RSUD" width={80} height={80} className="mr-4" />
+                  <Image
+                    src={LogoRSUD}
+                    alt="Logo RSUD"
+                    width={80}
+                    height={80}
+                    className="mr-4"
+                  />
                   <div>
                     <h1 className="font-bold text-lg tracking-wide">
                       RUMAH SAKIT UMUM DAERAH OTO ISKANDAR DI NATA
@@ -538,8 +571,12 @@ function BuatBeritaAcaraPageContent() {
                 <p className="mb-4 text-justify indent-8">
                   Sebagai Realisasi dari Surat Pesanan dari Pejabat Pembuat
                   Komitmen Nomor: {formData.nomorSuratReferensi} Tanggal{" "}
-                  {formData.tanggalSuratReferensi ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", { locale: id }) : ""}, dengan jumlah dan jenis
-                  barang sebagai berikut:
+                  {formData.tanggalSuratReferensi
+                    ? format(formData.tanggalSuratReferensi, "dd MMMM yyyy", {
+                        locale: id,
+                      })
+                    : ""}
+                  , dengan jumlah dan jenis barang sebagai berikut:
                 </p>
 
                 <Table className="mb-4 text-[10pt]">
@@ -632,14 +669,14 @@ function BuatBeritaAcaraPageContent() {
               secara otomatis.
             </DialogDescription>
           </DialogHeader>
-           <div className="relative my-4">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                  placeholder="Cari no. surat atau perihal..."
-                  value={importSearchTerm}
-                  onChange={(e) => setImportSearchTerm(e.target.value)}
-                  className="pl-8"
-              />
+          <div className="relative my-4">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari no. surat atau perihal..."
+              value={importSearchTerm}
+              onChange={(e) => setImportSearchTerm(e.target.value)}
+              className="pl-8"
+            />
           </div>
           <ScrollArea className="max-h-80">
             <div className="pr-4 space-y-2">
@@ -667,12 +704,12 @@ function BuatBeritaAcaraPageContent() {
               )}
             </div>
           </ScrollArea>
-           {totalImportPages > 1 && (
+          {totalImportPages > 1 && (
             <div className="flex items-center justify-center space-x-2 pt-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setImportCurrentPage(p => Math.max(p - 1, 1))}
+                onClick={() => setImportCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={importCurrentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -683,7 +720,9 @@ function BuatBeritaAcaraPageContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setImportCurrentPage(p => Math.min(p + 1, totalImportPages))}
+                onClick={() =>
+                  setImportCurrentPage((p) => Math.min(p + 1, totalImportPages))
+                }
                 disabled={importCurrentPage === totalImportPages}
               >
                 <ChevronRight className="h-4 w-4" />
