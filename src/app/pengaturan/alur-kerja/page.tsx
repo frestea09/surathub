@@ -64,7 +64,7 @@ export default function AlurKerjaPage() {
     const handleAddWorkflow = () => {
         const newWorkflow: Workflow = {
             id: `wf-${Date.now()}`,
-            title: "Alur Pengadaan Baru (Tanpa Judul)",
+            title: "Alur Baru (Tanpa Judul)",
             description: "Alur baru yang dibuat oleh pengguna",
             steps: [],
         };
@@ -90,12 +90,12 @@ export default function AlurKerjaPage() {
                 <div>
                     <h1 className="text-lg font-semibold md:text-2xl">Pengelola Alur Kerja</h1>
                     <p className="text-sm text-muted-foreground">
-                        Sesuaikan alur pengadaan dan templat surat sesuai kebutuhan Anda.
+                        Sesuaikan alur dan templat surat sesuai kebutuhan Anda.
                     </p>
                 </div>
                 <Button onClick={handleAddWorkflow}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Tambah Alur Pengadaan Baru
+                    Tambah Alur Baru
                 </Button>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">

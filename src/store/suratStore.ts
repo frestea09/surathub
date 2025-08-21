@@ -115,6 +115,14 @@ const getInitialWorkflowData = (): Workflow[] => {
                 { id: "s8", label: "Surat Pesanan", href: "/buat-surat-pesanan-umum" },
                 { id: "s9", label: "Berita Acara Pemeriksaan", href: "/buat-berita-acara-umum" },
             ]
+        },
+        {
+            id: 'wf-personalia',
+            title: "Surat Personalia & SDM",
+            description: "Templat untuk surat terkait kepegawaian.",
+            steps: [
+                { id: "s10", label: "Surat Pengunduran Diri", href: "/buat-surat" },
+            ]
         }
     ];
 };

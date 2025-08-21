@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt, CheckCircle, ArrowRight, Circle } from "lucide-react"
+import { FileSignature, FileText, PlusCircle, ChevronLeft, Package, Pill, Receipt, CheckCircle, ArrowRight, Circle, Building2, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,42 +11,40 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
-import { BUAT_SURAT_POPOVER } from "@/lib/constants"
-import { cn } from "@/lib/utils"
+import { useSuratStore } from "@/store/suratStore"
+import type { Workflow, WorkflowStep } from "@/types"
 
-const suratObatItems = [
-  { label: BUAT_SURAT_POPOVER.SURAT_PERINTAH, href: "/buat-surat", icon: FileText },
-  { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_INTERNAL, href: "/buat-surat-pesanan", icon: FileText },
-  { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_VENDOR, href: "/buat-surat-pesanan-final", icon: FileText },
-  { label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN, href: "/buat-berita-acara", icon: FileSignature },
-  { label: BUAT_SURAT_POPOVER.BERITA_ACARA_SERAH_TERIMA, href: "/buat-bastb", icon: FileSignature },
-];
+const iconMapping: { [key: string]: React.ElementType } = {
+    "pengadaan": Package,
+    "obat": Pill,
+    "personalia": User,
+    "default": FileText,
+};
 
-const suratUmumItems = [
-    { label: BUAT_SURAT_POPOVER.SURAT_PERINTAH_PENGADAAN, href: "/buat-surat-perintah-umum", icon: FileText },
-    { label: BUAT_SURAT_POPOVER.BERITA_ACARA_HASIL_PENGADAAN, href: "/buat-berita-acara-hasil", icon: FileSignature },
-    { label: BUAT_SURAT_POPOVER.SURAT_PESANAN_UMUM, href: "/buat-surat-pesanan-umum", icon: Receipt },
-    { label: BUAT_SURAT_POPOVER.BERITA_ACARA_PEMERIKSAAN_UMUM, href: "/buat-berita-acara-umum", icon: FileSignature },
-];
+const getIconForTitle = (title: string): React.ElementType => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes("obat") || lowerTitle.includes("farmasi")) return iconMapping.obat;
+    if (lowerTitle.includes("pengadaan") || lowerTitle.includes("umum")) return iconMapping.pengadaan;
+    if (lowerTitle.includes("personalia") || lowerTitle.includes("sdm")) return iconMapping.personalia;
+    return iconMapping.default;
+};
 
-const MainMenu = ({ setView }: { setView: (view: 'obat' | 'umum') => void }) => (
+
+const MainMenu = ({ workflows, setView }: { workflows: Workflow[], setView: (view: string) => void }) => (
     <div className="p-2 space-y-2">
-        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Pilih Jenis Pengadaan</h3>
-        <Button variant="ghost" className="w-full justify-start h-12" onClick={() => setView('obat')}>
-            <Pill className="mr-3 h-5 w-5" />
-            <div>
-                <p className="text-base">Obat & Alkes</p>
-                <p className="text-xs text-muted-foreground text-left">Alur untuk Farmasi & Alat Kesehatan</p>
-            </div>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-12" onClick={() => setView('umum')}>
-            <Package className="mr-3 h-5 w-5" />
-            <div>
-                <p className="text-base">Barang Jasa Umum</p>
-                 <p className="text-xs text-muted-foreground text-left">Alur untuk pengadaan non-farmasi</p>
-            </div>
-        </Button>
+        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Pilih Jenis Alur Kerja</h3>
+        {workflows.map(wf => {
+            const Icon = getIconForTitle(wf.title);
+            return (
+                 <Button key={wf.id} variant="ghost" className="w-full justify-start h-12" onClick={() => setView(wf.id)}>
+                    <Icon className="mr-3 h-5 w-5" />
+                    <div>
+                        <p className="text-base">{wf.title}</p>
+                        <p className="text-xs text-muted-foreground text-left">{wf.description}</p>
+                    </div>
+                </Button>
+            )
+        })}
     </div>
 );
 
@@ -57,13 +55,11 @@ const StepIcon = ({ step }: { step: number }) => (
 );
 
 const WorkflowMenu = ({
-    title,
-    items,
+    workflow,
     onBack,
     onSelect
 }: {
-    title: string,
-    items: typeof suratObatItems,
+    workflow: Workflow,
     onBack: () => void,
     onSelect: (href: string) => void
 }) => {
@@ -73,12 +69,12 @@ const WorkflowMenu = ({
                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2" onClick={onBack}>
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h3 className="text-sm font-semibold">{title}</h3>
+                <h3 className="text-sm font-semibold">{workflow.title}</h3>
             </div>
             <div className="p-2">
                 <p className="text-xs text-muted-foreground px-2 mb-2">Pilih langkah alur kerja yang ingin Anda mulai.</p>
                 <div className="space-y-1">
-                    {items.map((item, index) => (
+                    {workflow.steps.map((item, index) => (
                         <div key={item.href}>
                              <Button
                                 variant="ghost"
@@ -86,9 +82,9 @@ const WorkflowMenu = ({
                                 onClick={() => onSelect(item.href)}
                             >
                                 <StepIcon step={index + 1} />
-                                <span className="ml-3 text-left">{item.label.substring(3)}</span>
+                                <span className="ml-3 text-left">{item.label}</span>
                             </Button>
-                            {index < items.length - 1 && (
+                            {index < workflow.steps.length - 1 && (
                                 <div className="ml-3 my-1 border-l-2 border-dashed border-border h-4" />
                             )}
                         </div>
@@ -103,17 +99,12 @@ const WorkflowMenu = ({
 export function BuatSuratButton() {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
-  const [view, setView] = React.useState<'main' | 'obat' | 'umum'>('main');
+  const [view, setView] = React.useState<string>('main');
+  const { workflows, fetchWorkflows } = useSuratStore();
 
-  const handleSelect = (href: string) => {
-    router.push(href)
-    setOpen(false)
-    setTimeout(() => setView('main'), 300);
-  }
-
-  const handleBack = () => {
-      setView('main');
-  }
+  React.useEffect(() => {
+    fetchWorkflows();
+  }, [fetchWorkflows]);
 
   React.useEffect(() => {
       if (open) {
@@ -121,32 +112,35 @@ export function BuatSuratButton() {
       }
   }, [open]);
 
+  const handleSelect = (href: string) => {
+    router.push(href)
+    setOpen(false)
+  }
+
+  const handleBack = () => {
+      setView('main');
+  }
+
+  const selectedWorkflow = workflows.find(wf => wf.id === view);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          {BUAT_SURAT_POPOVER.BUTTON_LABEL}
+          Buat Surat Baru
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[320px] p-0" align="end">
-        {view === 'main' && <MainMenu setView={setView} />}
-        {view === 'obat' && (
+        {view === 'main' ? (
+            <MainMenu workflows={workflows} setView={setView} />
+        ) : selectedWorkflow ? (
             <WorkflowMenu
-                title="Alur Pengadaan Obat & Alkes"
-                items={suratObatItems}
+                workflow={selectedWorkflow}
                 onBack={handleBack}
                 onSelect={handleSelect}
             />
-        )}
-        {view === 'umum' && (
-             <WorkflowMenu
-                title="Alur Pengadaan Umum"
-                items={suratUmumItems}
-                onBack={handleBack}
-                onSelect={handleSelect}
-            />
-        )}
+        ) : null}
       </PopoverContent>
     </Popover>
   )
