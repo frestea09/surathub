@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { useSuratStore, type Surat } from '@/store/suratStore';
 
 const IMPORT_ITEMS_PER_PAGE = 3;
 
-export default function BuatBastbPage() {
+function BuatBastbPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -437,5 +437,13 @@ export default function BuatBastbPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function BuatBastbPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BuatBastbPageContent />
+    </Suspense>
   );
 }
